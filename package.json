@@ -1,0 +1,14 @@
+{
+  "name": "geo-voxels",
+  "version": "0.1.0",
+  "description": "Real places (OpenStreetMap + USGS 3DEP via Blender/BlenderGIS) to straight-street, grid-aligned voxel maps at 1:1.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": { ".": "./src/index.js" },
+  "bin": { "geo-voxels": "bin/geo-voxels.mjs" },
+  "scripts": { "test": "node --test test/*.test.js" },
+  "engines": { "node": ">=20" },
+  "keywords": ["voxel", "openstreetmap", "blender", "blendergis", "procedural", "map", "game", "3dep", "magicavoxel"],
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/Dankcode/Geo-voxels.git" }
+}
