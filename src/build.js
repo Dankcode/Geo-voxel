@@ -138,7 +138,8 @@ export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', s
     const landAt = new Map(), freeCell = (x, y) => x >= 0 && y >= 0 && x < W && y < D && !occupied.has(k2(x, y)) && !roadAt.has(k2(x, y)) && !lotSet.has(k2(x, y));
     const GREEN = a => /^(park|garden|pitch|playground|dog_park|common)$/.test(a.tags?.leisure || '') || /^(grass|recreation_ground|village_green|meadow|cemetery|flowerbed|forest)$/.test(a.tags?.landuse || '') || /^(grassland|wood|scrub)$/.test(a.tags?.natural || '');
     for (const a of (G.areas || []).filter(a => a.ring?.length >= 3 && GREEN(a)).sort((p, q) => (p.tags?.leisure === 'park' ? 0 : 1) - (q.tags?.leisure === 'park' ? 0 : 1))) {
-        const plaza = /plaza|square|piazza/i.test(a.tags?.name || '') && a.tags?.leisure === 'park';
+        // (a US "square" is usually a green park: only plazas/piazzas or explicitly paved parks are paved)
+        const plaza = a.tags?.leisure === 'park' && (/plaza|piazza/i.test(a.tags?.name || '') || /^(paving_stones|sett|concrete|paved|asphalt)$/.test(a.tags?.surface || ''));
         for (const c of rasterPolygon(a.ring.map(toC), W, D)) if (freeCell(...c)) landAt.set(k2(...c), plaza ? 'plaza' : 'green');
     }
     for (const h of G.highways || []) {
@@ -243,7 +244,7 @@ export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', s
             const rim = (x, y) => N4.some(([dx, dy]) => !pset.has(k2(x + dx, y + dy)));
             for (let z = zFrom; z <= Math.max(zFrom, zEave); z++) for (const [x, y] of pc) if (z === zFrom) g.set(x, y, z, M.floor); else if (rim(x, y)) g.set(x, y, z, (z - zFrom) % 4 === 2 && pc.length > 6 && (x + y) % 2 ? M.glass : pm);
             const xs = pc.map(c => c[0]), ys = pc.map(c => c[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), gable = /gabled|saltbox/.test(p.roofShape);
-            const rise = roofV || (p.roofShape === 'flat' ? 0 : Math.max(1, Math.floor(Math.min(x1 - x0 + 1, y1 - y0 + 1) / 2)));
+            const rise = roofV || (p.roofShape === 'flat' ? 0 : Math.max(1, Math.min(3, Math.floor(Math.min(x1 - x0 + 1, y1 - y0 + 1) / 2))));
             for (const [x, y] of pc) {
                 if (!rise) { g.set(x, y, Math.max(zFrom, zEave) + 1, M.roof); continue; }
                 const inX = Math.min(x - x0, x1 - x), inY = Math.min(y - y0, y1 - y), step = gable ? (x1 - x0 >= y1 - y0 ? inY : inX) : Math.min(inX, inY);

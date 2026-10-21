@@ -13,6 +13,10 @@ runs straight across the road — no ragged pixel staircases from roads that wer
 *Sherwood Forest Blvd × Florida Blvd and Third Street, Baton Rouge (examples/). Florida Blvd really meets Sherwood at
 about 79°; on the straightened map it is 90° and the shopping centre slides with it.*
 
+| Old State Capitol, Baton Rouge (Gothic Revival, lawn and paths) | Independence Hall, Philadelphia (tower from OSM 3D parts) |
+|---|---|
+| ![capitol](docs/img/baton-rouge-old-state-capitol-grid.png) | ![independence hall](docs/img/philadelphia-independence-hall-grid.png) |
+
 ![in game](docs/img/in-game-sherwood.jpg)
 *The Sherwood map in a turn-based tactics game (Three.js) — road paint from the same road graph.*
 
