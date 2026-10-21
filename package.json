@@ -1,14 +1,62 @@
 {
   "name": "geo-voxels",
   "version": "0.1.0",
-  "description": "Real places (OpenStreetMap + USGS 3DEP via Blender/BlenderGIS) to straight-street, grid-aligned voxel maps at 1:1.",
+  "description": "Voxel map builder: procedural towns (XCOM-style operations, large districts) and real places (OpenStreetMap + USGS 3DEP via Blender/BlenderGIS) to straight-street, furnished voxel maps \u2014 library, CLI and a Three.js app.",
   "type": "module",
   "main": "src/index.js",
-  "exports": { ".": "./src/index.js" },
-  "bin": { "geo-voxels": "bin/geo-voxels.mjs" },
-  "scripts": { "test": "node --test test/*.test.js" },
-  "engines": { "node": ">=20" },
-  "keywords": ["voxel", "openstreetmap", "blender", "blendergis", "procedural", "map", "game", "3dep", "magicavoxel"],
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "bin": {
+    "geo-voxels": "bin/geo-voxels.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "app": "vite --config app/vite.config.js",
+    "app:build": "vite build --config app/vite.config.js",
+    "engine:sync": "node tools/sync-engine.mjs",
+    "engine:check": "node tools/sync-engine.mjs --check"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "3dep",
+    "blender",
+    "blendergis",
+    "game",
+    "magicavoxel",
+    "map",
+    "openstreetmap",
+    "procedural",
+    "procedural-generation",
+    "three.js",
+    "town-generator",
+    "voxel",
+    "wave-function-collapse",
+    "xcom"
+  ],
   "license": "MIT",
-  "repository": { "type": "git", "url": "https://github.com/Dankcode/Geo-voxels.git" }
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dankcode/Geo-voxels.git"
+  },
+  "devDependencies": {
+    "three": "0.169.0",
+    "vite": "5.4.10"
+  },
+  "files": [
+    "src",
+    "engine",
+    "bin",
+    "blender",
+    "app",
+    "examples",
+    "docs",
+    "skill",
+    "tools",
+    "README.md",
+    "DATA.md",
+    "LICENSE"
+  ]
 }

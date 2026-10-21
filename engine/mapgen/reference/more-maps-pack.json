@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "parcels": [
+    {
+      "id": "md_AdventLandingPad_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [
+        "SupplyLineRaid",
+        "RecoverFD"
+      ],
+      "size": "medium",
+      "plotTypes": [
+        "Wilderness"
+      ],
+      "zones": [
+        "TroopTransport"
+      ],
+      "facing": "s",
+      "entrances": [],
+      "allowNonObjectiveOverride": true
+    },
+    {
+      "id": "md_AdventLandingPad_daz_02",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [
+        "SupplyLineRaid",
+        "RecoverFD"
+      ],
+      "size": "medium",
+      "plotTypes": [
+        "Wilderness"
+      ],
+      "zones": [
+        "TroopTransport"
+      ],
+      "facing": "s",
+      "entrances": [],
+      "allowNonObjectiveOverride": true
+    },
+    {
+      "id": "sm_Billboard_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [],
+      "size": "small",
+      "plotTypes": [
+        "SmallTown"
+      ],
+      "zones": [
+        "Neighborhood"
+      ],
+      "facing": "n",
+      "entrances": [],
+      "allowNonObjectiveOverride": false
+    },
+    {
+      "id": "sm_Plateau_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [],
+      "size": "small",
+      "plotTypes": [
+        "Wilderness",
+        "Shanty"
+      ],
+      "zones": [
+        "Wilderness"
+      ],
+      "facing": null,
+      "entrances": [],
+      "allowNonObjectiveOverride": false
+    },
+    {
+      "id": "sm_PawnShop_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [],
+      "size": "small",
+      "plotTypes": [
+        "Slums"
+      ],
+      "zones": [
+        "Commercial"
+      ],
+      "facing": "w",
+      "entrances": [],
+      "allowNonObjectiveOverride": false
+    },
+    {
+      "id": "sm_HomeStead_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [],
+      "size": "small",
+      "plotTypes": [
+        "Shanty"
+      ],
+      "zones": [
+        "Shanty"
+      ],
+      "facing": null,
+      "entrances": [
+        {
+          "side": "e",
+          "socket": 1
+        },
+        {
+          "side": "w",
+          "socket": 1
+        },
+        {
+          "side": "s",
+          "socket": 1
+        }
+      ],
+      "allowNonObjectiveOverride": false
+    },
+    {
+      "id": "lg_GraveYard_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [
+        "AvengerDefense",
+        "Multiplayer",
+        "RecoverFD"
+      ],
+      "size": "large",
+      "plotTypes": [
+        "Wilderness"
+      ],
+      "zones": [
+        "Developed"
+      ],
+      "facing": null,
+      "entrances": [
+        {
+          "side": "e",
+          "socket": 1
+        },
+        {
+          "side": "n",
+          "socket": 2
+        }
+      ],
+      "allowNonObjectiveOverride": true
+    },
+    {
+      "id": "md_AdventSecurity_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [
+        "Hack",
+        "Recover",
+        "Advent"
+      ],
+      "size": "medium",
+      "plotTypes": [
+        "SmallTown",
+        "Wilderness"
+      ],
+      "zones": [
+        "Blacksite_Security",
+        "Retail",
+        "Neighborhood"
+      ],
+      "facing": "s",
+      "entrances": [],
+      "allowNonObjectiveOverride": true
+    }
+  ],
+  "plots": [
+    {
+      "id": "Plot_TWN_Neigh_LgObj_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [
+        "GuerillaOps",
+        "MediumPlot",
+        "Vehicle"
+      ],
+      "plotType": "SmallTown",
+      "biomes": [
+        "Temperate",
+        "Arid",
+        "Tundra"
+      ]
+    },
+    {
+      "id": "Plot_SLM_LgObj_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [
+        "GuerillaOps",
+        "LargePlot",
+        "Vehicle"
+      ],
+      "plotType": "Slums",
+      "biomes": []
+    },
+    {
+      "id": "Plot_CTY_LgObj_Civic_daz_01",
+      "source": "MoreMapsPack/Config/XComParcels.ini",
+      "objectiveTags": [
+        "CityCenter",
+        "LargePlot"
+      ],
+      "plotType": "CityCenter",
+      "biomes": []
+    }
+  ],
+  "coverPieces": [
+    {
+      "id": "SLM_Blvd_Str_16x16_AdventCP_daz_01",
+      "source": "MoreMapsPack/Config/XcomPCPs.ini",
+      "objectiveTags": [],
+      "plotTypes": [
+        "Slums"
+      ],
+      "type": "Boulevard",
+      "turn": "Straight",
+      "width": 16,
+      "length": 16,
+      "checkpoint": true
+    }
+  ],
+  "archive": "XCOM 2 - More Maps Pack-302-13-1.zip",
+  "sha256": "5f9847292788370971790ac6f944ae959c63b8f4cdbc7e0975eb38a980ddbaa7",
+  "note": "Active configuration only; commented/cancelled definitions excluded. Unreal map geometry and the engine generator are not included."
+}

@@ -4,15 +4,23 @@
 //   geo-voxels blender --lat 30.4583 --lon -91.0587 --window -100,71,-97,74 [--pad 30] [--dem USGS10m] --out dir
 //       prints the Blender (BlenderGIS) Python that fetches OSM + DEM and writes dir/blender-export.json
 //   geo-voxels build <blender-export.json> --out dir [--raw] [--cell 0.9] [--storey 3] [--tags overrides.json]
-//       writes dir/map.vox (MagicaVoxel), dir/grid.json, dir/layers.json, dir/slate.png, dir/report.json
+//       lite real-place build (shells): dir/map.vox, grid.json, layers.json, slate.png, report.json
+//   geo-voxels generate --generator operation|district|place --theme <id> [--seed 1] [--geo export.json]
+//                       [--params '{"remix":{"maxStoreys":2}}'] [--tactics] [--prefabs] --out dir
+//       town engine (furnished interiors, props): dir/map.vox, grid.json, map.json (layers + meta), slate.png
+//       --prefabs (place): every real building baked to dir/prefabs/<building>.json + index.json
+//   geo-voxels list          generators, themes and parameters
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildPlace } from '../src/build.js';
 import { toVox, toSlatePNG } from '../src/export.js';
+import { generate, GENERATORS } from '../src/town.js';
+import { tactics } from '../src/plugins/tactics.js';
+import { bakePlacePrefabs } from '../engine/mapgen/geo/BuildingPrefab.js';
 
 const argv = process.argv.slice(2), cmd = argv[0], opt = (k, d = null) => argv.includes(k) ? argv[argv.indexOf(k) + 1] : d;
-const usage = () => { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 8).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exit(2); };
+const usage = () => { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 14).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exit(2); };
 if (cmd === 'blender') {
     const lat = Number(opt('--lat')), lon = Number(opt('--lon')), win = (opt('--window') || '').split(',').map(Number), out = resolve(opt('--out', 'geo-out'));
     if (!Number.isFinite(lat) || !Number.isFinite(lon) || win.length !== 4 || win.some(v => !Number.isFinite(v))) usage();
@@ -36,4 +44,27 @@ ns['start'](lat=${lat}, lon=${lon}, extent=(${win.join(', ')}), pad=${Number(opt
     writeFileSync(join(out, 'slate.png'), toSlatePNG(r.grid));
     writeFileSync(join(out, 'report.json'), JSON.stringify({ ms, ...r.report }, null, 1));
     console.log(`geo-voxels: ${r.grid.width}×${r.grid.depth}×${r.grid.height} in ${ms} ms · ${r.report.buildings.length} buildings · ${r.layers.roads.length} streets · rotated ${r.report.theta}° · ${r.report.straighten ? `straightened (max shift ${r.report.straighten.maxShift} cells)` : 'raw geometry'} → ${out}`);
+} else if (cmd === 'list') {
+    for (const [id, g] of Object.entries(GENERATORS)) {
+        console.log(`\n${id} — ${g.label} (${g.size})\n  ${g.text}`);
+        for (const t of g.themes) console.log(`  --theme ${t.id.padEnd(17)} ${t.name}: ${t.text}`);
+        console.log(`  params: ${JSON.stringify(g.params)}`);
+    }
+} else if (cmd === 'generate') {
+    const generator = opt('--generator', 'district'), out = resolve(opt('--out', 'map-out')); mkdirSync(out, { recursive: true });
+    const geo = opt('--geo') ? JSON.parse(readFileSync(resolve(opt('--geo')), 'utf8')) : null;
+    const r = generate({ generator, theme: opt('--theme'), seed: Number(opt('--seed', 1)), geo, params: opt('--params') ? JSON.parse(opt('--params')) : {}, plugins: argv.includes('--tactics') ? [tactics()] : [], engineMap: argv.includes('--prefabs') });
+    const { grid, palette, ...rest } = r;
+    writeFileSync(join(out, 'map.vox'), toVox(grid));
+    writeFileSync(join(out, 'grid.json'), JSON.stringify(grid.toJSON()));
+    writeFileSync(join(out, 'map.json'), JSON.stringify({ ...rest, palette }));
+    writeFileSync(join(out, 'slate.png'), toSlatePNG(grid));
+    if (argv.includes('--prefabs')) {
+        if (generator !== 'place') { console.error('--prefabs: real places only (their buildings are grouped by OSM outline)'); process.exit(2); }
+        const pfs = bakePlacePrefabs(r.engine, { place: opt('--name', 'place') }); mkdirSync(join(out, 'prefabs'), { recursive: true });
+        for (const pf of pfs) writeFileSync(join(out, 'prefabs', `${pf.id}.json`), JSON.stringify(pf));
+        writeFileSync(join(out, 'prefabs', 'index.json'), JSON.stringify(pfs.map(p => ({ id: p.id, name: p.name, program: p.program, size: p.size, storeys: p.storeys })), null, 1));
+        console.log(`prefabs: ${pfs.length} buildings → ${join(out, 'prefabs')}`);
+    }
+    console.log(`geo-voxels: ${r.generator}/${r.theme} seed ${r.seed} → ${grid.width}×${grid.depth}×${grid.height} in ${r.ms} ms · ${r.layers.buildings.length} buildings · ${r.layers.rooms.length} rooms · ${r.layers.decor.length} props${r.plugins.tactics ? ' · tactics' : ''} → ${out}`);
 } else usage();

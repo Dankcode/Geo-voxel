@@ -7,3 +7,10 @@ export { planGeoRoadPaint } from './roadPaint.js';
 export { roadSpec, roadWidthMetres, storeysFromTags, programFor, isRetailArea, ROAD_CLASS } from './osm.js';
 export { VoxelGrid, PALETTE, M } from './grid.js';
 export { toVox, toSlatePNG } from './export.js';
+// Town engine (engine/, synced from voxel-tactics): procedural operations, large districts and full real places
+export { generate, toResult, GENERATORS, ENGINE_PALETTE } from './town.js';
+export { tactics } from './plugins/tactics.js';
+export { toVox as toVoxBytes } from './vox.js';
+// Building prefabs: bake any building of an engine map, stamp it (rotated / mirrored) into another map or lot
+export { bakePrefab, bakePlacePrefabs, stampPrefab, transformFor, PREFAB_FORMAT } from '../engine/mapgen/geo/BuildingPrefab.js';
+export { registerPrefab, getPrefab, findPrefabs, placePrefabInLot } from '../engine/mapgen/geo/PrefabLibrary.js';

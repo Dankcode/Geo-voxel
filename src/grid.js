@@ -8,21 +8,23 @@ export const PALETTE = [
 ];
 export const M = Object.fromEntries(PALETTE.map(([n], i) => [n, i]));
 
+/** palette: [[name, [r, g, b]], …] — index 0 is air. Defaults to the real-place PALETTE; the town engine passes its own. */
 export class VoxelGrid {
-    constructor(width, depth, height) { this.width = width; this.depth = depth; this.height = height; this.data = new Uint8Array(width * depth * height); }
+    constructor(width, depth, height, palette = PALETTE) { this.width = width; this.depth = depth; this.height = height; this.palette = palette; this.data = new Uint8Array(width * depth * height); }
     index(x, y, z) { return (z * this.depth + y) * this.width + x; }
     inBounds(x, y, z) { return x >= 0 && y >= 0 && z >= 0 && x < this.width && y < this.depth && z < this.height; }
     get(x, y, z) { return this.inBounds(x, y, z) ? this.data[this.index(x, y, z)] : 0; }
-    set(x, y, z, m) { if (this.inBounds(x, y, z)) this.data[this.index(x, y, z)] = typeof m === 'string' ? M[m] : m; }
+    set(x, y, z, m) { if (this.inBounds(x, y, z)) this.data[this.index(x, y, z)] = typeof m === 'string' ? (this.palette === PALETTE ? M[m] : this.palette.findIndex(([n]) => n === m)) : m; }
     top(x, y) { for (let z = this.height - 1; z >= 0; z--) if (this.get(x, y, z)) return z; return -1; }
     /** Run-length JSON: { width, depth, height, palette: names, runs: [count, index, …] } (z, y, x order). */
     toJSON() {
         const runs = [];
         for (let i = 0; i < this.data.length;) { let j = i + 1; while (j < this.data.length && this.data[j] === this.data[i]) j++; runs.push(j - i, this.data[i]); i = j; }
-        return { format: 'geo-voxels/grid@1', width: this.width, depth: this.depth, height: this.height, palette: PALETTE.map(([n]) => n), runs };
+        return { format: 'geo-voxels/grid@1', width: this.width, depth: this.depth, height: this.height, palette: this.palette.map(([n]) => n), colors: this.palette === PALETTE ? undefined : this.palette.map(([, c]) => c), runs };
     }
     static fromJSON(o) {
-        const g = new VoxelGrid(o.width, o.depth, o.height); let at = 0;
+        const pal = o.colors ? o.palette.map((n, i) => [n, o.colors[i]]) : PALETTE;
+        const g = new VoxelGrid(o.width, o.depth, o.height, pal); let at = 0;
         for (let i = 0; i < o.runs.length; i += 2) { g.data.fill(o.runs[i + 1], at, at + o.runs[i]); at += o.runs[i]; }
         return g;
     }

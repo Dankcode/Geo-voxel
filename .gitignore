@@ -4,3 +4,4 @@ out/
 *.blend1
 geo-status.json
 .DS_Store
+dist-app/
