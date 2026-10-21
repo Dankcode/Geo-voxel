@@ -1,4 +1,4 @@
-// Geo import — street straightening ("full grid"). A real street network is never on a voxel grid: a road 6° off an
+// Street straightening ("full grid"). A real street network is never on a voxel grid: a road 6° off an
 // axis rasterises as a ragged staircase of kerb and sidewalk cells. This stage bends the map slightly instead, so every
 // street is an exact grid line and every building wall lies on the grid, while the topology (which street meets which,
 // which side a building stands on, the order of parallel carriageways) is kept.
@@ -250,6 +250,28 @@ export function orthogonalizeRing(ring, { tol = 1, diagonal = [30, 60] } = {}) {
         out.push(A.axis === 'H' ? [B.c, A.c] : [A.c, B.c]);
     }
     return Math.abs(polyArea(out)) < 0.25 * Math.abs(polyArea(pts)) ? ring : out;
+}
+/** An open polyline (a footpath) on the grid: simplified, then every segment within 25° of an axis is snapped straight
+ *  and steeper ones become an L (longer leg first); consecutive collinear legs merge. */
+export function orthogonalizeLine(line, { tol = 1.2 } = {}) {
+    const pts = simplify(line, tol);
+    if (pts.length < 2) return line;
+    const out = [pts[0].slice()];
+    for (let i = 1; i < pts.length; i++) {
+        const a = out.at(-1), b = pts[i], dx = b[0] - a[0], dy = b[1] - a[1], ang = Math.atan2(Math.abs(dy), Math.abs(dx)) * 180 / Math.PI;
+        if (ang <= 25) out.push([b[0], a[1]]);
+        else if (ang >= 65) out.push([a[0], b[1]]);
+        else if (Math.abs(dx) >= Math.abs(dy)) { out.push([b[0], a[1]]); out.push([b[0], b[1]]); }
+        else { out.push([a[0], b[1]]); out.push([b[0], b[1]]); }
+    }
+    // merge collinear runs, drop zero-length legs
+    const res = [out[0]];
+    for (const p of out.slice(1)) {
+        const q = res.at(-1); if (len(p, q) < 1e-6) continue;
+        const r = res.at(-2);
+        if (r && ((r[0] === q[0] && q[0] === p[0]) || (r[1] === q[1] && q[1] === p[1]))) res[res.length - 1] = p; else res.push(p);
+    }
+    return res;
 }
 const polyArea = r => r.reduce((a, p, i) => { const q = r[(i + 1) % r.length]; return a + p[0] * q[1] - q[0] * p[1]; }, 0) / 2;
 const mean = (ms, i) => ms.reduce((s, v) => s + v.p[i] * v.w, 0) / ms.reduce((s, v) => s + v.w, 0);

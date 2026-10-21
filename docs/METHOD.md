@@ -18,6 +18,13 @@ runs on Blender timers (the UI stays live, a Blender MCP call returns at once):
 
 Status goes to `<out>/geo-status.json`; poll for a *change*. `resume(out, 'osm')` re-runs only OSM.
 
+**Context** (one Overpass request + ≤ 2 Wikidata requests, keyless): shops/amenities/offices/tourism/historic POIs,
+`building:part` ways (Simple 3D Buildings: `height`, `min_height`, `building:levels`, `roof:shape`, `roof:height`,
+material, colour), named or Wikidata-tagged building outlines with all their tags, and street furniture (signals, bus
+stops, lamps, trees, hydrants, benches, flagpoles). Wikidata gives floors (P1101), height (P2048), architectural style
+(P149), inception (P571), architect (P84), heritage designation (P1435) and "instance of" (P31). Each building then
+gets its tenants (POIs inside the outline), a use (src/uses.js), a material set and its 3D parts.
+
 ## 1 · Frame and crop
 
 Grid angle θ = ¼·atan2(Σ w L sin 4α, Σ w L cos 4α) over every street segment (w = 1 + class) and building wall (w = 1):
@@ -64,6 +71,10 @@ centre: its open land minus a 3-cell storefront walk becomes the car park, and i
 Stall rows: every rectangular section between the drive aisles (largest rectangle first) gets double rows along its
 long side — 5 deep, a 4-cell aisle, 5 deep — with a divider every 3 cells.
 
+Open land: `leisure=park/garden`, `landuse=grass/…` are lawn (named plazas and squares paved), `footway/path/
+pedestrian/cycleway/steps` are 1.5–3-cell paved walks orthogonalised like the streets; what remains is a paved yard
+within 3 cells of a building, otherwise lawn.
+
 ## 6 · Terrain
 
 The DEM (a DSM is first opened morphologically, 40 m) is sampled per cell and quantised to whole voxels (relief over
@@ -78,7 +89,11 @@ Bedrock, stone and soil up to the surface; surface material by role (asphalt, ke
 yard, grass). Buildings: a floor slab per storey (`storeyHeight` voxels), perimeter walls by use (brick, concrete,
 stucco, siding), glazing on exposed non-party walls (a storefront on a shop's front), a door on the front — the side of
 the largest wing facing its car park (shops) or the nearest street — doorways through shared wing lines, a roof slab
-and a parapet on outer edges. Storeys from `building:levels`/`height`; a strip-centre unit with no height is one storey.
+and a parapet on outer edges. Storeys from `building:levels`/`height` (or Wikidata floors, or the largest 3D part); a
+strip-centre unit with no height is one storey. Every OSM 3D part that rises above the shell is extruded from its
+`min_height` to its `height` (walls with window bands, a floor where it starts), and capped by its `roof:shape`: flat
+slab, or a voxel stair toward the middle — along the long axis for gabled, all round for hipped/pyramidal/dome —
+`roof:height` tall or half the narrow side. Mapped trees get a trunk and crown.
 
 ## 8 · Road paint
 

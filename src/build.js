@@ -17,7 +17,9 @@ import { geoFrame, groundModel, heightfield, plateauAndRelax, rasterPolygon, pol
 import { rectifyNetwork, weightedGridAngle } from './rectify.js';
 import { cleanMask, resolveParty, decomposeFootprint, largestRectangle } from './footprint.js';
 import { planGeoRoadPaint } from './roadPaint.js';
-import { roadSpec, storeysFromTags, programFor, isRetailArea } from './osm.js';
+import { roadSpec, storeysFromTags, programFor } from './osm.js';
+import { buildingContext, streetFurniture } from './context.js';
+import { orthogonalizeRing, orthogonalizeLine } from './rectify.js';
 import { VoxelGrid, M } from './grid.js';
 
 const k2 = (x, y) => `${x},${y}`;
@@ -42,7 +44,7 @@ const insidePoly = ([px, py], poly) => { let c = false; for (let i = 0, j = poly
  *         ({ [osm id]: tags }), maxCells (per side), datum (lowest ground voxel) }
  * Returns { grid, layers, report }.
  */
-export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', storeyHeight = 3, maxStoreys = 10, maxRelief = 6, tagOverrides = {}, maxCells = 256, datum = 1 } = {}) {
+export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', storeyHeight = 3, maxStoreys = 10, maxRelief = 6, tagOverrides = {}, maxCells = 256, maxHeight = 96, datum = 1 } = {}) {
     if (!geo?.extent) throw Error('geo-voxels: a BlenderGIS export (with extent) is required');
     const grid = straighten === 'grid';
     // ---- 1 frame
@@ -52,7 +54,7 @@ export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', s
     const F = geoFrame(geo, { cell, rotate: angle, maxCells }), { W, D } = F;
     const report = { theta: +(F.theta * 180 / Math.PI).toFixed(2), size: [W, D], straighten: null, buildings: [], dropped: [], lots: [], terrain: null };
     // ---- 2 straighten
-    let G = geo, toC = F.toCell;
+    let G = geo, toC = F.toCell, ptC = F.toCell;
     if (grid) {
         const hw = (geo.highways || []).map((h, i) => ({ h, i, sp: roadSpec(h.tags) })).filter(o => o.h.line?.length >= 2);
         const R = rectifyNetwork(hw.filter(o => o.sp).map(o => ({ id: o.i, line: o.h.line.map(F.toCell), cls: o.sp.cls, half: o.sp.halfM / cell })), {
@@ -62,24 +64,30 @@ export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', s
         const rl = new Map([...R.roads.map(r => [r.id, r.line]), ...R.lines.map(l => [l.id, l.line])]), rb = new Map(R.buildings.map(b => [b.id, b.ring])), ra = new Map(R.areas.map(a => [a.id, a.ring]));
         G = { ...geo, highways: (geo.highways || []).map((h, i) => rl.has(i) ? { ...h, line: rl.get(i) } : h), buildings: (geo.buildings || []).map((b, i) => rb.has(i) ? { ...b, ring: rb.get(i) } : b), areas: (geo.areas || []).map((a, i) => ra.has(i) ? { ...a, ring: ra.get(i) } : a) };
         toC = p => p; report.straighten = R.report;
+        ptC = p => { const c = F.toCell(p), d = R.displace(c); return [c[0] + d[0], c[1] + d[1]]; };
     }
     const inner = ([x, y]) => x >= 1 && y >= 1 && x < W - 1 && y < D - 1;
     // ---- 3 footprints
-    const retail = (G.areas || []).filter(a => isRetailArea(a) && a.ring?.length >= 3).map(a => ({ a, poly: a.ring.map(toC) }));
+    // context (OSM tenants, 3D parts, street furniture, Wikidata) when the export carries it
+    const CTX = buildingContext(geo), FURN = streetFurniture(geo).map(f => ({ ...f, at: ptC(f.at) }));
+    // retail land only implies a car park (a downtown landuse=commercial block is not a strip centre)
+    const retail = (G.areas || []).filter(a => (a.tags?.landuse === 'retail' || a.tags?.shop === 'mall') && a.ring?.length >= 3).map(a => ({ a, poly: a.ring.map(toC) }));
     const fps = [];
     for (const b of G.buildings || []) {
         if (!b.ring || b.ring.length < 3) continue;
-        const t = { ...(b.tags || {}), ...(tagOverrides[b.osm] || {}) }, poly = b.ring.map(toC), area = polygonArea(poly);
+        const info = CTX.get(String(b.osm)) || null;
+        const t = { ...(b.tags || {}), ...(info?.tags || {}), ...(tagOverrides[b.osm] || {}) }, poly = b.ring.map(toC), area = polygonArea(poly);
+        if (info?.floors && !t['building:levels'] && !t.height) t['building:levels'] = String(Math.round(info.floors));
         let cells = rasterPolygon(poly, W, D, { grow: 0.3 }).filter(inner);
         if (cells.length < 0.4 * area) { report.dropped.push({ osm: b.osm, reason: `outside the map (${Math.round(100 * cells.length / Math.max(1, area))}% inside)` }); continue; }
         cells = cleanMask(cells);
         const centre = [poly.reduce((a, p) => a + p[0], 0) / poly.length, poly.reduce((a, p) => a + p[1], 0) / poly.length];
         const plain = Object.keys(t).every(k => ['id', 'building'].includes(k) || k.startsWith('addr:')) && t.building === 'yes';
         const inRetail = plain && retail.some(r => insidePoly(centre, r.poly));
-        const program = inRetail ? 'shop' : programFor(t, area * cell * cell), st = storeysFromTags(t, 2, maxStoreys);
+        const program = info?.use?.program || (inRetail ? 'shop' : programFor(t, area * cell * cell)), st = storeysFromTags(t, 2, maxStoreys);
         const storeys = st.observed == null && (inRetail || t.shop) ? 1 : st.storeys;
         const id = String(t.name || `osm-${b.osm}`).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
-        fps.push({ id, osm: b.osm, name: t.name || null, tags: t, program, storeys, cells, area: cells.length });
+        fps.push({ id, osm: b.osm, name: t.name || info?.name || null, tags: t, program, storeys, cells, area: cells.length, info });
     }
     const used = new Set(); for (const f of fps) { while (used.has(f.id)) f.id += '-b'; used.add(f.id); }
     const party = resolveParty(fps);
@@ -125,6 +133,21 @@ export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', s
         if (cells.length >= 60) lots.push({ id: `lot-${a.osm}`, name: a.tags?.name || null, cells, level, implied: true });
     }
     const lotSet = new Map(); for (const l of lots) for (const [x, y] of l.cells) lotSet.set(k2(x, y), l);
+    // ---- 5b open land from the real land use: parks and grass are lawn, named plazas/squares paved, footpaths straight
+    //      paved walks; the rest is a paved yard next to a building or lawn further out
+    const landAt = new Map(), freeCell = (x, y) => x >= 0 && y >= 0 && x < W && y < D && !occupied.has(k2(x, y)) && !roadAt.has(k2(x, y)) && !lotSet.has(k2(x, y));
+    const GREEN = a => /^(park|garden|pitch|playground|dog_park|common)$/.test(a.tags?.leisure || '') || /^(grass|recreation_ground|village_green|meadow|cemetery|flowerbed|forest)$/.test(a.tags?.landuse || '') || /^(grassland|wood|scrub)$/.test(a.tags?.natural || '');
+    for (const a of (G.areas || []).filter(a => a.ring?.length >= 3 && GREEN(a)).sort((p, q) => (p.tags?.leisure === 'park' ? 0 : 1) - (q.tags?.leisure === 'park' ? 0 : 1))) {
+        const plaza = /plaza|square|piazza/i.test(a.tags?.name || '') && a.tags?.leisure === 'park';
+        for (const c of rasterPolygon(a.ring.map(toC), W, D)) if (freeCell(...c)) landAt.set(k2(...c), plaza ? 'plaza' : 'green');
+    }
+    for (const h of G.highways || []) {
+        if (!/^(footway|path|pedestrian|cycleway|steps|bridleway)$/.test(h.tags?.highway || '') || ['sidewalk', 'crossing'].includes(h.tags?.footway) || !h.line || h.line.length < 2) continue;
+        const line = grid ? orthogonalizeLine(h.line.map(toC)) : h.line.map(toC), half = h.tags.highway === 'pedestrian' ? 1.5 : 0.75;
+        const xs = line.map(p => p[0]), ys = line.map(p => p[1]);
+        for (let y = Math.max(0, Math.floor(Math.min(...ys) - 2)); y <= Math.min(D - 1, Math.ceil(Math.max(...ys) + 2)); y++) for (let x = Math.max(0, Math.floor(Math.min(...xs) - 2)); x <= Math.min(W - 1, Math.ceil(Math.max(...xs) + 2)); x++)
+            if (freeCell(x, y) && (grid ? distBox([x + 0.5, y + 0.5], line) : distToPolyline([x + 0.5, y + 0.5], line)) <= half) landAt.set(k2(x, y), 'path');
+    }
     // ---- 6 terrain
     const ground = groundModel(geo.dem, { kind: geo.dem?.kind || (/USGS|3DEP/i.test(geo.dem?.source || '') ? 'dtm' : 'dsm') });
     const hf = heightfield(F, ground, { datum, maxRelief });
@@ -143,14 +166,16 @@ export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', s
     const plateaus = plateauAndRelax(hf, W, D, [...fps.map(f => ({ id: f.id, cells: f.cells })), ...lots.map(l => ({ id: l.id, cells: l.level || l.cells })), ...streets], { apron: 2 });
     report.terrain = { source: ground.kind, reliefM: +hf.reliefM.toFixed(2), reliefVoxels: Math.max(...hf.z) - Math.min(...hf.z), compressed: hf.compressed };
     // ---- 7 voxels
-    const gMax = Math.max(...hf.z), H = Math.max(16, gMax + storeyHeight * Math.max(1, ...fps.map(f => f.storeys)) + 4);
+    const partTop = Math.max(0, ...fps.flatMap(f => (f.info?.parts || []).map(p => Math.round(p.maxM / cell))));
+    const gMax = Math.max(...hf.z), H = Math.min(maxHeight, Math.max(16, gMax + storeyHeight * Math.max(1, ...fps.map(f => f.storeys)) + 4, gMax + partTop + 6));
     const g = new VoxelGrid(W, D, H), Z = (x, y) => hf.z[x + y * W];
     const nearBuilding = (x, y) => { for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (occupied.has(k2(x + dx, y + dy))) return true; return false; };
     for (let y = 0; y < D; y++) for (let x = 0; x < W; x++) {
         const z = Z(x, y), r = roadAt.get(k2(x, y)), lot = lotSet.get(k2(x, y));
         g.set(x, y, 0, M.bedrock);
         for (let h = 1; h < z; h++) g.set(x, y, h, h === z - 1 ? M.soil : M.stone);
-        g.set(x, y, z, r ? (r.role === 'road' ? M.asphalt : r.role === 'kerb' ? M.kerb : M.sidewalk) : lot ? M.lot : walk.has(k2(x, y)) ? M.sidewalk : occupied.has(k2(x, y)) ? M.floor : nearBuilding(x, y) ? M.sidewalk : M.grass);
+        const land = landAt.get(k2(x, y));
+        g.set(x, y, z, r ? (r.role === 'road' ? M.asphalt : r.role === 'kerb' ? M.kerb : M.sidewalk) : lot ? M.lot : walk.has(k2(x, y)) ? M.sidewalk : occupied.has(k2(x, y)) ? M.floor : land === 'green' ? M.grass : land ? M.sidewalk : nearBuilding(x, y) ? M.sidewalk : M.grass);
     }
     // stall stripes: every rectangular section between the lot's drive aisles gets double stall rows along its long
     // side (5 deep, 4-cell aisle, 5 deep = 14), a divider every 3 cells
@@ -208,9 +233,38 @@ export function buildPlace(geo, { cell = METRES_PER_CELL, straighten = 'grid', s
         if (main) { const cs = sideCells(main, front), [dx, dy] = cs[Math.floor(cs.length / 2)]; for (let h = 1; h < Math.min(3, storeyHeight); h++) g.set(dx, dy, base + h, M.door); doors.push({ x: dx, y: dy, z: base, side: front }); }
         for (const [x, y] of mass) for (let z = base + 1; z < roofZ; z++) g.set(x, y, z, wall);
         for (const [x, y] of f.cells) { g.set(x, y, roofZ, M.roof); if (N4.some(([dx, dy]) => !own.has(k2(x + dx, y + dy))) && !party.has(k2(x, y))) g.set(x, y, roofZ + 1, M.parapet); }
-        out.push({ id: f.id, osm: f.osm, name: f.name, program: f.program, storeys: f.storeys, baseZ: base, roofZ, front, wings, mass: mass.length, doors, cells: f.cells.length });
+        // OSM 3D parts above the shell: real-height walls with window bands, capped by their roof shape
+        let parts = 0;
+        for (const p of (f.info?.parts || []).slice().sort((a, b) => a.maxM - b.maxM)) {
+            const ring = grid ? orthogonalizeRing(p.ring.map(ptC), { tol: 0.6 }) : p.ring.map(ptC), pc = rasterPolygon(ring, W, D, { grow: 0.3 });
+            const zTop = Math.min(H - 2, base + Math.round(p.maxM / cell)), roofV = Math.round((p.roofM || 0) / cell), zFrom = Math.max(base + Math.round(p.minM / cell), roofZ + 1), zEave = zTop - roofV;
+            if (!pc.length || zTop <= roofZ + 1) continue;
+            const pset = new Set(pc.map(([x, y]) => k2(x, y))), pm = /brick/.test(p.material || '') ? M.wall : /stone/.test(p.material || '') ? M.wall_concrete : wall;
+            const rim = (x, y) => N4.some(([dx, dy]) => !pset.has(k2(x + dx, y + dy)));
+            for (let z = zFrom; z <= Math.max(zFrom, zEave); z++) for (const [x, y] of pc) if (z === zFrom) g.set(x, y, z, M.floor); else if (rim(x, y)) g.set(x, y, z, (z - zFrom) % 4 === 2 && pc.length > 6 && (x + y) % 2 ? M.glass : pm);
+            const xs = pc.map(c => c[0]), ys = pc.map(c => c[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), gable = /gabled|saltbox/.test(p.roofShape);
+            const rise = roofV || (p.roofShape === 'flat' ? 0 : Math.max(1, Math.floor(Math.min(x1 - x0 + 1, y1 - y0 + 1) / 2)));
+            for (const [x, y] of pc) {
+                if (!rise) { g.set(x, y, Math.max(zFrom, zEave) + 1, M.roof); continue; }
+                const inX = Math.min(x - x0, x1 - x), inY = Math.min(y - y0, y1 - y), step = gable ? (x1 - x0 >= y1 - y0 ? inY : inX) : Math.min(inX, inY);
+                for (let z = 1; z <= Math.min(rise, step + 1); z++) g.set(x, y, Math.max(zFrom, zEave) + z, M.roof);
+            }
+            parts++;
+        }
+        out.push({ id: f.id, osm: f.osm, name: f.name, program: f.program, storeys: f.storeys, baseZ: base, roofZ, front, wings, mass: mass.length, doors, cells: f.cells.length, parts,
+            tenants: (f.info?.tenants || []).map(t => ({ name: t.name, use: t.use?.program || null, tags: t.tags })), facts: f.info?.facts || null, landmark: !!f.info?.landmark });
         report.buildings.push({ id: f.id, osm: f.osm, name: f.name, program: f.program, storeys: f.storeys, wings: wings.length, cells: f.cells.length });
     }
+    // real trees (OSM natural=tree) on lawns, plazas, paths and sidewalks: a 3-voxel trunk and a 3 × 3 × 2 crown
+    let trees = 0;
+    for (const t of FURN.filter(q => q.kind === 'tree')) {
+        const x = Math.floor(t.at[0]), y = Math.floor(t.at[1]); if (x < 1 || y < 1 || x >= W - 1 || y >= D - 1 || occupied.has(k2(x, y)) || roadAt.get(k2(x, y))?.role === 'road') continue;
+        const z = Z(x, y); if (g.get(x, y, z + 1)) continue;
+        for (let h = 1; h <= 3; h++) g.set(x, y, z + h, M.trunk);
+        for (let dz = 4; dz <= 5; dz++) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (!g.get(x + dx, y + dy, z + dz)) g.set(x + dx, y + dy, z + dz, M.leaves);
+        trees++;
+    }
+    report.trees = trees; report.context = geo.context ? { tenants: [...CTX.values()].reduce((a, c) => a + c.tenants.length, 0), landmarks: [...CTX.values()].filter(c => c.landmark).length, furniture: FURN.length } : null;
     // ---- 8 paint
     const paint = planGeoRoadPaint(roads, { isRoadCell: (x, y) => roadAt.get(k2(x, y))?.role === 'road', zAt: (x, y) => Z(x, y) });
     const codes = Array.from({ length: W * D }, (_, i) => { const x = i % W, y = Math.floor(i / W), r = roadAt.get(k2(x, y)); return r ? r.role[0].toUpperCase() : lotSet.has(k2(x, y)) ? 'L' : occupied.has(k2(x, y)) ? 'B' : walk.has(k2(x, y)) ? 'W' : '.'; }).join('');

@@ -4746,5 +4746,783 @@
     ]
    ]
   }
- ]
+ ],
+ "context": {
+  "source": "overpass + wikidata",
+  "bbox": [
+   -91.1884560448586,
+   30.44885758740343,
+   -91.18695022866744,
+   30.450325261126462
+  ],
+  "pois": [
+   {
+    "type": "node",
+    "id": "2988886066",
+    "tags": {
+     "highway": "bus_stop",
+     "name": "4th & Florida Streets",
+     "operator": "Capital Area Transit System",
+     "public_transport": "platform",
+     "ref": "20",
+     "trolleybus": "yes"
+    },
+    "at": [
+     27.29,
+     -51.12
+    ]
+   },
+   {
+    "type": "node",
+    "id": "2988886076",
+    "tags": {
+     "highway": "bus_stop",
+     "name": "300 Block Third Street",
+     "operator": "Capital Area Transit System",
+     "public_transport": "platform",
+     "ref": "9",
+     "trolleybus": "yes"
+    },
+    "at": [
+     -82.65,
+     26.28
+    ]
+   },
+   {
+    "type": "node",
+    "id": "6690846727",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:housenumber": "343",
+     "addr:postcode": "70801",
+     "addr:state": "LA",
+     "addr:street": "3rd Street",
+     "addr:unit": "500",
+     "name": "The Ambeau Law Firm",
+     "office": "lawyer",
+     "opening_hours": "Mo-Fr 08:30-17:00",
+     "phone": "+1-225-330-7009",
+     "website": "https://www.ambeaulaw.com/"
+    },
+    "at": [
+     -101.74,
+     41.68
+    ]
+   },
+   {
+    "type": "node",
+    "id": "11079468778",
+    "tags": {
+     "contact:facebook": "https://www.facebook.com/iwdagency/",
+     "contact:phone": "+1 225-435-8043",
+     "contact:website": "https://www.iwdagency.com/",
+     "description": "Graphic design, marketing, web design.",
+     "description:fr": "Conception graphique, marketing, conception web",
+     "name": "IWD Agency",
+     "office": "graphic_design",
+     "opening_hours": "Mo-Fr 09:00-17:00"
+    },
+    "at": [
+     -35.7,
+     -29.99
+    ]
+   },
+   {
+    "type": "node",
+    "id": "11079504014",
+    "tags": {
+     "amenity": "bar",
+     "contact:phone": "+1 225 218-4702",
+     "contact:website": "https://13social.com/",
+     "name": "13 Social"
+    },
+    "at": [
+     -76.46,
+     45.88
+    ]
+   },
+   {
+    "type": "node",
+    "id": "14235572194",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:housenumber": "307",
+     "addr:postcode": "70801-1308",
+     "addr:state": "LA",
+     "addr:street": "3rd Street",
+     "amenity": "cafe",
+     "check_date": "2026-09-30",
+     "contact:email": "info@deminolablends.com",
+     "contact:facebook": "https://www.facebook.com/p/DemiNola-Blends-Smoothie-Juice-Bar-61579540104927",
+     "contact:instagram": "https://www.instagram.com/deminolablends",
+     "cuisine": "juice;smoothie",
+     "currency:XBT": "yes",
+     "name": "Demi Nola Blends Smoothie & Juice Bar",
+     "opening_hours": "Mo-Fr 08:30-15:00; Sa 08:00-14:00",
+     "payment:lightning": "yes",
+     "payment:lightning:operator": "square",
+     "payment:lightning_contactless": "no",
+     "payment:onchain": "no",
+     "phone": "+1-504-312-8597",
+     "website": "https://deminolablends.com"
+    },
+    "at": [
+     -96.35,
+     -24.55
+    ]
+   },
+   {
+    "type": "way",
+    "id": "1074064495",
+    "tags": {
+     "heritage": "2",
+     "heritage:operator": "nrhp",
+     "historic": "district",
+     "name": "Downtown Baton Rouge",
+     "place": "neighbourhood",
+     "ref:nrhp": "09000899",
+     "wikidata": "Q55316590",
+     "wikipedia": "en:Downtown Baton Rouge Historic District"
+    },
+    "at": [
+     -97.18,
+     -61.81
+    ],
+    "ring": [
+     [
+      -90.69,
+      184.58
+     ],
+     [
+      -142.45,
+      181.86
+     ],
+     [
+      -137.1,
+      65.06
+     ],
+     [
+      -191.92,
+      61.94
+     ],
+     [
+      -194.4,
+      61.47
+     ],
+     [
+      -195.66,
+      60.68
+     ],
+     [
+      -196.41,
+      59.56
+     ],
+     [
+      -196.47,
+      57.86
+     ],
+     [
+      -195.61,
+      41.18
+     ],
+     [
+      -133.87,
+      44.82
+     ],
+     [
+      -133.78,
+      42.07
+     ],
+     [
+      -132.84,
+      14.45
+     ],
+     [
+      -131.43,
+      -27.04
+     ],
+     [
+      -130.29,
+      -49.14
+     ],
+     [
+      -129.08,
+      -83.71
+     ],
+     [
+      -98.06,
+      -82.29
+     ],
+     [
+      -88.33,
+      -81.84
+     ],
+     [
+      -77.31,
+      -81.33
+     ],
+     [
+      -65.43,
+      -268.29
+     ],
+     [
+      -64.81,
+      -273.68
+     ],
+     [
+      -64.11,
+      -275.61
+     ],
+     [
+      -62.8,
+      -276.87
+     ],
+     [
+      -61.21,
+      -277.52
+     ],
+     [
+      -58.87,
+      -277.71
+     ],
+     [
+      -3.53,
+      -274.85
+     ],
+     [
+      -3.57,
+      -272.27
+     ],
+     [
+      38.09,
+      -270.19
+     ],
+     [
+      36.84,
+      -240.93
+     ],
+     [
+      -2.97,
+      -242.93
+     ],
+     [
+      -21.79,
+      160.7
+     ],
+     [
+      -89.31,
+      157.46
+     ],
+     [
+      -90.69,
+      184.58
+     ]
+    ]
+   },
+   {
+    "type": "way",
+    "id": "1213665851",
+    "tags": {
+     "amenity": "parking"
+    },
+    "at": [
+     -8.61,
+     42.09
+    ],
+    "ring": [
+     [
+      17.8,
+      68.75
+     ],
+     [
+      19.93,
+      29.23
+     ],
+     [
+      -19.4,
+      27.76
+     ],
+     [
+      -18.79,
+      17.12
+     ],
+     [
+      -37.66,
+      16.56
+     ],
+     [
+      -39.94,
+      66.45
+     ],
+     [
+      17.8,
+      68.75
+     ]
+    ]
+   },
+   {
+    "type": "way",
+    "id": "1213848398",
+    "tags": {
+     "amenity": "parking"
+    },
+    "at": [
+     -101.64,
+     -86.14
+    ],
+    "ring": [
+     [
+      -87.46,
+      -93.56
+     ],
+     [
+      -125.45,
+      -95.28
+     ],
+     [
+      -126.5,
+      -78.58
+     ],
+     [
+      -98.25,
+      -77.88
+     ],
+     [
+      -98.06,
+      -82.29
+     ],
+     [
+      -88.33,
+      -81.84
+     ],
+     [
+      -87.46,
+      -93.56
+     ]
+    ]
+   },
+   {
+    "type": "way",
+    "id": "1213848777",
+    "tags": {
+     "amenity": "parking"
+    },
+    "at": [
+     -1.25,
+     -112.14
+    ],
+    "ring": [
+     [
+      -45.98,
+      -89.63
+     ],
+     [
+      4.0,
+      -88.27
+     ],
+     [
+      4.31,
+      -93.88
+     ],
+     [
+      15.97,
+      -93.45
+     ],
+     [
+      16.1,
+      -98.65
+     ],
+     [
+      18.28,
+      -100.66
+     ],
+     [
+      26.29,
+      -100.72
+     ],
+     [
+      28.03,
+      -137.82
+     ],
+     [
+      23.28,
+      -138.06
+     ],
+     [
+      21.36,
+      -139.24
+     ],
+     [
+      21.85,
+      -145.39
+     ],
+     [
+      -29.56,
+      -147.81
+     ],
+     [
+      -31.53,
+      -109.12
+     ],
+     [
+      -45.12,
+      -109.81
+     ],
+     [
+      -45.98,
+      -89.63
+     ]
+    ]
+   }
+  ],
+  "parts": [],
+  "buildings": [
+   {
+    "type": "way",
+    "id": "515632951",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:housenumber": "340",
+     "addr:postcode": "70801",
+     "addr:state": "LA",
+     "addr:street": "Florida Street",
+     "building": "yes",
+     "building:levels": "2",
+     "heritage": "2",
+     "heritage:operator": "nrhp",
+     "historic": "heritage",
+     "name": "Capitol City Press Building",
+     "ref:nrhp": "86002870"
+    },
+    "at": [
+     -0.83,
+     -69.05
+    ],
+    "ring": [
+     [
+      -15.4,
+      -49.45
+     ],
+     [
+      3.4,
+      -48.31
+     ],
+     [
+      3.44,
+      -49.02
+     ],
+     [
+      3.17,
+      -49.03
+     ],
+     [
+      4.0,
+      -65.44
+     ],
+     [
+      -1.35,
+      -65.76
+     ],
+     [
+      -0.76,
+      -75.48
+     ],
+     [
+      4.5,
+      -75.17
+     ],
+     [
+      5.16,
+      -88.19
+     ],
+     [
+      4.0,
+      -88.27
+     ],
+     [
+      3.41,
+      -88.3
+     ],
+     [
+      3.32,
+      -86.93
+     ],
+     [
+      -13.04,
+      -87.92
+     ],
+     [
+      -15.4,
+      -49.45
+     ]
+    ]
+   },
+   {
+    "type": "way",
+    "id": "515634558",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:postcode": "70801",
+     "addr:state": "LA",
+     "addr:street": "3rd Street",
+     "building": "yes",
+     "building:architecture": "italianate",
+     "building:levels": "2",
+     "heritage": "2",
+     "heritage:operator": "nrhp",
+     "historic": "heritage",
+     "name": "Belisle Building",
+     "ref:nrhp": "93001104"
+    },
+    "at": [
+     -63.78,
+     43.39
+    ],
+    "ring": [
+     [
+      -79.71,
+      48.57
+     ],
+     [
+      -78.97,
+      33.7
+     ],
+     [
+      -39.88,
+      35.63
+     ],
+     [
+      -40.62,
+      50.49
+     ],
+     [
+      -79.71,
+      48.57
+     ]
+    ]
+   },
+   {
+    "type": "way",
+    "id": "515634559",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:housenumber": "358",
+     "addr:postcode": "70801",
+     "addr:state": "LA",
+     "addr:street": "3rd Street",
+     "building": "yes",
+     "building:architecture": "renaissance",
+     "building:levels": "3",
+     "heritage": "2",
+     "heritage:operator": "nrhp",
+     "historic": "heritage",
+     "name": "Fuqua Hardware Store Building",
+     "ref:nrhp": "99000497"
+    },
+    "at": [
+     -64.54,
+     58.82
+    ],
+    "ring": [
+     [
+      -80.49,
+      64.38
+     ],
+     [
+      -41.4,
+      66.3
+     ],
+     [
+      -40.62,
+      50.49
+     ],
+     [
+      -79.71,
+      48.57
+     ],
+     [
+      -80.49,
+      64.38
+     ]
+    ]
+   },
+   {
+    "type": "way",
+    "id": "515634562",
+    "tags": {
+     "building": "yes",
+     "name": "Helix Steam Mentorship Academy"
+    },
+    "at": [
+     5.75,
+     -10.26
+    ],
+    "ring": [
+     [
+      -3.98,
+      17.51
+     ],
+     [
+      15.33,
+      18.51
+     ],
+     [
+      16.74,
+      -8.66
+     ],
+     [
+      20.17,
+      -8.48
+     ],
+     [
+      20.94,
+      -23.25
+     ],
+     [
+      17.5,
+      -23.42
+     ],
+     [
+      17.68,
+      -26.96
+     ],
+     [
+      -1.63,
+      -27.95
+     ],
+     [
+      -1.81,
+      -24.49
+     ],
+     [
+      -9.44,
+      -24.88
+     ],
+     [
+      -10.23,
+      -9.63
+     ],
+     [
+      -2.59,
+      -9.23
+     ],
+     [
+      -3.98,
+      17.51
+     ]
+    ]
+   },
+   {
+    "type": "way",
+    "id": "679537330",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:housenumber": "260",
+     "addr:postcode": "70801",
+     "addr:state": "LA",
+     "addr:street": "Third Street",
+     "branch": "Baton Rouge Downtown",
+     "brand": "Courtyard",
+     "brand:wikidata": "Q1053170",
+     "building": "yes",
+     "name": "Courtyard Baton Rouge Downtown",
+     "official_name": "Courtyard by Marriott",
+     "phone": "+1 225-831-4646",
+     "ref": "BTRCD",
+     "tourism": "hotel",
+     "website": "https://www.marriott.com/btrcd"
+    },
+    "at": [
+     -38.45,
+     -59.06
+    ],
+    "ring": [
+     [
+      -65.45,
+      -50.65
+     ],
+     [
+      -21.64,
+      -48.1
+     ],
+     [
+      -16.26,
+      -47.78
+     ],
+     [
+      -15.65,
+      -71.0
+     ],
+     [
+      -20.03,
+      -71.27
+     ],
+     [
+      -64.69,
+      -73.97
+     ],
+     [
+      -65.45,
+      -50.65
+     ]
+    ]
+   }
+  ],
+  "furniture": [
+   {
+    "kind": "traffic_signals",
+    "id": "1822720369",
+    "at": [
+     32.19,
+     -38.29
+    ],
+    "tags": {
+     "highway": "traffic_signals",
+     "traffic_signals": "traffic_lights",
+     "traffic_signals:direction": "both"
+    }
+   },
+   {
+    "kind": "traffic_signals",
+    "id": "1822720411",
+    "at": [
+     -81.56,
+     -43.58
+    ],
+    "tags": {
+     "highway": "traffic_signals",
+     "traffic_signals": "traffic_lights",
+     "traffic_signals:direction": "both"
+    }
+   },
+   {
+    "kind": "crossing",
+    "id": "11926037608",
+    "at": [
+     32.0,
+     -29.38
+    ],
+    "tags": {
+     "crossing": "uncontrolled",
+     "highway": "crossing"
+    }
+   }
+  ],
+  "wikidata": {
+   "Q55316590": {
+    "label": "Downtown Baton Rouge Historic District",
+    "description": "historic district in Louisiana, USA",
+    "instanceOf": [
+     "downtown",
+     "historic district"
+    ],
+    "style": [],
+    "architect": [],
+    "heritage": [
+     "National Register of Historic Places listed place"
+    ],
+    "image": "KnoxWM.JPG"
+   }
+  }
+ }
 }

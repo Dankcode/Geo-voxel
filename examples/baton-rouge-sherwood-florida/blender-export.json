@@ -5185,5 +5185,204 @@
     ]
    ]
   }
- ]
+ ],
+ "context": {
+  "source": "overpass + wikidata",
+  "bbox": [
+   -91.05975735589115,
+   30.457440638195692,
+   -91.05794657296263,
+   30.458956353878335
+  ],
+  "pois": [
+   {
+    "type": "node",
+    "id": "9515318411",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:housenumber": "11228",
+     "addr:postcode": "70815",
+     "addr:state": "LA",
+     "addr:street": "Florida Boulevard",
+     "contact:website": "https://batonwireless.com/",
+     "mobile_phone:repair": "yes",
+     "name": "Baton Wireless",
+     "opening_hours": "Mo-Sa 09:00-20:00",
+     "operator": "Gabriel Rodriguez",
+     "payment:cash": "yes",
+     "payment:debit_cards": "yes",
+     "phone": "+1 225-409-8989",
+     "shop": "mobile_phone"
+    },
+    "at": [
+     -82.43,
+     -27.69
+    ]
+   },
+   {
+    "type": "node",
+    "id": "11134976867",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:housenumber": "11230",
+     "addr:postcode": "70815",
+     "addr:state": "LA",
+     "addr:street": "Florida Boulevard",
+     "amenity": "cafe",
+     "cuisine": "bubble_tea",
+     "name": "Vivi Bubble Tea",
+     "outdoor_seating": "no",
+     "phone": "+1-225-478-9237",
+     "website": "https://vivibubbletea.com/"
+    },
+    "at": [
+     -82.47,
+     -44.08
+    ]
+   },
+   {
+    "type": "node",
+    "id": "11206800919",
+    "tags": {
+     "addr:city": "Baton Rouge",
+     "addr:housenumber": "11244",
+     "addr:postcode": "70815",
+     "addr:state": "LA",
+     "addr:street": "Florida Boulevard",
+     "air_conditioning": "yes",
+     "name": "Asian Supermarket",
+     "opening_hours": "Mo-Su 09:00-21:00",
+     "phone": "+1-225-960-3000",
+     "shop": "supermarket"
+    },
+    "at": [
+     -41.84,
+     -70.12
+    ]
+   },
+   {
+    "type": "node",
+    "id": "11206800920",
+    "tags": {
+     "brand": "Dollar Tree",
+     "brand:wikidata": "Q5289230",
+     "check_date": "2024-07-11",
+     "check_date:opening_hours": "2024-07-11",
+     "name": "Dollar Tree",
+     "opening_hours": "Mo-Sa 08:00-22:00; Su 08:00-21:00",
+     "shop": "variety_store",
+     "website": "https://www.dollartree.com/locations/la/baton-rouge/7757/"
+    },
+    "at": [
+     -4.42,
+     -69.55
+    ]
+   }
+  ],
+  "parts": [],
+  "buildings": [],
+  "furniture": [
+   {
+    "kind": "traffic_signals",
+    "id": "115231227",
+    "at": [
+     59.62,
+     71.21
+    ],
+    "tags": {
+     "highway": "traffic_signals",
+     "traffic_signals": "traffic_lights"
+    }
+   },
+   {
+    "kind": "traffic_signals",
+    "id": "1860297213",
+    "at": [
+     59.76,
+     55.09
+    ],
+    "tags": {
+     "highway": "traffic_signals",
+     "traffic_signals": "traffic_lights"
+    }
+   },
+   {
+    "kind": "traffic_signals",
+    "id": "8026920729",
+    "at": [
+     46.16,
+     68.68
+    ],
+    "tags": {
+     "highway": "traffic_signals",
+     "traffic_signals": "traffic_lights"
+    }
+   },
+   {
+    "kind": "traffic_signals",
+    "id": "8026920734",
+    "at": [
+     45.69,
+     52.38
+    ],
+    "tags": {
+     "highway": "traffic_signals",
+     "traffic_signals": "traffic_lights"
+    }
+   },
+   {
+    "kind": "bus_stop",
+    "id": "11198954500",
+    "at": [
+     66.94,
+     -19.58
+    ],
+    "tags": {
+     "bus": "yes",
+     "highway": "bus_stop",
+     "public_transport": "platform"
+    }
+   },
+   {
+    "kind": "bus_stop",
+    "id": "11206800921",
+    "at": [
+     39.88,
+     -78.31
+    ],
+    "tags": {
+     "bus": "yes",
+     "highway": "bus_stop",
+     "public_transport": "platform"
+    }
+   },
+   {
+    "kind": "traffic_signals",
+    "id": "11648447364",
+    "at": [
+     33.54,
+     59.09
+    ],
+    "tags": {
+     "highway": "traffic_signals",
+     "traffic_signals": "traffic_lights",
+     "traffic_signals:direction": "forward"
+    }
+   },
+   {
+    "kind": "traffic_signals",
+    "id": "11648448771",
+    "at": [
+     68.97,
+     64.26
+    ],
+    "tags": {
+     "highway": "traffic_signals",
+     "traffic_signals": "traffic_lights",
+     "traffic_signals:direction": "forward"
+    }
+   }
+  ],
+  "wikidata": {}
+ }
 }

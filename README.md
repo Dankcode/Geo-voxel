@@ -22,6 +22,9 @@ about 79°; on the straightened map it is 90° and the shopping centre slides wi
 - **Faithful where it matters.** Real outlines (wings cut at reflex corners), real streets with lane widths, slip lanes,
   divided carriageways, real terrain (3DEP DTM, not a surface model), car parks — and strip-centre car parks inferred
   where OSM only maps retail land.
+- **Context, not scraping.** One Overpass request (tenants, amenities, OSM 3D building parts, street furniture) and at
+  most two Wikidata requests (floors, height, style, year, architect, heritage) per place: each building gets its real
+  use and tenants, landmarks rise to their mapped parts with their roof shapes, real trees stand where they are mapped.
 - **Deterministic.** The same export always gives the same grid.
 
 ## Quick start
@@ -48,7 +51,8 @@ const { grid, layers, report } = buildPlace(exportJson, { straighten: 'grid', ce
    ```
    and run the printed Python in Blender (Scripting tab, or a Blender MCP `run_blender_python` call). It runs in the
    background (Blender stays responsive), fetches DEM and OSM for the window **plus `pad` metres on every side**, and
-   writes `blender-export.json` + a top-down reference render. Overpass mirrors are retried; `resume(out, 'osm')`
+   writes `blender-export.json` (with a `context` block) + a top-down reference render. `context_only(out)` adds the
+   context to an older export without re-fetching anything else. Overpass mirrors are retried; `resume(out, 'osm')`
    re-runs only the OSM stage.
 3. `node bin/geo-voxels.mjs build out/place/blender-export.json --out out/place/map`.
 
@@ -67,10 +71,12 @@ Use `dem='USGS10m'` (3DEP, US, bare earth) wherever it exists. `SRTMGL1` is a *s
 3. **Footprints** — rasterise, one party wall between touching buildings, cut into wing rectangles at reflex corners.
 4. **Streets** — box (L∞) distance gives square road ends and corners; junction squares belong wholly to the longer
    street (nearest-wins would split them diagonally).
-5. **Lots** — mapped parking, plus implied strip-centre car parks with a storefront walk; stall rows per section.
+5. **Lots and open land** — mapped parking, implied strip-centre car parks (retail land only) with a storefront walk and
+   stall rows per section; parks and grass are lawn, named plazas paved, footpaths straight paved walks.
 6. **Terrain** — DTM → whole-voxel heights; buildings, lots and *each street segment* are level plateaus, touching
    plateaus ≤ 1 step apart, the rest relaxed — so height steps run straight across streets.
-7. **Voxels** — ground, surfaces, shells (storeys, glazing, doors facing the street or the car park, roof, parapet).
+7. **Voxels** — ground, surfaces, shells (storeys, glazing, doors facing the street or the car park, roof, parapet),
+   OSM 3D parts above the shell at their real heights with their roof shapes, real trees.
 8. **Paint** — a road-paint plan (centre/lane/edge lines, stop bars, crosswalks) as quads for the renderer.
 
 ## Layout
@@ -81,11 +87,13 @@ src/frame.js                    frame, rasterisation, DEM → heightfield, plate
 src/rectify.js                  street straightening, rubber sheet, outline squaring
 src/footprint.js                outline → wings, party walls
 src/osm.js                      OSM tag rules (street classes/widths, slip lanes, storeys, use)
+src/context.js, src/uses.js     tenants, uses, 3D parts, Wikidata facts, street furniture per building
 src/roadPaint.js                road-paint plan from the road graph
 src/build.js                    buildPlace: every stage in order
 src/grid.js, src/export.js      VoxelGrid, MagicaVoxel .vox, PNG slate
 bin/geo-voxels.mjs              CLI
-examples/                       two Baton Rouge exports (OSM + USGS data, see DATA.md)
+examples/                       Baton Rouge (Third Street, Sherwood & Florida, Old State Capitol) and Philadelphia
+                                (Independence Hall) exports with context (OSM + Wikidata + USGS, see DATA.md)
 ```
 
 ## References
