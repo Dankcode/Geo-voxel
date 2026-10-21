@@ -1,7 +1,7 @@
 {
   "name": "geo-voxels",
   "version": "0.1.0",
-  "description": "Voxel map builder: procedural towns (XCOM-style operations, large districts) and real places (OpenStreetMap + USGS 3DEP via Blender/BlenderGIS) to straight-street, furnished voxel maps \u2014 library, CLI and a Three.js app.",
+  "description": "Voxel map builder: procedural towns (XCOM-style operations, large districts) and real places (OpenStreetMap + USGS 3DEP via Blender/BlenderGIS) to straight-street, furnished voxel maps — library, CLI and a Three.js app.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -42,6 +42,7 @@
     "url": "https://github.com/Dankcode/Geo-voxels.git"
   },
   "devDependencies": {
+    "leaflet": "^1.9.4",
     "three": "0.169.0",
     "vite": "5.4.10"
   },

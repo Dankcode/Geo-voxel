@@ -14,3 +14,10 @@ export { toVox as toVoxBytes } from './vox.js';
 // Building prefabs: bake any building of an engine map, stamp it (rotated / mirrored) into another map or lot
 export { bakePrefab, bakePlacePrefabs, stampPrefab, transformFor, PREFAB_FORMAT } from '../engine/mapgen/geo/BuildingPrefab.js';
 export { registerPrefab, getPrefab, findPrefabs, placePrefabInLot } from '../engine/mapgen/geo/PrefabLibrary.js';
+// Live fetch (no Blender, no keys) and the street details
+export { fetchPlace, localProjection, boxAround, MAX_SIDE_M, MIN_SIDE_M } from './live/fetchPlace.js';
+export { overpassQuery, parseOverpass } from './live/overpass.js';
+export { terrainSampler } from './live/terrain.js';
+export { wikidataFacts, wikipediaSummaries, commonsPhotos } from './live/wiki.js';
+export { decodePNG } from './live/png.js';
+export { applyDetails, shopsFromContext } from './details.js';

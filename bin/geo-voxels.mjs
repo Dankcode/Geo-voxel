@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 // geo-voxels — real places → straight-street voxel maps.
 //
+//   geo-voxels fetch --lat 30.4466 --lon -91.1891 [--width 160 --depth 160] [--no-details] --out dir
+//       live fetch, no Blender or keys (Overpass + AWS Terrain Tiles + Wikidata + Wikipedia + Commons) → dir/source.json
+//   geo-voxels place --lat 30.4466 --lon -91.1891 [--width 160 --depth 160] [--raw] [--tactics] [--cover] --out dir
+//       fetch + build in one go → source.json, map.vox, grid.json, map.json (signs, details), slate.png
 //   geo-voxels blender --lat 30.4583 --lon -91.0587 --window -100,71,-97,74 [--pad 30] [--dem USGS10m] --out dir
 //       prints the Blender (BlenderGIS) Python that fetches OSM + DEM and writes dir/blender-export.json
 //   geo-voxels build <blender-export.json> --out dir [--raw] [--cell 0.9] [--storey 3] [--tags overrides.json]
@@ -18,9 +22,12 @@ import { toVox, toSlatePNG } from '../src/export.js';
 import { generate, GENERATORS } from '../src/town.js';
 import { tactics } from '../src/plugins/tactics.js';
 import { bakePlacePrefabs } from '../engine/mapgen/geo/BuildingPrefab.js';
+import { fetchPlace } from '../src/live/fetchPlace.js';
+import { decodePNG } from '../src/live/png.js';
+import { inflateSync } from 'node:zlib';
 
 const argv = process.argv.slice(2), cmd = argv[0], opt = (k, d = null) => argv.includes(k) ? argv[argv.indexOf(k) + 1] : d;
-const usage = () => { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 14).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exit(2); };
+const usage = () => { console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 18).map(l => l.replace(/^\/\/ ?/, '')).join('\n')); process.exit(2); };
 if (cmd === 'blender') {
     const lat = Number(opt('--lat')), lon = Number(opt('--lon')), win = (opt('--window') || '').split(',').map(Number), out = resolve(opt('--out', 'geo-out'));
     if (!Number.isFinite(lat) || !Number.isFinite(lon) || win.length !== 4 || win.some(v => !Number.isFinite(v))) usage();
@@ -44,6 +51,21 @@ ns['start'](lat=${lat}, lon=${lon}, extent=(${win.join(', ')}), pad=${Number(opt
     writeFileSync(join(out, 'slate.png'), toSlatePNG(r.grid));
     writeFileSync(join(out, 'report.json'), JSON.stringify({ ms, ...r.report }, null, 1));
     console.log(`geo-voxels: ${r.grid.width}×${r.grid.depth}×${r.grid.height} in ${ms} ms · ${r.report.buildings.length} buildings · ${r.layers.roads.length} streets · rotated ${r.report.theta}° · ${r.report.straighten ? `straightened (max shift ${r.report.straighten.maxShift} cells)` : 'raw geometry'} → ${out}`);
+} else if (cmd === 'fetch' || cmd === 'place') {
+    const lat = Number(opt('--lat')), lon = Number(opt('--lon')), out = resolve(opt('--out', 'place-out'));
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) usage();
+    mkdirSync(out, { recursive: true });
+    const source = await fetchPlace({ lat, lon, widthM: Number(opt('--width', 160)), depthM: Number(opt('--depth', opt('--width', 160))), details: !argv.includes('--no-details') },
+        { decodeTile: b => decodePNG(b, x => inflateSync(Buffer.from(x))), onProgress: p => console.log(`  ${p.text}`) })
+        .catch(e => { console.error(`geo-voxels: fetch failed — ${e.cause?.code || e.cause?.message || e.message}`); process.exit(1); });
+    writeFileSync(join(out, 'source.json'), JSON.stringify(source));
+    if (cmd === 'place') {
+        const r = generate({ generator: 'place', geo: source, seed: Number(opt('--seed', 1)), params: { name: opt('--name') || undefined, straighten: argv.includes('--raw') ? 'none' : 'grid', coverRepair: argv.includes('--cover') }, plugins: argv.includes('--tactics') ? [tactics()] : [] });
+        const { grid, palette, ...rest } = r;
+        writeFileSync(join(out, 'map.vox'), toVox(grid)); writeFileSync(join(out, 'grid.json'), JSON.stringify(grid.toJSON()));
+        writeFileSync(join(out, 'map.json'), JSON.stringify({ ...rest, palette })); writeFileSync(join(out, 'slate.png'), toSlatePNG(grid));
+        console.log(`geo-voxels: ${grid.width}×${grid.depth}×${grid.height} · ${r.layers.buildings.length} building parts · ${r.layers.signs?.length || 0} signs → ${out}`);
+    } else console.log(`geo-voxels: ${source.buildings.length} buildings, ${source.highways.length} streets → ${join(out, 'source.json')}`);
 } else if (cmd === 'list') {
     for (const [id, g] of Object.entries(GENERATORS)) {
         console.log(`\n${id} — ${g.label} (${g.size})\n  ${g.text}`);

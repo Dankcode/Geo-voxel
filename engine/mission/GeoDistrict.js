@@ -134,7 +134,7 @@ export function buildGeoDistrict({ geo, id = 'geo-district', name = 'Geo Distric
         const kerbParking = !link && !['motorway', 'trunk', 'primary'].includes(t.highway) && !(cls >= 3 && ['yes', 'true', '1'].includes(t.oneway))
             && !['no', 'no_parking', 'no_stopping'].includes(t['parking:both'] || t['parking:lane:both']);
         roads.push({ kerbParking, hw: t.highway, id: `${String(t.name || (link ? 'link' : 'road')).toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${h.osm}`, name: t.name || null, cls, link, kind: cls >= 3 ? 'main' : cls >= 1 ? 'cross' : 'service', half,
-            sidewalk: cls >= 1 && !link ? 2 : 0, lanes: parseInt(t.lanes, 10) || (cls ? 2 : 1), line: h.line.map(toC),
+            sidewalk: cls >= 1 && !link ? 2 : 0, lanes: parseInt(t.lanes, 10) || (cls ? 2 : 1), line: h.line.map(toC), maxspeed: t.maxspeed || null,
             oneway: ['yes', 'true', '1'].includes(t.oneway) || t.junction === 'roundabout' ? 1 : t.oneway === '-1' ? -1 : 0 });
     }
     // OSM-mapped pedestrian crossings (footway=crossing ways): painted where they really are
@@ -496,6 +496,8 @@ export function buildGeoDistrict({ geo, id = 'geo-district', name = 'Geo Distric
         report.reach = m.buildings.map(b => ({ id: b.id, entered: b.rooms.some(r => r.cells.some(([x, y]) => search.costs.has(nodeKey({ x, y, z: r.floorZ })))) }));
     }
     result.meta.geoReport = report;
+    // for tools, never serialised: the export-metres → cell transform and the street centrelines with their names
+    Object.defineProperties(report, { project: { value: ptC }, toWorld: { value: F.toWorld }, streets: { value: roads.map(r => ({ name: r.name, kind: r.kind, line: r.line, half: r.half, oneway: r.oneway, maxspeed: r.maxspeed })) } });
     result.meta.geoGates = gates;
     return result;
 }

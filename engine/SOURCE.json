@@ -2,7 +2,7 @@
  "from": "voxel-tactics/shared",
  "commit": "4ab3623fd0e387b32d115413191fa68993dce6f8",
  "dirty": true,
- "synced": "2026-10-21T07:11:36.085Z",
+ "synced": "2026-10-21T08:54:30.822Z",
  "entries": [
   "shared/mapgen/Generator.js",
   "shared/mapgen/ExteriorCompiler.js",
@@ -73,7 +73,7 @@
   "mission/BuildingEra.js": "1dec7f4f559803a3",
   "mission/ConnectingDistricts.js": "4563b8d7ffafad33",
   "mission/CoverScatter.js": "57007a2745b11d6b",
-  "mission/GeoDistrict.js": "65a95f1654a7578b",
+  "mission/GeoDistrict.js": "6e05531fc5861f6e",
   "mission/LargeDistricts.js": "b2075d8a6cc67252",
   "mission/MissionCommon.js": "5041ace3518d1223",
   "mission/MissionMetrics.js": "f7b8b4ba6c16455e",

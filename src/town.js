@@ -19,6 +19,7 @@ import { buildGeoDistrict, GEO_GENERATOR_VERSION } from '../engine/mission/GeoDi
 import { remixParameters } from '../engine/mapgen/DistrictRemix.js';
 import { MATERIALS } from '../engine/voxel/Materials.js';
 import { VoxelGrid } from './grid.js';
+import { applyDetails } from './details.js';
 
 /** The engine's materials as a palette: { id, key, label, color [r, g, b], solid, opaque, glass, walkable, family, light }. */
 export const ENGINE_PALETTE = Object.freeze(MATERIALS.map(m => Object.freeze({
@@ -97,7 +98,7 @@ export function toResult(map, { generator, theme, seed, params = {} } = {}) {
     const s = map.store, grid = new VoxelGrid(s.width, s.depth, s.height, ENGINE_PALETTE.map(p => [p.key, p.color]));
     grid.data.set(s.mat);
     const buildings = (map.buildings || []).map(b => ({
-        ...pick(b, ['id', 'name', 'role', 'program', 'x0', 'y0', 'w', 'd', 'baseZ', 'storeys', 'top', 'front', 'wall', 'era', 'rounded', 'entry', 'landmark']),
+        ...pick(b, ['id', 'name', 'role', 'program', 'x0', 'y0', 'w', 'd', 'baseZ', 'storeys', 'top', 'front', 'wall', 'era', 'rounded', 'entry', 'landmark', 'osm', 'group', 'wing']),
         rooms: (b.rooms || []).map(r => (typeof r === 'object' ? r.id : r)),
         doors: b.doors || [], windows: b.windows || [], stairs: b.stairs || [],
         exits: b.exits || []
@@ -125,6 +126,10 @@ export function generate({ generator = 'district', theme = null, seed = 1, param
     const t0 = globalThis.performance?.now?.() ?? Date.now();
     const map = buildEngineMap({ generator, theme, seed, params, geo });
     const result = toResult(map, { generator, theme, seed, params });
+    if (generator === 'place') {   // signs, house numbers, street names and the building directory from the fetched details
+        const d = applyDetails(map, result, geo);
+        if (d) { result.layers.signs = d.signs; result.details = d.details; }
+    }
     for (const p of plugins) result.plugins[p.name] = p.apply(map, result);
     result.ms = Math.round((globalThis.performance?.now?.() ?? Date.now()) - t0);
     if (engineMap) Object.defineProperty(result, 'engine', { value: map, enumerable: false });
