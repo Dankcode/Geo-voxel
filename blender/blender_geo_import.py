@@ -142,7 +142,7 @@ CONTEXT_QUERY = """[out:json][timeout:90][bbox:{s},{w},{n},{e}];
 );
 out tags geom;"""
 OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://lz4.overpass-api.de/api/interpreter', 'https://z.overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
-UA = 'geo-voxels (BlenderGIS; github.com/Dankcode/Geo-voxels)'
+UA = 'geo-voxels (BlenderGIS; github.com/Dankcode/Geo-voxel)'
 
 
 def _http(url, data=None, timeout=120):

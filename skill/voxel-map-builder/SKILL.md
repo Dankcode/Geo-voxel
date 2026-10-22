@@ -11,7 +11,7 @@ colours, street names, house numbers, speed limits, stop signs — from open dat
 
 ## 1. Get the repo
 
-- Local: `~/Documents/GitHub/Geo-voxels` (Mac). Remote: `https://github.com/Dankcode/Geo-voxels`.
+- Local: `~/Documents/GitHub/Geo-voxel` (Mac). Remote: `https://github.com/Dankcode/Geo-voxel`.
 - `npm install` once (the app needs Vite, three, Leaflet; the library and CLI have no dependencies, Node ≥ 20).
 
 ## 2. Pick the place

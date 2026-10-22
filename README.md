@@ -15,7 +15,7 @@ house numbers, speed limits, stop signs. Everything comes from open data, fetche
 ## The Place Builder
 
 ```sh
-git clone https://github.com/Dankcode/Geo-voxels && cd Geo-voxels
+git clone https://github.com/Dankcode/Geo-voxel && cd Geo-voxel
 npm install
 npm run app            # → http://localhost:5180
 ```
