@@ -15,7 +15,9 @@ permissions:
   contents: write
   issues: write
   actions: write
-concurrency: { group: generate-houses, cancel-in-progress: false }
+concurrency:
+  group: generate-houses
+  cancel-in-progress: false
 jobs:
   gate:
     runs-on: ubuntu-latest
@@ -29,7 +31,11 @@ jobs:
             if (context.eventName === 'workflow_dispatch') { core.setOutput('allowed', 'true'); return; }
             const issue = context.payload.issue;
             const labels = (issue.labels || []).map(l => l.name);
-            if (!labels.includes('generate-houses')) { core.setOutput('allowed', 'false'); return; }
+            // a request is an issue from one of the two forms (its fields), labelled or not: issue forms only apply
+            // labels that already exist in the repository
+            const body = issue.body || '';
+            const isRequest = labels.includes('generate-houses') || /###\s+Latitude/.test(body) || /###\s+Building key/.test(body);
+            if (!isRequest) { core.setOutput('allowed', 'false'); return; }
             if (context.payload.action === 'labeled' && !['approved', 'generate-houses'].includes(context.payload.label.name)) { core.setOutput('allowed', 'false'); return; }
             const who = context.payload.sender.login;
             const { data } = await github.rest.repos.getCollaboratorPermissionLevel({ owner: context.repo.owner, repo: context.repo.repo, username: who });
@@ -46,7 +52,9 @@ jobs:
     if: needs.gate.outputs.allowed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 300
-    defaults: { run: { shell: bash -el {0} } }
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - uses: actions/checkout@v4
       - uses: mamba-org/setup-micromamba@v2

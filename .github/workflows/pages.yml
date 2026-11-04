@@ -8,7 +8,9 @@ permissions:
   contents: read
   pages: write
   id-token: write
-concurrency: { group: pages, cancel-in-progress: true }
+concurrency:
+  group: pages
+  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,7 +25,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: { name: github-pages, url: "${{ steps.d.outputs.page_url }}" }
+    environment:
+      name: github-pages
+      url: ${{ steps.d.outputs.page_url }}
     steps:
       - id: d
         uses: actions/deploy-pages@v4
