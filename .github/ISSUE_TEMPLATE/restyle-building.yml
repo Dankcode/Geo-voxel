@@ -1,0 +1,20 @@
+name: Regenerate a building in another style
+description: Same rooms and layout, another style template (Merrell et al. 2010, Fig. 9).
+title: "Restyle "
+labels: ["generate-houses"]
+body:
+  - type: markdown
+    attributes:
+      value: Runs when the repository owner opens it, or approves it with the `approved` label.
+  - type: input
+    id: area
+    attributes: { label: Area, description: "The area id (architecture/areas/<id>)" }
+    validations: { required: true }
+  - type: input
+    id: key
+    attributes: { label: Building key, description: "The house's key in that area, e.g. h978042772-s1" }
+    validations: { required: true }
+  - type: input
+    id: style
+    attributes: { label: New style, description: "cape_cod (Cottage), italianate, tudor_revival (Tudor), craftsman, colonial_revival, …" }
+    validations: { required: true }

@@ -36,6 +36,22 @@ address, tenants and room), **Details** (below) and **Export** — `.vox` (Magic
 importers), `.glb` (the mesh as shown, signs included), `map.json`, `grid.json`, `source.json` (the fetched data, to
 rebuild later or offline — open it again with *Open a saved source.json*) and a screenshot. The URL keeps the area.
 
+## Houses: real buildings planned room by room
+
+**Design the houses here →** (in the Place Builder) opens the house viewer at the same spot. On its world map you can:
+- pick any place on Earth and highlight 1–2 blocks;
+- request the houses inside;
+- regenerate any of them in another style (the paper's Cottage, Italianate, Tudor and Craftsman, and more);
+- download each house's game export: its rooms, every door with the rooms it joins and its facing, and the garage
+  door's bearing against the street.
+
+A request is a pre-filled GitHub issue. The repository's workflow runs the generator for the owner, or for a request
+the owner approves, then republishes the site. You don't need a command line, and no AI model takes part.
+
+The rooms are planned with the method of Merrell, Schkufza & Koltun (2010); the furniture follows Germer & Schwarz
+(2009) and Merrell et al. (2011). Each house is modelled in FreeCAD with stock-size doors, and checked so that a
+person fits through every hall and doorway. See [architecture/README.md](architecture/README.md).
+
 ## Where the data comes from
 
 | Request | What it gives |

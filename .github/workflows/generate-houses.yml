@@ -1,0 +1,99 @@
+# Generate houses from a request issue (the house viewer's world map opens one, pre-filled).
+# Runs only when the repository owner or a collaborator with write access opened the issue, or when such a person
+# adds the `approved` label to someone else's request: the owner decides what may change the published designs.
+name: Generate houses
+on:
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      latitude: { description: "Latitude", required: true }
+      longitude: { description: "Longitude", required: true }
+      radius: { description: "Radius in blocks (1–2)", default: "1.5" }
+      style: { description: "Style (auto or a style key)", default: "auto" }
+permissions:
+  contents: write
+  issues: write
+  actions: write
+concurrency: { group: generate-houses, cancel-in-progress: false }
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+    steps:
+      - id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName === 'workflow_dispatch') { core.setOutput('allowed', 'true'); return; }
+            const issue = context.payload.issue;
+            const labels = (issue.labels || []).map(l => l.name);
+            if (!labels.includes('generate-houses')) { core.setOutput('allowed', 'false'); return; }
+            if (context.payload.action === 'labeled' && !['approved', 'generate-houses'].includes(context.payload.label.name)) { core.setOutput('allowed', 'false'); return; }
+            const who = context.payload.sender.login;
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({ owner: context.repo.owner, repo: context.repo.repo, username: who });
+            const trusted = ['admin', 'maintain', 'write'].includes(data.permission);
+            // opened by a trusted user, or approved (labeled) by one
+            const ok = trusted && (context.payload.action === 'opened' || context.payload.label.name === 'approved' || labels.includes('approved'));
+            if (!ok && context.payload.action === 'opened') {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: issue.number,
+                body: 'Thanks! This request runs once the repository owner approves it (adds the `approved` label).' });
+            }
+            core.setOutput('allowed', ok ? 'true' : 'false');
+  generate:
+    needs: gate
+    if: needs.gate.outputs.allowed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    defaults: { run: { shell: bash -el {0} } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: architecture/environment.yml
+          cache-environment: true
+      - name: Build the roof generator (CGAL weighted straight skeleton)
+        run: bash architecture/pipeline/roofgen/build.sh
+      - name: Write the request
+        env:
+          BODY: ${{ github.event.issue.body }}
+          LAT: ${{ github.event.inputs.latitude }}
+          LON: ${{ github.event.inputs.longitude }}
+          RAD: ${{ github.event.inputs.radius }}
+          STY: ${{ github.event.inputs.style }}
+        run: |
+          if [ -n "$LAT" ]; then
+            printf '### Latitude\n\n%s\n\n### Longitude\n\n%s\n\n### Radius in blocks\n\n%s\n\n### Style for the area\n\n%s\n' "$LAT" "$LON" "$RAD" "$STY" > request.md
+          else
+            printf '%s' "$BODY" > request.md
+          fi
+      - name: Generate
+        run: |
+          python architecture/pipeline/run_request.py --issue-body request.md --summary summary.md 2>&1 | tee generate.log
+      - name: Commit the new houses
+        run: |
+          git config user.name "geo-voxels generator"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add architecture/areas architecture/data app/public/houses
+          git commit -m "Generate houses (${{ github.event.issue.number && format('#{0}', github.event.issue.number) || 'manual run' }})" || echo "nothing to commit"
+          git push
+      - name: Redeploy the site
+        # a push made with the workflow token starts no workflow, so ask for the Pages deploy directly
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({ ...context.repo, workflow_id: 'pages.yml', ref: 'main' });
+      - name: Report on the issue
+        if: always() && github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const ok = fs.existsSync('summary.md');
+            const pages = `https://${context.repo.owner.toLowerCase()}.github.io/${context.repo.repo}/houses/`;
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = ok ? fs.readFileSync('summary.md', 'utf8') + `\nOpen them in the house viewer once the site redeploys: ${pages}\n\n[Run log](${run})`
+                            : `The generator failed; see the [run log](${run}).`;
+            await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body });
+            if (ok) await github.rest.issues.update({ ...context.repo, issue_number: context.issue.number, state: 'closed' });

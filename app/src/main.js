@@ -223,7 +223,12 @@ $('#ex-png').onclick = () => { renderer.render(scene, camera); renderer.domEleme
 // ---- misc -------------------------------------------------------------------------------------------------------
 function busy(on, text = '') { $('#busy').hidden = !on; $('#busy-text').textContent = text; $('#build').disabled = on; }
 function toast(text) { const t = $('#toast'); t.textContent = text; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 7000); }
-function writeHash(s) { history.replaceState(null, '', `#lat=${s.lat.toFixed(6)}&lon=${s.lon.toFixed(6)}&w=${s.widthM}&d=${s.depthM}`); }
+function writeHash(s) {
+    history.replaceState(null, '', `#lat=${s.lat.toFixed(6)}&lon=${s.lon.toFixed(6)}&w=${s.widthM}&d=${s.depthM}`);
+    // the house designer opens at the same spot, with 1–2 blocks sized to this box (1 block ≈ 110 m)
+    const hl = document.getElementById('houses-link'), bl = Math.min(2, Math.max(1, Math.round(Math.max(s.widthM, s.depthM) / 2 / 110 * 4) / 4));
+    if (hl) hl.href = `./houses/?lat=${s.lat.toFixed(6)}&lon=${s.lon.toFixed(6)}&blocks=${bl}`;
+}
 function readHash() {
     const h = new URLSearchParams(location.hash.slice(1)), lat = Number(h.get('lat')), lon = Number(h.get('lon'));
     return h.has('lat') && Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon, widthM: Number(h.get('w')) || 160, depthM: Number(h.get('d')) || 160 } : null;

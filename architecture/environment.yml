@@ -1,0 +1,16 @@
+# conda-forge environment for the house pipeline (the GitHub workflow builds it with micromamba).
+name: houses
+channels: [conda-forge]
+dependencies:
+  - python=3.11
+  - freecad=1.0
+  - ifcopenshell
+  - lark
+  - cgal-cpp>=6.0
+  - gmp
+  - mpfr
+  - cxx-compiler
+  - numpy
+  - scipy
+  - shapely>=2
+  - matplotlib

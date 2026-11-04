@@ -101,3 +101,7 @@ main { position: relative; display: grid; grid-template-rows: auto 1fr; min-widt
   #panel { grid-row: 2; border-right: 0; border-top: 1px solid var(--line); }
   .shops { columns: 1; }
 }
+
+/* link to the house designer (app/public/houses), styled like a secondary button */
+a#houses-link { display: block; margin-top: 8px; text-align: center; text-decoration: none; background: var(--field); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 7px 4px; font: inherit; }
+a#houses-link:hover { border-color: var(--accent); }

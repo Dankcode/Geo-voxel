@@ -1,0 +1,311 @@
+{
+ "Q7573312": {
+  "label": "Spanish Town",
+  "enwiki": "Spanish Town, Baton Rouge, Louisiana",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": [],
+  "extract": "Spanish Town is a historic district anchored by Spanish Town Road in Baton Rouge, the capital city of the U.S. state of Louisiana. It is well known for its annual Mardi Gras parade, which is the largest in Baton Rouge."
+ },
+ "Q4877626": {
+  "label": "Beauregard Town",
+  "enwiki": "Beauregard Town",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": [],
+  "extract": "Beauregard Town, also known as Beauregard Town Historic District, is a historic district in downtown Baton Rouge, Louisiana, anchored by Government Street. Elias Beauregard commissioned Arsène Lacarrière-Latour to draw up the plans to develop his plantation property into a town in the \"Grand European Manner\". Advertisements for the scheme were circulated in 1806, though many lots remained empty until the late nineteenth century when Baton Rouge was designated as the state capitol. The district was listed on the National Register of Historic Places in 1980. It is the second-oldest neighborhood in Baton Rouge."
+ },
+ "Q55316590": {
+  "label": "Downtown Baton Rouge Historic District",
+  "enwiki": "Downtown Baton Rouge Historic District",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": [],
+  "extract": "Downtown Baton Rouge Historic District is a historic district in downtown Baton Rouge, Louisiana, United States, located along 3rd Street, from Main Street to North Boulevard."
+ },
+ "Q55621777": {
+  "label": "Main Street Historic District",
+  "enwiki": "Main Street Historic District (Baton Rouge, Louisiana)",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": [],
+  "extract": "Main Street Historic District is a historic district in downtown Baton Rouge, Louisiana, United States, located along Main Street, from North 4th Street to North 7th Street."
+ },
+ "Q49553802": {
+  "label": "Roseland Terrace Historic District",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q1783159": {
+  "label": "Louisiana State Capitol",
+  "enwiki": "Louisiana State Capitol",
+  "style": [
+   "Art Deco architecture"
+  ],
+  "inception": [],
+  "floors": [
+   "+34"
+  ],
+  "architect": [
+   "Leon C. Weiss"
+  ],
+  "extract": "The Louisiana State Capitol is the seat of government for the U.S. state of Louisiana and is located in downtown Baton Rouge. The capitol houses the chambers for the Louisiana State Legislature, made up of the House of Representatives and the Senate, as well as the office of the Governor of Louisiana. At 450 feet (137 m) tall and with 34 stories, it is the tallest skyscraper in Baton Rouge, the seventh tallest building in Louisiana, and the tallest capitol in the United States. It is located on a 27-acre (110,000 m2) tract, which includes the Capitol Gardens. The Louisiana State Capitol is often thought of as \"Huey Long's monument\" due to the influence of the former governor and U.S. senator in getting the Capitol built. The building's construction was completed in 1931. It was listed on the National Register of Historic Places in 1978 and was designated a National Historic Landmark in 1982."
+ },
+ "Q3738031": {
+  "label": "Pete Maravich Assembly Center",
+  "enwiki": "Pete Maravich Assembly Center",
+  "style": [],
+  "inception": [
+   "+1972-01-03T00:00:00Z"
+  ],
+  "floors": [],
+  "architect": [],
+  "extract": "The Pete Maravich Assembly Center is a 13,215-seat multi-purpose arena in Baton Rouge, Louisiana. The arena opened in 1972. It was originally known as the LSU Assembly Center, but was renamed in honor of Pete Maravich, a Tiger basketball legend, shortly after his death in 1988. Louisiana governor Buddy Roemer signed an act to rename the building in Maravich's honor. Maravich never played in the arena as a collegian but played in it as a member of the Atlanta Hawks in a preseason game. But his exploits while at LSU led the university to build a larger home for the basketball team, which languished for decades in the shadow of the school's football program. The Maravich Center is known to locals as \"The PMAC\" or \"Pete's Palace\", or by its more nationally known nickname, \"The Deaf Dome\", coined by Dale Brown. The Maravich Center's neighbor, Tiger Stadium is known as \"Death Valley\"."
+ },
+ "Q14691671": {
+  "label": "Huey P. Long Field House",
+  "enwiki": "Huey P. Long Field House",
+  "style": [
+   "Italian Renaissance"
+  ],
+  "inception": [
+   "+1932-00-00T00:00:00Z"
+  ],
+  "floors": [],
+  "architect": [],
+  "extract": "Huey P. Long Field House, on the campus of Louisiana State University in Baton Rouge, Louisiana, was constructed in 1932. It was named for notable U.S. Senator and state governor Huey Long. The field house is considered the original student union and included a post office, ballroom, gymnasium and also featured the largest swimming pool in the United States at the time."
+ },
+ "Q7658466": {
+  "label": "Swine Palace",
+  "enwiki": "Swine Palace",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": [],
+  "extract": "Swine Palace is a non-profit professional theatre company associated with the Louisiana State University Department of Theatre in Baton Rouge, Louisiana. The theatre companies home is located in the Reilly Theatre on the campus of LSU."
+ },
+ "Q6414985": {
+  "label": "Kirby–Smith Hall",
+  "enwiki": "Edmund Kirby Smith Hall",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q6689294": {
+  "label": "Louisiana State Museum – Baton Rouge",
+  "enwiki": "Capitol Park Museum - Baton Rouge",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q7603402": {
+  "label": "State Library of Louisiana",
+  "enwiki": "State Library of Louisiana",
+  "style": [],
+  "inception": [
+   "+1920-01-01T00:00:00Z"
+  ],
+  "floors": [],
+  "architect": []
+ },
+ "Q6689127": {
+  "label": "Louisiana Governor's Mansion",
+  "enwiki": "Louisiana Governor's Mansion",
+  "style": [],
+  "inception": [
+   "+1963-00-00T00:00:00Z"
+  ],
+  "floors": [],
+  "architect": []
+ },
+ "Q7092447": {
+  "label": "One American Place",
+  "enwiki": "One American Place",
+  "style": [],
+  "inception": [
+   "+1974-00-00T00:00:00Z"
+  ],
+  "floors": [
+   "+24"
+  ],
+  "architect": []
+ },
+ "Q5698663": {
+  "label": "Hilton Baton Rouge Capitol Center",
+  "enwiki": "Hilton Baton Rouge Capitol Center",
+  "style": [],
+  "inception": [
+   "+1927-01-01T00:00:00Z"
+  ],
+  "floors": [],
+  "architect": [
+   "Edward Fairfax Neild, Sr."
+  ]
+ },
+ "Q4869482": {
+  "label": "Raising Cane's River Center",
+  "enwiki": "Raising Cane's River Center",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": [],
+  "extract": "Raising Cane's River Center is an entertainment complex in downtown Baton Rouge, Louisiana. Opened in 1977, the complex includes: an arena, ballroom, exhibition center, theatre and library. The venue hosts over 500 events per year. In 2016, Raising Cane's Chicken Fingers signed a 10-year naming rights agreement for the River Center."
+ },
+ "Q8050640": {
+  "label": "Yazoo and Mississippi Valley Railroad Company Depot",
+  "enwiki": "Baton Rouge station",
+  "style": [
+   "Neoclassical architecture"
+  ],
+  "inception": [
+   "+1925-00-00T00:00:00Z"
+  ],
+  "floors": [],
+  "architect": []
+ },
+ "Q7084390": {
+  "label": "Old Louisiana State Capitol",
+  "enwiki": "Old Louisiana State Capitol",
+  "style": [
+   "Gothic Revival"
+  ],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q38251262": {
+  "label": "Baton Rouge City Club",
+  "enwiki": "Baton Rouge City Club",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q59155605": {
+  "label": "Central Fire Station",
+  "enwiki": "Central Fire Station (Baton Rouge, Louisiana)",
+  "style": [
+   "Gothic Revival"
+  ],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q6689104": {
+  "label": "Louisiana Department of Public Safety & Corrections",
+  "enwiki": "Louisiana Department of Public Safety & Corrections",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q7588470": {
+  "label": "St. James Episcopal Church",
+  "enwiki": "St. James Episcopal Church (Baton Rouge, Louisiana)",
+  "style": [
+   "Gothic Revival"
+  ],
+  "inception": [],
+  "floors": [],
+  "architect": [
+   "Q44076828"
+  ]
+ },
+ "Q7084391": {
+  "label": "Old Louisiana Governor's Mansion",
+  "enwiki": "Old Louisiana Governor's Mansion",
+  "style": [
+   "Neoclassical architecture"
+  ],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q141432257": {
+  "label": "Dufrocq School",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": [
+   "William T. Nolan"
+  ]
+ },
+ "Q42666828": {
+  "label": "Movie Tavern Baton Rouge",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q7870783": {
+  "label": "USS Kidd",
+  "enwiki": "USS Kidd (DD-661)",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": [],
+  "extract": "USS Kidd (DD-661), a Fletcher-class destroyer, was the first ship of the United States Navy to be named after Rear Admiral Isaac C. Kidd, who died on the bridge of his flagship USS Arizona during the 1941 Japanese attack on Pearl Harbor. Admiral Kidd was the first US flag officer to die during World War II and the first American admiral ever to be killed in action. A National Historic Landmark, she is now a museum ship, berthed on the Mississippi River in Baton Rouge, Louisiana. Kidd is one of four Fletcher-class destroyers to be preserved, and along with destroyer escort USS Slater , one of only two surviving US escort ships preserved in her World War II configuration."
+ },
+ "Q64657842": {
+  "label": "McKinley High School",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q28153559": {
+  "label": "Reiley-Reeves House",
+  "enwiki": "Reiley-Reeves House",
+  "style": [
+   "Queen Anne style architecture in the United States"
+  ],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q7244046": {
+  "label": "Prince Hall Masonic Temple",
+  "enwiki": "Prince Hall Masonic Temple (Baton Rouge, Louisiana)",
+  "style": [
+   "Neoclassical architecture"
+  ],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q6689088": {
+  "label": "Louisiana Community and Technical College System",
+  "enwiki": "Louisiana Community and Technical College System",
+  "style": [],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q14691847": {
+  "label": "St. Joseph Cathedral",
+  "enwiki": "St. Joseph Cathedral (Baton Rouge, Louisiana)",
+  "style": [
+   "Gothic Revival"
+  ],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ },
+ "Q42666803": {
+  "label": "Lincoln Theater",
+  "style": [
+   "Moderne architecture"
+  ],
+  "inception": [],
+  "floors": [],
+  "architect": []
+ }
+}

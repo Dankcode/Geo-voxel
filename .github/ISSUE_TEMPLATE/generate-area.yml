@@ -1,0 +1,34 @@
+name: Generate houses for an area
+description: Plan, model and export the houses within 1–2 blocks of a spot (the house viewer's world map fills this in).
+title: "Generate houses: "
+labels: ["generate-houses"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The repository's workflow runs the generator (Merrell et al. 2010 room planning, the design gate, FreeCAD models,
+        game exports) when the repository owner opens this request, or when the owner approves it with the `approved`
+        label. It comments here with the result and republishes the viewer. Nothing is sent to an AI model.
+  - type: input
+    id: latitude
+    attributes: { label: Latitude, description: "Centre of the area, decimal degrees", placeholder: "30.3916" }
+    validations: { required: true }
+  - type: input
+    id: longitude
+    attributes: { label: Longitude, description: "Centre of the area, decimal degrees", placeholder: "-91.2061" }
+    validations: { required: true }
+  - type: input
+    id: radius
+    attributes: { label: Radius in blocks, description: "1 to 2 (1 block ≈ 110 m); default 1.5", value: "1.5" }
+  - type: input
+    id: style
+    attributes:
+      label: Style for the area
+      description: "auto (inferred per house), or a style: cape_cod (the paper's Cottage), italianate, tudor_revival, craftsman, colonial_revival, …"
+      value: auto
+  - type: textarea
+    id: styles
+    attributes: { label: Per-house styles, description: 'Optional JSON, OSM id → style, e.g. {"978042772": "tudor_revival"}' }
+  - type: textarea
+    id: houses
+    attributes: { label: Houses seen on the map, description: "For reference; the generator re-checks every building in the circle" }

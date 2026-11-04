@@ -1,7 +1,9 @@
+# Installed packages and build output: rebuilt by `npm ci`, `npm run app:build` and roofgen/build.sh
 node_modules/
-out/
-*.blend
-*.blend1
-geo-status.json
-.DS_Store
 dist-app/
+architecture/pipeline/roofgen/roofgen
+architecture/pipeline/roofgen/roofgen_exact
+# Local scratch space only: it holds the research papers' PDFs, which may not be republished. Everything the repo
+# publishes lives in architecture/ (pipeline, data, generated areas) and app/public/houses/ (the viewer).
+out/
+.DS_Store
