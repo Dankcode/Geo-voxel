@@ -5,7 +5,6 @@ import json, os, subprocess, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import generate_area as GA
 PY = GA.PY
-RB = os.path.join(HERE, "..", "data", "riverbend")
 ONLY = set(filter(None, os.environ.get("ONLY", "").split(",")))
 for aid in sys.argv[1:]:
     d = os.path.join(HERE, "..", "areas", aid); A = json.load(open(os.path.join(d, "area.json")))
@@ -15,7 +14,7 @@ for aid in sys.argv[1:]:
         if ONLY and h["key"] not in ONLY: continue
         key, seed = h["key"].rsplit("-s", 1)
         p0 = json.load(open(os.path.join(d, "plans", f"plan-{h['key']}.json")))
-        data = GA.absd(A.get("data")) or (RB if h.get("street") in ("Ducros Drive", "Northshore Avenue") else GA.DATA_DIRS[0])
+        data = GA.absd(A.get("data")) or GA.DATA_DIRS[0]
         style = p0["theme"]["style"]
         env = dict(os.environ, GEO_DATA=data, PAPER="1", MERGE="1", MOVES="v2", STYLE_OVERRIDE=h.get("style_chosen") or "auto", PLAN_LOG="1")
         while len([p for p in procs if p.poll() is None]) >= 2: time.sleep(2)

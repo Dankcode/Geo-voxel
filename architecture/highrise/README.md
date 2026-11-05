@@ -31,13 +31,14 @@ python ../build_viewer.py                     # adds buildings/* to the house vi
 | Programme | `planner.sample_programme` | conditional tables calibrated on the references (paper §4) |
 | Dwelling plan | `planner.py` | Metropolis over a banded slicing layout (paper §5): slide-wall, swap and relocate moves; C = k_a·C_a + k_d·C_d + k_s·C_s + typology terms |
 | Compile | `compile.py` | doors near corners at code widths (paper §6), windows sized for daylight and ventilation, AC platforms, refuge room, mirrored second dwelling |
+| Furniture | `furnish.py` | every dwelling room furnished by the houses' solver (`pipeline/furnish2.solve_room`: Germer & Schwarz poses, Merrell 2011 cost, Metropolis, 6 restarts per room) against its real walls, door clearances and windows; balconies hold a washer; a required item left out is placed by a one-level repair |
 | Building | `building.py` | storey stack, pilotis ground floor with entrance hall and ramp, refuge floors, roof; programme repair when restarts fail |
 | Sunlight | `sun.py`, `facade.sun_study` | hours on the Major Cold day against a row of equal blocks to the south, modelled with their parapet, roof towers and crown; smallest spacing that gives the required hours |
 | Score | `score.py` | the 1–10 card (code G, core C, paper M, typology T) |
 | Walls | `walls.py` | walls from room boundaries (exterior, core, party, interior) for drawings, 3D and viewer |
 | Drawings | `render.py` | typical floor, ground floor, roof (SVG/PNG) |
 | Exterior styles | `facade.py` | four facades on the same plan (below), checked against fire, glass and sunlight rules |
-| 3D | `bim.py`, `viewer_export.py`, `preview.py` | FreeCAD model of every storey, IFC4, viewer mesh and blueprints, shaded previews |
+| 3D | `bim.py`, `viewer_export.py`, `preview.py` | FreeCAD model of every storey with its furniture (IfcFurniture), IFC4, viewer mesh and blueprints with furniture outlines, shaded previews |
 
 ## Results
 
@@ -54,6 +55,10 @@ against the lift, which GB 55038 4.2.3 now forbids). Generated buildings (12 res
 
 The test building, `hr24-140`, was built in full: 24 storeys, one pilotis ground floor and 23 typical floors (46
 dwellings), plus the roof. See `buildings/hr24-140/` and the previews in `samples/hr24-140/`.
+
+Every typical floor is furnished: 51–58 items per floor (beds, nightstands and wardrobes; sofa, armchair, coffee table
+and TV unit; dining table and chairs; kitchen counter and fridge; vanity, WC and bath or shower; a washer and a plant on
+each balcony), none missing. A facade style keeps its plan's furniture.
 
 ## Exterior styles
 

@@ -119,7 +119,7 @@ FIDELITY = {
         ("bedrooms from the record, else from listing-calibrated area thresholds", "ours", 1),
         ("baths and garage bays from the record or street listings", "ours", 1),
         ("upper floor sized from the recorded living area", "ours", 1),
-        ("houses with no record fall back to footprint rules (Park Blvd, Northshore)", "ours", 0.5),
+        ("houses with no record fall back to footprint rules (Park Blvd)", "ours", 0.5),
     ],
     "A19 halls and stairs (Merrell 2010 §5.2, IRC R311.6 / R311.7.6)": [
         ("halls carry an area distribution in C_d like every room (Merrell §5.2)", "M10 §5.2", 1),

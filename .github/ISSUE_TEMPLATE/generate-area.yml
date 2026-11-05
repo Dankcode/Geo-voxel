@@ -11,11 +11,11 @@ body:
         label. It comments here with the result and republishes the viewer. Nothing is sent to an AI model.
   - type: input
     id: latitude
-    attributes: { label: Latitude, description: "Centre of the area, decimal degrees", placeholder: "30.3916" }
+    attributes: { label: Latitude, description: "Centre of the area, decimal degrees", placeholder: "30.4425" }
     validations: { required: true }
   - type: input
     id: longitude
-    attributes: { label: Longitude, description: "Centre of the area, decimal degrees", placeholder: "-91.2061" }
+    attributes: { label: Longitude, description: "Centre of the area, decimal degrees", placeholder: "-91.1659" }
     validations: { required: true }
   - type: input
     id: radius
@@ -28,7 +28,7 @@ body:
       value: auto
   - type: textarea
     id: styles
-    attributes: { label: Per-house styles, description: 'Optional JSON, OSM id → style, e.g. {"978042772": "tudor_revival"}' }
+    attributes: { label: Per-house styles, description: 'Optional JSON, OSM id → style, e.g. {"1351899872": "tudor_revival"}' }
   - type: textarea
     id: houses
     attributes: { label: Houses seen on the map, description: "For reference; the generator re-checks every building in the circle" }

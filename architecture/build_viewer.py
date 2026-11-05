@@ -42,7 +42,7 @@ def main():
         if A.get("title"): title = A["title"]
         elif any(h.get("address") for h in A["houses"]): title = f"Area · {A['blocks']} blocks around {next(h['address'] for h in A['houses'] if h.get('address'))}"
         else: title = f"Area · {A['blocks']} blocks at {A['center'][0]:.4f}, {A['center'][1]:.4f}"
-        group = "Example buildings" if aid == "examples" else title
+        group = "Example houses" if aid == "examples" else title
         ah = []
         for h in A["houses"]:
             k = h.get("key"); r = designs.get(k); vk = vkey(aid, k)
@@ -80,16 +80,16 @@ def main():
                 rec["footprint"] = [[[round(a, 6), round(b, 6)] for a, b in poly] for poly in fp]
             rec.update(built=True, style=m["meta"]["theme"]["style"], archetype=m["meta"]["theme"]["archetype"], storeys=storeys)
             idx.append(dict(key=vk, name=name + (f" · {sty(rec['style'])}" if h.get("restyled_from") else ""), archetype=rec["archetype"], style=rec["style"],
-                            storeys=storeys, group=group, sub=f"{sty(rec['style'])} · {beds} bed · " + ("gate ✓" if h.get("gate") == "pass" else "gate ✗")))
+                            storeys=storeys, group=group, sub=f"{sty(rec['style'])} · {beds} bed · " + ("all checks pass ✓" if h.get("gate") == "pass" else "checks fail ✗")))
             ah.append(rec); print(aid, vk, rec["style"], h.get("gate"), flush=True)
-        areas.append(dict(id=aid, title=("Example buildings" if aid == "examples" else title), center=A.get("center"), radius_m=A.get("radius_m"),
+        areas.append(dict(id=aid, title=("Example houses" if aid == "examples" else title), center=A.get("center"), radius_m=A.get("radius_m"),
                           blocks=A.get("blocks"), created=A.get("created"), style=A.get("style"), houses=ah, skipped=len(A.get("skipped", []))))
     add_highrise(tmp, idx)
     json.dump(idx, open(os.path.join(tmp, "models", "index.json"), "w"))
     json.dump(areas, open(os.path.join(tmp, "areas", "index.json"), "w"))
     json.dump(dict(repo=REPO_SLUG, issues=f"https://github.com/{REPO_SLUG}/issues", max_houses=12, block_m=110), open(os.path.join(tmp, "config.json"), "w"), indent=1)
     build_map(os.path.join(tmp, "map", "map.json"))
-    for f in ("assets/index-merrell3.js", "assets/plan2d.js", "assets/worldmap.js"): shutil.copy(os.path.join(SRC, f), os.path.join(tmp, f))
+    for f in ("assets/index-merrell3.js", "assets/plan2d.js", "assets/worldmap.js", "assets/ui.js"): shutil.copy(os.path.join(SRC, f), os.path.join(tmp, f))
     shutil.copy(os.path.join(SRC, "index.html"), os.path.join(tmp, "index.html"))
     shutil.rmtree(N, ignore_errors=True); os.rename(tmp, N)
     prune()
@@ -109,9 +109,11 @@ def add_highrise(tmp, idx):
         sty = B.get("style")                     # facade variant (highrise.facade): same plan, another exterior
         sname = m["meta"].get("style", {}).get("name") if sty else None
         ok = all(c.get("pass") for c in B.get("facade_checks", []))
-        idx.append(dict(key=vk, name=B["name"], archetype="apartments", style=f"chinese_highrise_{sty}" if sty else "chinese_highrise_slab",
+        m2 = re.search(r"(\d+) m²", B["name"])
+        short = f"{len(B['floors'])} storeys" + (f" · {m2.group(1)} m²" if m2 else "") + (f" · {sname.split(' (')[0]}" if sname else "")
+        idx.append(dict(key=vk, name=short, archetype="apartments", style=f"chinese_highrise_{sty}" if sty else "chinese_highrise_slab",
                         storeys=len(B["floors"]), group="High-rise apartments (China)",
-                        sub=f"{sname + ' facade · ' if sname else ''}{B['score']['measure']['layout']} · score {B['score']['score']}"
+                        sub=f"{B['score']['measure']['layout']} · score {B['score']['score']}"
                             + (" · facade checks ✓" if sty and ok else (" · facade checks ✗" if sty else ""))))
         print("highrise", vk, B["score"]["score"], flush=True)
 
@@ -120,7 +122,7 @@ def build_map(path):
     """Footprints and streets of the bundled data sets, in decimetres east/north of the map origin."""
     LAT0, LON0 = 30.44, -91.16
     KX = 111320 * math.cos(math.radians(LAT0)); KY = 111320
-    sets = [("South Baton Rouge, LSU and downtown", os.path.join(ROOT, "data", "baton-rouge-south")), ("Riverbend", os.path.join(ROOT, "data", "riverbend"))]
+    sets = [("South Baton Rouge, LSU and downtown", os.path.join(ROOT, "data", "baton-rouge-south"))]
     HOUSE_TAGS = {"house", "detached", "residential", "semidetached_house", "bungalow", "terrace", "yes"}
     dm = lambda lat, lon: [round((lon - LON0) * KX * 10), round((lat - LAT0) * KY * 10)]
     def area(pts):

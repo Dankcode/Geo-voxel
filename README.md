@@ -15,7 +15,7 @@ no AI model.
 ![The house viewer: 2116 Quail Oak Drive, Baton Rouge, generated from its OpenStreetMap footprint and public record, with its 23 design checks](docs/img/viewer-model.jpg)
 
 *2116 Quail Oak Drive, Baton Rouge, generated from its OpenStreetMap footprint and its public record (3 bedrooms,
-1,838 sq ft). Right: the 23 design checks it passed.*
+1,838 sq ft). Right: all 23 design checks pass, and every room with its area and size.*
 
 > **Status — moving to 3D modelling only.** The project began as the map generator of a voxel tactics game. The voxel
 > maps, the town engine and every game rule are moving to the game's repository (voxel-tactics), which converts
@@ -67,7 +67,7 @@ npm run app            # → http://localhost:5180 (Place Builder) and /houses/ 
 ```sh
 micromamba create -f architecture/environment.yml && micromamba activate houses
 bash architecture/pipeline/roofgen/build.sh
-python architecture/pipeline/generate_area.py --lat 30.3916 --lon -91.2061 --blocks 1.5 --id my-area
+python architecture/pipeline/generate_area.py --lat 30.4425 --lon -91.1659 --blocks 1.5 --id my-area
 python architecture/build_viewer.py
 ```
 
@@ -83,15 +83,18 @@ a generation request, which needs a GitHub sign-in).
 
 The list on the left holds every generated building: the example houses, each generated area and the high-rise
 apartments. Click one to load its 3D model. The panel on the right says what the map told us about it (OSM way, the
-street it faces, the public record), what was planned (storeys, bedrooms, style) and every design check with its
-result. Drag to orbit, right-drag to pan, scroll to zoom.
+street it faces, the public record), what was planned (storeys, bedrooms, style), a one-line result of the design
+checks (**Show the checks** opens the full list; it opens by itself when a check fails) and a table of every room
+with its area and size. Drag to orbit, right-drag to pan, scroll to zoom.
 
 ![301 Stanford Avenue: a two-storey colonial revival house, 21 of 21 checks passed](docs/img/viewer-model-stanford.jpg)
 
 ### 2. Look inside
 
 **Level 1** and **Level 2** cut the model at that floor, so you look into the rooms from above. **Furniture** shows
-the furnished rooms; **Shell only** shows the bare walls, doors, windows and stairs.
+the furnished rooms; **Shell only** shows the bare walls, doors, windows and stairs. Buildings with more than five
+floors get a compact floor picker instead of a button per floor (see step 6), and on every building the **[** and
+**]** keys (or Page Down and Page Up) step down and up through the floors.
 
 | Level 1, furnished (2116 Quail Oak Drive) | Level 2 (301 Stanford Avenue) |
 |---|---|
@@ -101,7 +104,8 @@ the furnished rooms; **Shell only** shows the bare walls, doors, windows and sta
 
 **Blueprint** (top right) draws every storey from the generated geometry: thick walls are exterior, thin ones
 interior, blue lines are windows, arcs are door swings, the arrow is the stair, and the street is at the bottom of each
-sheet. Point at a room to see its name and size.
+sheet. Point at a room to see its name and size. Consecutive floors with the same plan are drawn once, so a
+24-storey block shows two sheets ("Level 1" and "Levels 2–24 · 23 identical floors"), not 24.
 
 ![Blueprints of 2116 Quail Oak Drive, levels 1 and 2](docs/img/viewer-blueprint.jpg)
 
@@ -117,7 +121,7 @@ sheet. Point at a room to see its name and size.
    workflow plans, models and checks the houses, then republishes the viewer with the new area in the list. It runs
    for the owner, or for requests the owner approves.
 
-![World map, South Baton Rouge: a 1.5-block area centred at 30.4425, −91.1659 holds 34 houses; the nearest 12 will be generated](docs/img/viewer-worldmap.jpg)
+![World map, South Baton Rouge: a 1.5-block area around Government Street and Oleander Street (30.4425, −91.1659) holds 34 houses; the nearest 12 will be generated](docs/img/viewer-worldmap.jpg)
 
 ### 5. Restyle a building, or take it with you
 
@@ -134,11 +138,25 @@ The high-rise section of the list holds Chinese residential slabs from 10 to 34 
 against the Chinese codes. The same plan can wear four facades; the storey count decides the core, the exits and the
 refuge floors.
 
+Pick a floor with **▾ Floor N of 24 ▴** in the toolbar (or **[** and **]**): the view cuts the tower at that floor and
+zooms to it, so you see the two furnished dwellings and the core. **Exterior** returns to the whole building.
+Every dwelling is furnished by the same solver as the houses: bedrooms, living and dining rooms, kitchens,
+bathrooms, and a washer on each balcony.
+
+![Floor 5 of the 24-storey Art Deco block, cut and framed: two furnished dwellings either side of the lift and stair core](docs/img/viewer-highrise-floor.jpg)
+
 ![The 24-storey test building in its plain version and four facade styles](docs/img/viewer-highrise-styles.jpg)
 
 ![Generated slabs of 10, 17, 24, 33 and 34 storeys (each framed to fit, not to scale)](docs/img/viewer-highrise-heights.jpg)
 
-![Blueprints of the 24-storey building: pilotis ground floor with the entrance hall, then typical floors with two dwellings around the core](docs/img/viewer-highrise-blueprint.jpg)
+![Blueprints of the 24-storey building: the pilotis ground floor with the entrance hall, and the 23 identical typical floors drawn once, with furniture outlines](docs/img/viewer-highrise-blueprint.jpg)
+
+### On a phone
+
+The same page works on a phone: the building list comes first, then the toolbar in its own row, then the model, then
+the details. Nothing covers the model.
+
+<img src="docs/img/viewer-phone.jpg" alt="The viewer on a 390-pixel-wide phone screen: list, toolbar, model" width="260">
 
 ## What is new here
 

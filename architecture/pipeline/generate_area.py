@@ -18,7 +18,7 @@ rel = lambda p: os.path.relpath(p, ROOT) if p and os.path.isabs(p) else p       
 absd = lambda p: (p if os.path.isabs(p) else os.path.join(ROOT, p)) if p else p
 PY = sys.executable
 BLOCK_M = 110.0
-DATA_DIRS = [_os_p0.path.join(_HERE, "..", "data", "baton-rouge-south"), os.path.join(HERE, "..", "data", "riverbend")]
+DATA_DIRS = [_os_p0.path.join(_HERE, "..", "data", "baton-rouge-south")]
 HOUSES = ("shotgun", "cottage", "bungalow", "two_storey_house", "ranch", "townhouse")
 PAPER_STYLES = {"cottage": "cape_cod", "italianate": "italianate", "tudor": "tudor_revival", "craftsman": "craftsman"}
 

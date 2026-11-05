@@ -1,6 +1,6 @@
 """Fetch the OpenStreetMap data for any place into a data set the pipeline reads (2026-11-03).
 
-    python fetch_osm.py --lat 30.3916 --lon -91.2061 --radius 165 --out architecture/data/area-xyz
+    python fetch_osm.py --lat 30.4425 --lon -91.1659 --radius 165 --out architecture/data/area-xyz
 
 One Overpass request (keyless, open data, © OpenStreetMap contributors, ODbL) for the circle plus a 120 m margin
 (neighbours and streets just outside it shape each house's frame and party walls):

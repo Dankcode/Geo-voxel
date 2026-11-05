@@ -91,7 +91,10 @@ def roof(core):
     W, sd, ly1, dc = core["width"], core["lobby_y"][0], core["lobby_y"][1], core["depth"]
     x0 = -W // 2
     return {"stair_head": [x0, 0, x0 + W, ly1], "machine_room": [x0, ly1, x0 + W, dc], "parapet_h": codes.RAILING_H,
-            "head_h": 3000, "roof_door": {"orient": "h", "at": ly1, "from": x0 + W / 2 - 500, "to": x0 + W / 2 + 500}}
+            "head_h": 3000,
+            # roof_door: the lift machine room's door (stair head south wall); roof_exit: the door out onto the roof
+            "roof_door": {"orient": "h", "at": ly1, "from": x0 + W / 2 - 500, "to": x0 + W / 2 + 500},
+            "roof_exit": {"orient": "v", "at": x0 + W, "from": (sd + ly1) / 2 - 500, "to": (sd + ly1) / 2 + 500}}
 
 
 def assemble(cfg, priors, restarts=12, iters=8000, log=print):

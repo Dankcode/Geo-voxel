@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Geo-voxels · Houses</title>
+<title>Map Interior Generator</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
 <style>
@@ -19,7 +19,6 @@ body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.45 v
   padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)) }
 header { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; padding: 12px max(16px, env(safe-area-inset-left, 0px)) 10px; border-bottom: 1px solid var(--rule) }
 h1 { font: 600 21px/1.1 var(--display); margin: 0; letter-spacing: -.01em }
-header p { margin: 0; color: var(--muted); font-size: 13px; max-width: 80ch }
 nav { border-right: 1px solid var(--rule); overflow: auto; padding: 10px 10px 20px; background: var(--sheet) }
 nav h2, aside h2 { font: 500 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 12px 4px 6px }
 nav button { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; width: 100%; text-align: left; border: 0; background: transparent; color: var(--ink); padding: 7px 8px; border-radius: 6px; cursor: pointer; font: inherit }
@@ -27,14 +26,25 @@ nav button:hover { background: var(--chip) }
 nav button[aria-current="true"] { background: var(--accent); color: var(--accent-ink) }
 nav button[aria-current="true"] .s { color: var(--accent-ink); opacity: .85 }
 nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px }
-nav .n { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+nav .n { font-weight: 600; overflow-wrap: anywhere }
 nav .s { grid-column: 1 / -1; font: 11px var(--mono); color: var(--muted) }
 nav .f { font: 11px var(--mono) }
 main { position: relative; min-width: 0; min-height: 0; background: var(--scene) }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none }
-.bar { position: absolute; left: 12px; top: 12px; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 24px) }
+/* One toolbar row across the top of the model: view controls on the left, 3D/Blueprint on the right. It wraps
+   instead of overlapping, however many floors a building has. */
+.toolbar { position: absolute; left: 12px; right: 12px; top: 12px; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; justify-content: space-between; pointer-events: none }
+.toolbar > * { pointer-events: auto }
+.bar { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0 }
+.toolbar .bar2 { position: static !important; margin-left: auto }
+#seg-view.many button:not([data-v="out"]) { display: none }
+.floor-picker { align-items: stretch }
+.floor-picker[hidden] { display: none }
+.toolbar .seg.floor-picker select { font: 500 12.5px var(--body); color: var(--ink); background: transparent; border: 0; border-left: 1px solid var(--rule); border-right: 1px solid var(--rule); padding: 0 6px; min-width: 104px; cursor: pointer }
+.floor-picker button { min-width: 32px; font-size: 14px; line-height: 1 }
+.toolbar .seg.floor-picker.active select { background: var(--ink); color: var(--sheet) }
 .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--sheet) }
-.seg button { font: 500 12.5px var(--body); color: var(--ink); background: transparent; border: 0; padding: 6px 10px; cursor: pointer }
+.seg button { font: 500 12.5px var(--body); color: var(--ink); background: transparent; border: 0; padding: 7px 11px; min-height: 32px; cursor: pointer }
 .seg button + button { border-left: 1px solid var(--rule) }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--sheet) }
 .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px }
@@ -53,35 +63,45 @@ table { width: 100%; border-collapse: collapse; font-size: 12.5px }
 td, th { padding: 3px 4px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top }
 th { font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
 td.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums }
+details.ux > summary { cursor: pointer; list-style: none; font: 500 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 14px 4px 6px 0; display: flex; align-items: center; gap: 6px }
+details.ux > summary::-webkit-details-marker { display: none }
+details.ux > summary::before { content: "▸"; font-size: 10px; transition: transform .15s }
+details.ux[open] > summary::before { transform: rotate(90deg) }
+details.ux > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.checks-sum { font-size: 13px; margin: 6px 0 0; font-weight: 600 }
+.checks-sum.fail { color: var(--accent) }
 ul.log { margin: 0; padding-left: 16px; font-size: 12px; color: var(--muted); display: grid; gap: 2px }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px }
 .stat { background: var(--chip); border-radius: 6px; padding: 6px 8px }
 .stat b { display: block; font: 600 16px var(--mono) }
 .stat span { font-size: 11px; color: var(--muted) }
 @media (max-width: 980px) {
-  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 62vh auto; height: auto }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto 62vh auto; height: auto }
   html, body { height: auto }
   nav { border-right: 0; border-bottom: 1px solid var(--rule); max-height: 220px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
   main { min-height: 62vh }
+  .app > .toolbar { position: static; display: flex; flex-wrap: wrap; gap: 8px; padding: 8px max(16px, env(safe-area-inset-left, 0px)); background: var(--sheet); border-bottom: 1px solid var(--rule) }
   aside { border-left: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
 }
 </style>
   <script type="module" crossorigin src="./assets/index-merrell3.js"></script>
   <script type="module" src="./assets/plan2d.js"></script>
   <script type="module" src="./assets/worldmap.js"></script>
+  <script type="module" src="./assets/ui.js"></script>
 
 
 <div class="app">
   <header>
-    <h1>Houses, rebuilt from the map</h1>
-    <p>Real houses planned room by room: Merrell et al. 2010 lays out the rooms, Germer &amp; Schwarz 2009 with Merrell et al. 2011 places the furniture, FreeCAD builds walls, stock-size doors and windows, stairs and roofs, and a design gate checks that a person fits through every hall and doorway. Open the <b>world map</b> to pick any spot on Earth, highlight 1–2 blocks and request its houses; regenerate any building in another style; download a building's game export (rooms, every door and the way it faces, the garage door's bearing against the street).</p>
+    <h1>Map Interior Generator</h1>
   </header>
   <nav id="list" aria-label="Buildings"></nav>
   <main>
     <canvas id="cv" aria-label="3D model of the selected building"></canvas>
+    <div class="toolbar">
     <div class="bar">
       <div class="seg" id="seg-view" role="group" aria-label="Cutaway"></div>
       <div class="seg" id="seg-furn" role="group" aria-label="Furniture"><button id="f-on" data-v="1">Furniture</button><button id="f-off" data-v="0">Shell only</button></div>
+    </div>
     </div>
     <div id="loading"></div>
     <div class="hint">drag to orbit · right-drag to pan · scroll to zoom</div>

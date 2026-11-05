@@ -376,6 +376,85 @@ def place_car(R, plan, specs, lab, items_table, ncars=1):
     return best
 
 
+def solve_room(R, ags, items_table, rnd, door_pts, walls):
+    """One room: Germer & Schwarz candidate poses, greedy start, Merrell 2011 Metropolis; returns (sel, cost, terms,
+    flush). Moved out of furnish() unchanged (2026-11-05) so the high-rise dwellings use the same solver."""
+    # candidate poses per agent and item (with substitutes, Germer & Schwarz: smaller agent if the room is full)
+    cand = []
+    for ag in ags:
+        opts = []
+        for name in [ag["n"]] + ag.get("sub", []):
+            if name not in items_table: continue
+            Lw, Dw = items_table[name][0], items_table[name][1]
+            bb, h = LAY.item_geom(name, Lw, Dw)
+            opts.append((name, Lw, Dw, bb, h))
+        cand.append(opts)
+    sel = [None] * len(ags)
+    def poses_for(i):
+        ag = ags[i]; res = []
+        for name, Lw, Dw, bb, h in cand[i]:
+            if isinstance(ag["parent"], tuple):
+                par = sel[ag["parent"][1]]
+                if par is None: continue
+                PL, PD = items_table[par["name"]][0], items_table[par["name"]][1]
+                cs = child_candidates(R, ag, Lw, Dw, par, PL, PD, bb)
+            else:
+                cs = candidates(R, ag, Lw, Dw, bb, h, rnd)
+            for c_ in cs: c_["name"] = name
+            res += cs
+            if cs: break                         # first item that fits; substitutes only when it does not
+        return res
+    # greedy start in Germer & Schwarz order (parents before children), then Metropolis (Merrell 2011)
+    pool = {}
+    for i in range(len(ags)):
+        pool[i] = poses_for(i)
+        best = (cost(R, ags, sel, door_pts)[0], None)
+        for p_ in pool[i]:
+            sel[i] = p_; cv = cost(R, ags, sel, door_pts)[0]
+            if cv < best[0]: best = (cv, p_)
+        sel[i] = best[1]
+    cur = cost(R, ags, sel, door_pts)[0]; best_sel, best_c = list(sel), cur
+    iters = min(600, 60 * len(ags))
+    for k in range(iters):
+        beta = 2.0 * (15 ** (k / max(1, iters - 1)))
+        new = list(sel); mv = rnd.random()
+        i = rnd.randrange(len(ags))
+        if mv < 0.75:
+            if isinstance(ags[i]["parent"], tuple):
+                pool[i] = poses_for(i) if sel[ags[i]["parent"][1]] is not None else []
+            opts = pool.get(i) or []
+            choice = rnd.choice(opts + [None]) if (opts and not ags[i].get("req")) else (rnd.choice(opts) if opts else None)
+            sel_backup = sel; sel = new; new[i] = choice
+            for j, ag in enumerate(ags):                      # children follow their parent (Germer & Schwarz 'rest')
+                if isinstance(ag["parent"], tuple) and ag["parent"][1] == i:
+                    cs = poses_for(j); new[j] = min(cs, key=lambda p_: cost(R, ags, new[:j] + [p_] + new[j + 1:], door_pts)[0]) if cs else None
+            for j, ag in enumerate(ags):                      # a pair partner re-poses with it (TV opposite the sofa)
+                if j != i and not isinstance(ag["parent"], tuple) and ag.get("pair") and ag["pair"][0] == i and pool.get(j):
+                    new[j] = min(pool[j] + [None], key=lambda p_: cost(R, ags, new[:j] + [p_] + new[j + 1:], door_pts)[0])
+                    for k2, ag2 in enumerate(ags):
+                        if isinstance(ag2["parent"], tuple) and ag2["parent"][1] == j:
+                            cs = poses_for(k2); new[k2] = min(cs, key=lambda p_: cost(R, ags, new[:k2] + [p_] + new[k2 + 1:], door_pts)[0]) if cs else None
+            sel = sel_backup
+        else:
+            js = [j for j in range(len(ags)) if j != i and ags[j]["n"] == ags[i]["n"]]
+            if not js: continue
+            j = rnd.choice(js); new[i], new[j] = new[j], new[i]
+        cn = cost(R, ags, new, door_pts)[0]
+        if cn <= cur or rnd.random() < math.exp(-beta * (cn - cur)):
+            sel, cur = new, cn
+            if cur < best_c: best_sel, best_c = list(sel), cur
+    sel = best_sel
+    c_, T = cost(R, ags, sel, door_pts, want_terms=True)
+    # flush: backs of wall agents touch a wall (gap ≤ 20 mm)
+    flush = []
+    for i, p_ in enumerate(sel):
+        if p_ is None or ags[i]["parent"] not in ("wall", "corner"): continue
+        (fx, fy) = frame(p_["ang"])[1]; b = p_["b"]
+        back = (b[0], b[1] - 25, b[2], b[1]) if fy == 1 else (b[0], b[3], b[2], b[3] + 25) if fy == -1 else (b[0] - 25, b[1], b[0], b[3]) if fx == 1 else (b[2], b[1], b[2] + 25, b[3])
+        flush.append(bool(walls.buffer(5).intersects(sbox(*back)) and not R.base.buffer(-1).contains(sbox(*back))))
+    return sel, c_, T, flush
+
+
 def furnish(plan, st, specs_by_storey, items_table, room_items):
     """Same output contract as layout.furnish: list of dict(storey, room, kind, name, x, y, ang, fp)."""
     rooms = plan["program"]["rooms"]; c = plan["cell"] * 1000
@@ -425,79 +504,7 @@ def furnish(plan, st, specs_by_storey, items_table, room_items):
                     out.append(dict(storey=s, room=r["id"], kind="garage", name="car", x=cc["x"], y=cc["y"], ang=cc["ang"], fp=sbox(*cc["b"])))
                 rep["rooms"].append(dict(room=r["id"], kind="garage", storey=s, cost=0.0 if g["ok"] else 20.0, terms={}, placed=["car"] * (car["ncars"] if car else 0), missing=[] if car else ["car"]))
                 continue
-            # candidate poses per agent and item (with substitutes, Germer & Schwarz: smaller agent if the room is full)
-            cand = []
-            for ag in ags:
-                opts = []
-                for name in [ag["n"]] + ag.get("sub", []):
-                    if name not in items_table: continue
-                    Lw, Dw = items_table[name][0], items_table[name][1]
-                    bb, h = LAY.item_geom(name, Lw, Dw)
-                    opts.append((name, Lw, Dw, bb, h))
-                cand.append(opts)
-            sel = [None] * len(ags)
-            def poses_for(i):
-                ag = ags[i]; res = []
-                for name, Lw, Dw, bb, h in cand[i]:
-                    if isinstance(ag["parent"], tuple):
-                        par = sel[ag["parent"][1]]
-                        if par is None: continue
-                        PL, PD = items_table[par["name"]][0], items_table[par["name"]][1]
-                        cs = child_candidates(R, ag, Lw, Dw, par, PL, PD, bb)
-                    else:
-                        cs = candidates(R, ag, Lw, Dw, bb, h, rnd)
-                    for c_ in cs: c_["name"] = name
-                    res += cs
-                    if cs: break                         # first item that fits; substitutes only when it does not
-                return res
-            # greedy start in Germer & Schwarz order (parents before children), then Metropolis (Merrell 2011)
-            pool = {}
-            for i in range(len(ags)):
-                pool[i] = poses_for(i)
-                best = (cost(R, ags, sel, door_pts)[0], None)
-                for p_ in pool[i]:
-                    sel[i] = p_; cv = cost(R, ags, sel, door_pts)[0]
-                    if cv < best[0]: best = (cv, p_)
-                sel[i] = best[1]
-            cur = cost(R, ags, sel, door_pts)[0]; best_sel, best_c = list(sel), cur
-            iters = min(600, 60 * len(ags))
-            for k in range(iters):
-                beta = 2.0 * (15 ** (k / max(1, iters - 1)))
-                new = list(sel); mv = rnd.random()
-                i = rnd.randrange(len(ags))
-                if mv < 0.75:
-                    if isinstance(ags[i]["parent"], tuple):
-                        pool[i] = poses_for(i) if sel[ags[i]["parent"][1]] is not None else []
-                    opts = pool.get(i) or []
-                    choice = rnd.choice(opts + [None]) if (opts and not ags[i].get("req")) else (rnd.choice(opts) if opts else None)
-                    sel_backup = sel; sel = new; new[i] = choice
-                    for j, ag in enumerate(ags):                      # children follow their parent (Germer & Schwarz 'rest')
-                        if isinstance(ag["parent"], tuple) and ag["parent"][1] == i:
-                            cs = poses_for(j); new[j] = min(cs, key=lambda p_: cost(R, ags, new[:j] + [p_] + new[j + 1:], door_pts)[0]) if cs else None
-                    for j, ag in enumerate(ags):                      # a pair partner re-poses with it (TV opposite the sofa)
-                        if j != i and not isinstance(ag["parent"], tuple) and ag.get("pair") and ag["pair"][0] == i and pool.get(j):
-                            new[j] = min(pool[j] + [None], key=lambda p_: cost(R, ags, new[:j] + [p_] + new[j + 1:], door_pts)[0])
-                            for k2, ag2 in enumerate(ags):
-                                if isinstance(ag2["parent"], tuple) and ag2["parent"][1] == j:
-                                    cs = poses_for(k2); new[k2] = min(cs, key=lambda p_: cost(R, ags, new[:k2] + [p_] + new[k2 + 1:], door_pts)[0]) if cs else None
-                    sel = sel_backup
-                else:
-                    js = [j for j in range(len(ags)) if j != i and ags[j]["n"] == ags[i]["n"]]
-                    if not js: continue
-                    j = rnd.choice(js); new[i], new[j] = new[j], new[i]
-                cn = cost(R, ags, new, door_pts)[0]
-                if cn <= cur or rnd.random() < math.exp(-beta * (cn - cur)):
-                    sel, cur = new, cn
-                    if cur < best_c: best_sel, best_c = list(sel), cur
-            sel = best_sel
-            c_, T = cost(R, ags, sel, door_pts, want_terms=True)
-            # flush: backs of wall agents touch a wall (gap ≤ 20 mm)
-            flush = []
-            for i, p_ in enumerate(sel):
-                if p_ is None or ags[i]["parent"] not in ("wall", "corner"): continue
-                (fx, fy) = frame(p_["ang"])[1]; b = p_["b"]
-                back = (b[0], b[1] - 25, b[2], b[1]) if fy == 1 else (b[0], b[3], b[2], b[3] + 25) if fy == -1 else (b[0] - 25, b[1], b[0], b[3]) if fx == 1 else (b[2], b[1], b[2] + 25, b[3])
-                flush.append(bool(walls.buffer(5).intersects(sbox(*back)) and not R.base.buffer(-1).contains(sbox(*back))))
+            sel, c_, T, flush = solve_room(R, ags, items_table, rnd, door_pts, walls)
             rep["rooms"].append(dict(room=r["id"], kind=r["kind"], storey=s, cost=round(c_, 3), terms={k: round(v, 3) for k, v in (T or {}).items()},
                                      placed=[p_["name"] for p_ in sel if p_], missing=[ags[i]["n"] for i, p_ in enumerate(sel) if p_ is None and ags[i].get("req")],
                                      flush=flush, wet=r["kind"] in ("bathroom", "wc")))

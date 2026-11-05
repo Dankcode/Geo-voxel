@@ -31,7 +31,7 @@ To regenerate a building in another style, open it in the 3D view, pick a style 
 | `pipeline/` | The Python pipeline. The entry points are `run_request.py` (one request issue), `generate_area.py` (an area or a restyle), `fetch_osm.py` (OpenStreetMap for any place) and `export_game.py`. |
 | `pipeline/roofgen/` | The roof tool: a CGAL 6 weighted straight skeleton, built with `build.sh`. |
 | `pipeline/furnmcp/` | The furniture-editing MCP server. It is off by default. |
-| `data/` | The bundled OpenStreetMap extracts: south Baton Rouge and Riverbend. Fetched places are added as `data/area-…`. |
+| `data/` | The bundled OpenStreetMap extracts: south Baton Rouge. Fetched places are added as `data/area-…`. |
 | `areas/<id>/` | Each generated area: `area.json` (the manifest), `plans/` (room plans), `exports/` (game exports), `deliver/` (IFC models, blueprints, specs, gate reports) and `chk/` (gate specs). |
 | `areas/examples/` | The example sample: the five competition houses, replanned under the current rules. |
 | `viewer/` | The house viewer's source. `build_viewer.py` turns it, plus every area, into `app/public/houses/`. |
@@ -41,7 +41,7 @@ To run it locally instead of through GitHub:
 ```sh
 micromamba create -f architecture/environment.yml && micromamba activate houses
 bash architecture/pipeline/roofgen/build.sh
-python architecture/pipeline/generate_area.py --lat 30.3916 --lon -91.2061 --blocks 1.5 --id my-area
+python architecture/pipeline/generate_area.py --lat 30.4425 --lon -91.1659 --blocks 1.5 --id my-area
 python architecture/build_viewer.py   # then: npm run app → http://localhost:5180/houses/
 ```
 

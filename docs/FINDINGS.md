@@ -11,7 +11,7 @@ Wherever we write "the paper", we mean that paper.
 
 **Test sets.** Most numbers come from a fixed competition set: five real Baton Rouge houses (Ducros Dr, North Shore
 Ave, Park Blvd, Quail Oak Dr, Stanford Ave), five seeds each, so 25 designs. Earlier rounds used a 32-building set
-(15 archetypes plus 17 Riverbend houses), and the downtown tests used the Belisle and Capitol City Press buildings on
+(15 archetypes plus 17 generated suburban houses), and the downtown tests used the Belisle and Capitol City Press buildings on
 Third Street.
 
 ---
@@ -308,7 +308,11 @@ All five generated designs pass the scorecard (9.80–9.94), against 8.96–9.88
 The Merrell et al. (2011) furniture sampler takes 30–44 s per room on a CPU, and its lower-cost layouts were still
 implausible (a nightstand inside the bed). What works is a split: Germer & Schwarz (2009) agents propose only legal
 poses (each item has a parent, sides, collisions except with its parent), and the 2011 cost picks among them by
-Metropolis, with the real wall solids so backs sit flush. A review of Infinigen Indoors (CVPR 2024) suggests two planner
+Metropolis, with the real wall solids so backs sit flush. The high-rise dwellings use the same per-room solver
+(`furnish2.solve_room`). Two things it needed there: a sliding door keeps only its 1 m passage clear (otherwise a
+balcony behind a full-width slider has no wall left), and a required item the search leaves out (it never adds one that
+raises the cost) is placed afterwards by a one-level repair that moves the item in its way. Every high-rise room is now
+fully furnished. A review of Infinigen Indoors (CVPR 2024) suggests two planner
 experiments we have not yet run — a house-wide count of distinct grid lines, and an "access angle" privacy term — and
 its relation vocabulary (against-wall, on-top, front-accessibility cuboids) for furniture.
 

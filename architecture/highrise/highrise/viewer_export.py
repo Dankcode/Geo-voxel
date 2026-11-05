@@ -12,7 +12,7 @@ from highrise.walls import THICK, floor_walls
 KIND = {"LR": "living", "DR": "dining", "KT": "kitchen", "KW": "kitchen", "BRM": "bedroom", "BR": "bedroom",
         "ST": "study", "NA": "bedroom", "BAM": "bathroom", "BA": "bathroom", "EN": "foyer", "HL": "hall",
         "CL": "storage", "SR": "storage", "BL": "porch", "BLN": "porch", "AC": "utility"}
-CORE_KIND = {"stair": "stair", "lobby": "lobby", "lift": "utility", "fire lift": "utility", "shaft": "utility"}
+CORE_KIND = {"stair": "stair", "lobby": "lobby", "lift": "lift", "fire lift": "lift", "shaft": "utility"}
 R3 = lambda v: round(v / 1000, 3)
 
 
@@ -37,16 +37,27 @@ def _door(d):
     return {"leaf": [[R3(hinge[0]), R3(-hinge[1])], [R3(tip[0]), R3(-tip[1])]], "arc": [[R3(x), R3(-y)] for x, y in arc]}
 
 
-def _walls(rooms):
+def _walls(rooms, openings=()):
+    """Wall outlines (plan2d rings), with every door, passage and lift door cut out of its wall, so a doorway reads as
+    a gap in the drawing as it is in the model. openings: [(orient, at, lo, hi)]."""
+    from shapely.geometry import box as sbox
     ext, intr = [], []
     for o, c, lo, hi, kind, _ in floor_walls(rooms):
         t = THICK[kind] / 2
         q = [c - t, lo - t, c + t, hi + t] if o == "v" else [lo - t, c - t, hi + t, c + t]
-        (ext if kind in ("exterior", "core", "party") else intr).append(_ring(q))
+        g = sbox(*q)
+        for oo, oc, olo, ohi in openings:
+            if oo == o and abs(oc - c) < 5 and min(ohi, hi) - max(olo, lo) > 0:
+                g = g.difference(sbox(oc - t - 1, olo, oc + t + 1, ohi) if o == "v" else sbox(olo, oc - t - 1, ohi, oc + t + 1))
+        for part in (getattr(g, "geoms", None) or [g]):
+            if part.is_empty or part.area < 1:
+                continue
+            x0, y0, x1, y1 = part.bounds
+            (ext if kind in ("exterior", "core", "party") else intr).append(_ring([x0, y0, x1, y1]))
     return ext, intr
 
 
-def _sheet(rooms, doors=(), windows=(), extra_rooms=(), steps=()):
+def _sheet(rooms, doors=(), windows=(), extra_rooms=(), steps=(), openings=(), lift_doors=()):
     S = {"rooms": [], "ext": [], "int": [], "windows": [], "doors": [], "pockets": [], "cased": [], "overhead": [],
          "steps": [], "landings": [], "holes": [], "up": None}
     for i, (rid, rm) in enumerate(list(rooms.items()) + list(extra_rooms)):
@@ -58,7 +69,8 @@ def _sheet(rooms, doors=(), windows=(), extra_rooms=(), steps=()):
                            "area": round(sum((q[2] - q[0]) * (q[3] - q[1]) for q in rm["rects"]) / 1e6, 1),
                            "w": round((max(xs) - min(xs)) / 1000, 1), "d": round((max(ys) - min(ys)) / 1000, 1),
                            "rings": [_ring(q) for q in rm["rects"]]})
-    S["ext"], S["int"] = _walls({k: v for k, v in rooms.items()})
+    cut = [(d["orient"], d["at"], d["from"], d["to"]) for d in list(doors) + list(lift_doors)] + list(openings)
+    S["ext"], S["int"] = _walls({k: v for k, v in rooms.items()}, cut)
     for w in windows:
         S["windows"].append(_seg(w["orient"], w.get("y", w.get("x")), w["from"], w["to"]))
     for d in doors:
@@ -68,6 +80,8 @@ def _sheet(rooms, doors=(), windows=(), extra_rooms=(), steps=()):
             S["cased"].append(_seg(d["orient"], d["at"], d["from"], d["to"]))
         else:
             S["pockets"].append(_seg(d["orient"], d["at"], d["from"], d["to"]))
+    for d in lift_doors:                                    # lift doors: sliding, drawn like pocket doors
+        S["pockets"].append(_seg(d["orient"], d["at"], d["from"], d["to"]))
     S["steps"] = [[R3(q[0]), R3(-q[1]), R3(q[2]), R3(-q[3])] for q in steps]
     return S
 
@@ -82,13 +96,21 @@ def _stair_steps(core, H, risers):
     return out
 
 
-def plan2d(b):
+def plan2d(b, furniture=()):
+    """furniture: highrise.furnish items of the typical floor (FreeCAD frame, mm), drawn as outlines on its sheets."""
     fp, core = b["floor_plate"], b["core"]
     H = b["requirements"]["storey_h"] * 1000
     steps = _stair_steps(core, H, b["requirements"]["risers_per_storey"])
     stair_doors = [{"orient": "h", "at": sy, "from": sx - 500, "to": sx + 500, "kind": "door", "swing": -1} for sx, sy in core["stair_doors"]]
     acs = [("ac%d" % i, {"type": "AC", "rects": [a["rect"]]}) for i, a in enumerate(fp["ac"])]
-    typical = _sheet(fp["rooms"], fp["doors"], fp["windows"], acs, steps)
+    lift_doors = [{"orient": "h", "at": core["lobby_y"][1], "from": (lr[0] + lr[2]) / 2 - 550, "to": (lr[0] + lr[2]) / 2 + 550}
+                  for lr in core["lift_rects"]]
+    ly0, ly1 = core["lobby_y"]
+    lobby_ends = [("v", x, ly0 + 300, ly1 - 300) for x in (-core["width"] / 2, core["width"] / 2)]
+    typical = _sheet(fp["rooms"], fp["doors"], fp["windows"], acs, steps, lift_doors=lift_doors)
+    rid_of = {rid: i + 1 for i, rid in enumerate(fp["rooms"])}
+    typical["furniture"] = [{"b": [R3(f["b"][0]), R3(f["b"][1]), R3(f["b"][2]), R3(f["b"][3])], "room": rid_of[f["room"]],
+                             "name": f["name"]} for f in furniture]
     core_rooms = {"core." + k: v for k, v in core["rooms"].items()}
     sheets = {"typical": typical}
     if b.get("ground"):
@@ -98,13 +120,13 @@ def plan2d(b):
         extra = [("pilotis", {"type": "BL", "kind": "porch", "open_air": True, "rects": [g["pilotis_extent"]]}),
                  ("mail", {"type": "SR", "rects": [g["mail"]]}), ("ramp", {"type": "BL", "kind": "porch", "rects": [g["ramp"]]})]
         doors = stair_doors + [dict(g["entrance"], swing=-1), dict(g["stair_exit"], swing=-1)]
-        S = _sheet(rooms, doors, [], extra, steps)
+        S = _sheet(rooms, doors, [], extra, steps, openings=lobby_ends, lift_doors=lift_doors)
         S["int"] += [_ring([cx - 200, cy - 200, cx + 200, cy + 200]) for cx, cy in g["columns"]]
         sheets["pilotis"] = S
     if any(f["kind"] == "refuge" for f in b["floors"]):
         body = [q for rm in fp["rooms"].values() if rm["type"] not in ("CORE", "BL", "AC") for q in rm["rects"]]
         extra = [("refuge", {"type": "HL", "kind": "hall", "open_air": True, "rects": body})]
-        sheets["refuge"] = _sheet(core_rooms, stair_doors, [], extra, steps)
+        sheets["refuge"] = _sheet(core_rooms, stair_doors, [], extra, steps, openings=lobby_ends, lift_doors=lift_doors)
     allr = [q for rm in fp["rooms"].values() for q in rm["rects"]] + [a["rect"] for a in fp["ac"]]
     if b.get("ground"):
         allr += [b["ground"]["ramp"], b["ground"]["pilotis_extent"]]

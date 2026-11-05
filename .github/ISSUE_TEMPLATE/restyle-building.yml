@@ -12,7 +12,7 @@ body:
     validations: { required: true }
   - type: input
     id: key
-    attributes: { label: Building key, description: "The house's key in that area, e.g. h978042772-s1" }
+    attributes: { label: Building key, description: "The house's key in that area, e.g. h1351899872-s1" }
     validations: { required: true }
   - type: input
     id: style

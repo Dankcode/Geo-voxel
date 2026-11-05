@@ -134,6 +134,9 @@ def classroom_desk():
 def washer():
     return [box(0, 0, 0, 600, 600, 850, WHITE), cyl(300, 600, 300, 180, 10, DARK), box(650, 0, 0, 600, 600, 850, WHITE)]
 
+def washer_single():          # one front-loading machine (a Chinese dwelling's balcony); no house room uses it
+    return [box(0, 0, 0, 600, 600, 850, WHITE), cyl(300, 600, 300, 180, 10, DARK)]
+
 def wardrobe():
     return [box(0, 0, 0, 1200, 600, 2000, OAK), box(598, 598, 100, 4, 4, 1800, DARK)]
 
@@ -171,7 +174,7 @@ ITEMS = {
     "kitchen_run_low": (3000, 620, kitchen_run(3000, uppers=False)), "kitchen_short_low": (1800, 620, kitchen_run(1800, uppers=False)),
     "dining_table": (1600, 1800, table_with_chairs(1600, 900, 2)), "cafe_table": (800, 1600, table_with_chairs(800, 800, 1)),
     "desk": (1400, 1300, desk_set), "bookshelf": (900, 350, shelf(900)), "toilet": (400, 650, toilet), "vanity": (800, 520, vanity), "bathtub": (1700, 750, bathtub), "shower": (900, 900, shower),
-    "washer": (1250, 600, washer), "gondola": (2400, 1000, gondola), "wall_shelf": (2400, 500, shelf(2400, 2100, 500, METAL)), "checkout": (1600, 820, counter(1600, 900)),
+    "washer": (1250, 600, washer), "washer_single": (600, 600, washer_single), "gondola": (2400, 1000, gondola), "wall_shelf": (2400, 500, shelf(2400, 2100, 500, METAL)), "checkout": (1600, 820, counter(1600, 900)),
     "pew": (4000, 600, pew(4000)), "pew_short": (2600, 600, pew(2600)), "altar": (2200, 900, altar), "class_desk": (700, 1100, classroom_desk),
     "teacher_desk": (1400, 1300, desk_set), "whiteboard": (3000, 80, whiteboard), "rack": (2700, 1100, rack(2700)), "pallets": (1200, 1000, pallet_stack),
     "car": (4920, 1840, car), "end_table": (450, 450, nightstand), "porch_chair": (850, 850, armchair), "plant": (400, 400, plant), "reception": (2600, 780, reception), "meeting_table": (2400, 1900, table_with_chairs(2400, 1100, 3)),

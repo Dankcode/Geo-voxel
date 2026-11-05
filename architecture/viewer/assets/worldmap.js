@@ -5,7 +5,7 @@
 // generator (the planned algorithm, no AI) for the owner or for a request the owner approves, then republishes.
 const BLOCK_M = 110, MAX_HOUSES = 12;
 const STYLE_GROUPS = [
-  ["Paper styles (Merrell 2010, Fig. 9)", [["cape_cod", "Cottage"], ["italianate", "Italianate"], ["tudor_revival", "Tudor"], ["craftsman", "Craftsman"]]],
+  ["Classic styles", [["cape_cod", "Cottage"], ["italianate", "Italianate"], ["tudor_revival", "Tudor"], ["craftsman", "Craftsman"]]],
   ["Other house styles", [["colonial_revival", "Colonial Revival"], ["acadian", "Acadian"], ["creole", "Creole cottage"], ["queen_anne", "Queen Anne"],
     ["greek_revival", "Greek Revival"], ["dutch_colonial", "Dutch Colonial"], ["saltbox", "Saltbox"], ["french_eclectic", "French Eclectic"],
     ["spanish_colonial", "Spanish Colonial"], ["mission_revival", "Mission Revival"], ["prairie", "Prairie"], ["midcentury", "Mid-century"],
@@ -34,7 +34,7 @@ const css = `
 #wm .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #wm label{font-size:12.5px}
 #wm input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
-#wm input[type=search],#wm select,.bar select{font:12.5px var(--body);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:5px 7px;max-width:100%}
+#wm input[type=search],#wm select,.toolbar select{font:12.5px var(--body);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:5px 7px;max-width:100%}
 .wbtn{font:500 12.5px var(--body);color:var(--ink);background:var(--chip);border:1px solid var(--rule);border-radius:6px;padding:5px 10px;cursor:pointer}
 .wbtn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .wbtn[disabled]{opacity:.5;cursor:default}
@@ -49,10 +49,10 @@ const css = `
 #wm summary{cursor:pointer;font-weight:600;font-size:13px}
 #wm .card{background:var(--chip);border-radius:8px;padding:8px 10px;margin-top:10px}
 #wm .card b{font:600 14px var(--display)}
-.bar .seg select{border:0;border-radius:0;background:transparent}
-#bx-msg{position:absolute;left:12px;top:52px;font:11px var(--mono);color:var(--muted);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:4px 8px}
+.toolbar .seg select{border:0;border-radius:0;background:transparent}
+#bx-msg{position:absolute;left:12px;top:calc(var(--tb-h, 44px) + 20px);z-index:3;font:11px var(--mono);color:var(--muted);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:4px 8px}
 #bx-msg:empty{display:none}
-@media (max-width:980px){.app>nav{grid-row:2;grid-column:1}.app>main{grid-row:3;grid-column:1}.app>aside{grid-row:4;grid-column:1}#wm{grid-row:2/-1;grid-template-columns:minmax(0,1fr);grid-template-rows:62vh auto}#wm .side{border-left:0;border-top:1px solid var(--rule)}}
+@media (max-width:980px){.app>nav{grid-row:2;grid-column:1}.app>.toolbar{grid-row:3;grid-column:1}.app>main{grid-row:4;grid-column:1}.app>aside{grid-row:5;grid-column:1}#wm{grid-row:2/-1;grid-template-columns:minmax(0,1fr);grid-template-rows:62vh auto}#wm .side{border-left:0;border-top:1px solid var(--rule)}}
 `;
 document.head.insertAdjacentHTML("beforeend", `<style>${css}</style>`);
 
@@ -73,11 +73,9 @@ app.insertAdjacentHTML("beforeend", `
     <div id="wm-sel"></div>
     <h2>Houses in the area <span id="wm-n"></span></h2>
     <div class="row"><label for="wm-style">Style for the area</label><select id="wm-style">${styleOptions("Inferred per house (auto)")}</select></div>
-    <p class="note">The nearest ${MAX_HOUSES} houses are generated. The list marks houses by the map's tags; the generator re-checks each one and skips offices, sheds and garages.</p>
     <ul class="hl" id="wm-houses"></ul>
     <div class="row" style="margin-top:10px"><button class="wbtn primary" id="wm-req" disabled>Request generation</button><span class="note" id="wm-reqmsg"></span></div>
-    <h2>Requests</h2>
-    <p class="note" id="wm-reqinfo">A request opens as a GitHub issue, already filled in. The repository's workflow runs the generator for the owner, or for a request the owner approves, and republishes this page with the new houses.</p>
+    <p class="note">Up to ${MAX_HOUSES} houses per request. Opens a pre-filled GitHub issue.</p>
     <h2>Generated areas</h2>
     <div id="wm-areas"><p class="note">Loading…</p></div>
   </div>
@@ -374,7 +372,7 @@ document.getElementById("wm-req").addEventListener("click", async e => {
 });
 // ---------- generated areas, the selected building, exports ----------
 function houseRow(a, h) {
-  const g = h.gate === "pass" ? "✓ gate" : h.gate === "fail" ? "✗ gate" : esc(h.gate || "");
+  const g = h.gate === "pass" ? "✓ all checks pass" : h.gate === "fail" ? "✗ checks fail" : esc(h.gate || "");
   return `<li><span>${esc(h.address || h.street || "OSM " + h.osm_id)}${h.restyled_from ? " (restyle)" : ""}</span>
     <span class="row" style="gap:4px">${h.built ? `<button class="wbtn" data-open="${h.vk}">3D</button>` : ""}${h.export_url ? `<button class="wbtn" data-export="${h.vk}">Export</button>` : ""}</span>
     <span class="m">${esc(styleName(h.style))} · ${esc(String(h.archetype || "").replace(/_/g, " "))} · ${h.storeys || "?"}F · ${g}</span></li>`;
@@ -391,7 +389,7 @@ function renderSel() {
   el.innerHTML = `<div class="card"><b>${esc(selected.addr || "OSM " + selected.id)}</b>
     <ul class="hl">${g.map(z => houseRow(z.area, z.house)).join("")}</ul>
     <div class="row" style="margin-top:8px"><select id="wm-rs" aria-label="New style">${styleOptions()}</select><button class="wbtn" id="wm-rsgo">Regenerate in this style</button></div>
-    <p class="note" id="wm-rsmsg">Same rooms and layout, another style template (Merrell 2010, Fig. 9).</p></div>`;
+    <p class="note" id="wm-rsmsg">Same rooms, new style.</p></div>`;
   document.getElementById("wm-rsgo").onclick = async () => {
     const z = g[0]; if (!z) return;
     await queue({ type: "restyle", area: z.area.id, key: z.house.key, label: z.house.address || z.house.key, style: document.getElementById("wm-rs").value }, document.getElementById("wm-rsmsg"));
@@ -428,7 +426,7 @@ document.getElementById("wm-side").addEventListener("click", e => {
 
 // ---------- 3D view bar: restyle and game export for the building on screen ----------
 const bar = document.querySelector("main .bar");
-bar.insertAdjacentHTML("beforeend", `<div class="seg" id="seg-x" role="group" aria-label="Style and export">
+bar.insertAdjacentHTML("afterend", `<div class="seg" id="seg-x" role="group" aria-label="Style and export">
   <select id="bx-style" aria-label="Regenerate in style">${styleOptions()}</select><button id="bx-go">Regenerate</button><button id="bx-exp">Game export</button></div>`);
 document.querySelector("main").insertAdjacentHTML("beforeend", `<div id="bx-msg"></div>`);
 const curKey = () => document.querySelector('#list button[aria-current="true"]')?.dataset.key;

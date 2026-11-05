@@ -20,8 +20,8 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 const css = document.createElement('style');
 css.textContent = `
-.bar2 { position: absolute; right: 12px; top: 12px; z-index: 3 }
-#plan-ov { position: absolute; inset: 0; z-index: 2; overflow: auto; background: var(--scene); padding: 56px 16px 40px; display: none }
+.bar2 { display: flex }
+#plan-ov { position: absolute; inset: 0; z-index: 2; overflow: auto; background: var(--scene); padding: calc(var(--tb-h, 44px) + 22px) 16px 40px; display: none }
 #plan-ov.on { display: block }
 #plan-ov .sheets { display: flex; gap: 16px; align-items: flex-start; justify-content: center; flex-wrap: wrap }
 #plan-ov figure { margin: 0; background: #fff; border: 1px solid var(--rule); border-radius: 6px; padding: 10px; flex: 1 1 320px; max-width: 640px }
@@ -42,7 +42,7 @@ document.head.appendChild(css);
 const main = document.querySelector('main');
 const bar2 = document.createElement('div'); bar2.className = 'bar2';
 bar2.innerHTML = '<div class="seg" role="group" aria-label="View"><button data-m="3d" aria-pressed="true">3D model</button><button data-m="plan" aria-pressed="false">Blueprint</button></div>';
-main.appendChild(bar2);
+(document.querySelector('main .toolbar') || main).appendChild(bar2);
 const ov = document.createElement('div'); ov.id = 'plan-ov'; main.appendChild(ov);
 let mode = '3d', key = null, data = null;
 bar2.addEventListener('click', e => {
@@ -95,40 +95,38 @@ function hl(id, on) {
 document.addEventListener('mouseover', e => { const t = e.target.closest('[data-room]'); if (t) hl(+t.dataset.room, true); });
 document.addEventListener('mouseout', e => { const t = e.target.closest('[data-room]'); if (t) hl(+t.dataset.room, false); });
 
+// Consecutive floors with the same drawing are shown once ("Levels 3–24 · 22 identical floors"), so a tower's
+// blueprint is a few sheets, not one per storey.
+function floorGroups(S) {
+  const sig = s => JSON.stringify([s.ext, s.int, s.windows, s.overhead, s.pockets, (s.doors || []).map(d => d.leaf), s.steps, s.landings, s.holes, s.up, s.rooms.map(r => [r.kind, r.rings])]);
+  const out = [];
+  S.forEach((s, i) => { const g = sig(s), last = out[out.length - 1]; if (last && last.sig === g) last.to = i; else out.push({ sig: g, from: i, to: i, s }); });
+  return out;
+}
+const levelLabel = (g, n) => n === 1 ? 'Plan' : g.from === g.to ? `Level ${g.from + 1}` : `Levels ${g.from + 1}–${g.to + 1} · ${g.to - g.from + 1} identical floors`;
+
 function renderOverlay() {
-  const S = data.storeys;
-  ov.innerHTML = `<div class="sheets">${S.map((s, i) => `<figure><figcaption>${S.length > 1 ? `Level ${i + 1}` : 'Plan'}</figcaption>${svgFor(s, data.bounds)}<div class="street">street side ↓</div></figure>`).join('')}</div><div id="plan-hover">Point at a room to see its name and size.</div>`;
+  const S = data.storeys, G = floorGroups(S);
+  ov.innerHTML = `<div class="sheets">${G.map(g => `<figure><figcaption>${levelLabel(g, S.length)}</figcaption>${svgFor(g.s, data.bounds)}<div class="street">street side ↓</div></figure>`).join('')}</div><div id="plan-hover">Point at a room to see its name and size.</div>`;
 }
 
 function renderKey() {
   const info = document.getElementById('info');
   if (!info || !data || document.getElementById('bp-key')) return;
   const multi = data.storeys.length > 1;
-  const rows = data.storeys.flatMap((S, i) => S.rooms.filter(r => r.kind !== 'stair' || true).sort((a, b) => b.area - a.area)
-    .map(r => `<tr data-room="${r.id}"><td class="sw"><i style="background:${r.open_air ? '#fff' : (COL[r.kind] || '#eee')}"></i></td><td>${esc(kname(r.kind))}</td><td>${multi ? `L${i + 1}` : ''}</td><td class="num">${r.area.toFixed(1)} m²</td><td class="num">${r.w.toFixed(1)} × ${r.d.toFixed(1)}</td></tr>`)).join('');
+  const rows = floorGroups(data.storeys).flatMap(g => g.s.rooms.slice().sort((a, b) => b.area - a.area)
+    .map(r => `<tr data-room="${r.id}"><td class="sw"><i style="background:${r.open_air ? '#fff' : (COL[r.kind] || '#eee')}"></i></td><td>${esc(kname(r.kind))}</td><td>${multi ? (g.from === g.to ? `L${g.from + 1}` : `L${g.from + 1}–${g.to + 1}`) : ''}</td><td class="num">${r.area.toFixed(1)} m²</td><td class="num">${r.w.toFixed(1)} × ${r.d.toFixed(1)}</td></tr>`)).join('');
   const used = new Set(data.storeys.flatMap(S => S.rooms.map(r => r.kind)));
   const legend = GROUPS.filter(([, ks]) => ks.some(k => used.has(k))).map(([n, ks]) => `<span class="chip" style="background:${COL[ks.find(k => used.has(k))]};color:#22262a">${esc(n)}</span>`).join('');
   const st = (data.stairs || []).map(s => `stair L${s.from}→L${s.from + 1}: ${s.form}, ${s.N} risers of ${s.R} mm, treads ${s.T} mm, ${s.W} mm wide`).join('; ');
   const sec = document.createElement('section'); sec.id = 'bp-key';
-  sec.innerHTML = `<h2>Blueprint key</h2>
-    <p class="sub">Open <b>Blueprint</b> at the top right of the model to see the plans, drawn in the page from the generated geometry. Overall ${data.overall[0].toFixed(2)} × ${data.overall[1].toFixed(2)} m; the street is at the bottom of each sheet. Dark walls are exterior, grey are interior; blue lines are windows; arcs are door swings.</p>
+  sec.innerHTML = `<h2>Rooms</h2>
+    <p class="sub">${data.overall[0].toFixed(1)} × ${data.overall[1].toFixed(1)} m · street at the bottom · dark walls exterior, grey interior · blue windows · arcs door swings</p>
     <div class="chips">${legend}</div>
     <table style="margin-top:8px"><tr><th></th><th>Room</th><th></th><th style="text-align:right">Area</th><th style="text-align:right">W × D (m)</th></tr>${rows}</table>
     <p class="sub" style="margin-top:6px">Roof ${esc((data.roofs || []).join('; '))} · ${esc(data.door_note || '')}${st ? ' · ' + esc(st) : ''}. Furniture is drawn as outlines; the triangle marks the car's front.</p>`;
-  const C = data.contest;
-  if (C) {
-    const cmp = document.createElement('section'); cmp.id = 'bp-cmp';
-    const per = Object.entries(C.per || {}).map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num ${v >= C.pass_at ? 'ok' : 'no'}">${(+v).toFixed(1)}</td></tr>`).join('');
-    cmp.innerHTML = `<h2>Competition · ${esc(C.house)}</h2>
-      <p class="sub">Design score <b>${(+C.score).toFixed(2)}</b> of 10 · rank ${C.rank} of ${C.board.length} · ${C.passed ? 'passes' : 'does not pass'} (pass at ${C.pass_at}, gate ${C.gate ? 'clean' : 'failed'}).</p>
-      <table><tr><th>Rank</th><th>Design</th><th style="text-align:right">Score</th><th style="text-align:right">Result</th></tr>${C.board.map(b => `<tr ${b.vkey ? `data-key="${b.vkey}"` : ''} class="${b.vkey === key ? 'me' : ''}${b.vkey ? '' : ' hidden-design'}"><td>#${b.rank}</td><td>seed ${b.seed}</td><td class="num">${(+b.score).toFixed(2)}</td><td class="num ${b.passed ? 'ok' : 'no'}">${b.passed ? 'pass' : (b.gate ? 'below 8' : 'gate failed')}</td></tr>`).join('')}</table>
-      <h2>This design, by algorithm</h2><table>${per}</table>`;
-    cmp.addEventListener('click', e => { const tr = e.target.closest('tr[data-key]'); if (tr) document.querySelector(`nav button[data-key="${tr.dataset.key}"]`)?.click(); });
-    const info = document.getElementById('info'), why = [...info.querySelectorAll('h2')].find(h => h.textContent === 'Why this architecture');
-    info.insertBefore(cmp, document.getElementById('bp-key') || why);
-  }
-  const why = [...info.querySelectorAll('h2')].find(h => h.textContent === 'Why this architecture') || info.querySelector('h2');
-  info.insertBefore(sec, why);
+  const why = info.querySelector('[data-sec="why"]') || [...info.querySelectorAll('h2')].find(h => h.textContent === 'Why this architecture');
+  info.insertBefore(sec, why || null);
 }
 
 async function load(k) {

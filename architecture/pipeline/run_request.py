@@ -15,7 +15,7 @@ import argparse, json, math, os, re, subprocess, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 PY = sys.executable
-BUNDLED = {"baton-rouge-south": os.path.join(ROOT, "data", "baton-rouge-south"), "riverbend": os.path.join(ROOT, "data", "riverbend")}
+BUNDLED = {"baton-rouge-south": os.path.join(ROOT, "data", "baton-rouge-south")}
 STYLES = None
 
 

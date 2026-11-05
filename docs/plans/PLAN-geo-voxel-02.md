@@ -131,7 +131,7 @@ game's converter and **must move**, not just be deleted.
    a Geo-voxel checkout next to the repo.
 2. Rewire `places.mjs`; the test passes; `layers.json` of every fixture is byte-identical to what
    `geo-voxels build` gives today.
-3. `area@1` reader: failing test with a fixture made from `architecture/data/riverbend` (raw Overpass) → source →
+3. `area@1` reader: failing test with a South Baton Rouge fixture (a raw Overpass response for 30.4425, −91.1659, 165 m) → source →
    layers → import → audit passes.
 4. Move the tests; voxel-tactics' full test suite green; every catalog place's audit unchanged from step 0.
 
@@ -141,7 +141,7 @@ game's converter and **must move**, not just be deleted.
 |---|---|
 | No Geo-voxel needed | `places.mjs import` of a source works with no Geo-voxel checkout present |
 | Same layers | fixture `layers.json` byte-identical to today's `geo-voxels build` output |
-| `area@1` | a Riverbend package imports and audits |
+| `area@1` | the South Baton Rouge package imports and audits |
 | No regressions | voxel-tactics tests green; catalog audits unchanged |
 
 ## 5. Phase B — remove the voxel side and the game from Geo-voxel (after A is merged)
@@ -227,7 +227,7 @@ Keep: `architecture/`, `app/public/houses/` (renamed `site/`, see below), `.gith
 
 ### Steps (Codex, TDD)
 
-0. Baseline: plan hash, gate result and time for the 5 example houses, the 9 Riverbend houses and the 5 high-rise
+0. Baseline: plan hash, gate result and time for the 3 example houses and the 5 high-rise
    samples, in the current layout.
 1. Schema: test that every existing export validates (fails until the schema exists).
 2. Create the package and move the modules; convert imports. The baseline is reproduced exactly (same plan hashes,
@@ -275,7 +275,7 @@ Keep: `architecture/`, `app/public/houses/` (renamed `site/`, see below), `.gith
 1. `site.roads`: a fixture street gives the carriageway, kerb and sidewalk polygons at the expected widths.
 2. `site.terrain`: a flat fixture and a sampled fixture; buildings sit on their ground.
 3. Massing for non-house buildings: height from tags, roof shape from tags, fallback rules reported.
-4. Scene assembly in Blender: `area.glb` for Riverbend opens in Blender and three.js; every planned house is present
+4. Scene assembly in Blender: `area.glb` for the South Baton Rouge test area (30.4425, −91.1659) opens in Blender and three.js; every planned house is present
    and in place (centroid within 0.5 m of its OSM footprint).
 5. Package writer and reader round trip; the voxel-tactics `area@1` import (phase A) accepts it.
 6. Viewer Area view.
@@ -287,7 +287,7 @@ Keep: `architecture/`, `app/public/houses/` (renamed `site/`, see below), `.gith
 | Placement | every building within 0.5 m of its OSM footprint; ground under every door |
 | Coverage | every building in the area is planned or massing; reasons listed |
 | Package | validates; voxel-tactics imports it |
-| Cost | Riverbend (≈ 40 buildings) assembles in ≤ 2 min on the Actions runner, on top of planning time |
+| Cost | the South Baton Rouge test area (34 houses) assembles in ≤ 2 min on the Actions runner, on top of planning time |
 
 ## 8. Phase E — the converter reads planned buildings (in voxel-tactics)
 

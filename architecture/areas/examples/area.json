@@ -8,7 +8,7 @@
  "seed": null,
  "style": "auto",
  "created": "2026-11-03T10:07:28",
- "note": "The five houses of the design competition, replanned under the current rules (person width, stock doors) and rebuilt.",
+ "note": "Three example houses in south Baton Rouge, replanned under the current rules (person width, stock doors) and rebuilt.",
  "houses": [
   {
    "osm_id": "905235809",
@@ -53,36 +53,6 @@
    "gate": "pass",
    "fails": [],
    "export": "exports/parkblvd-s5.building.json",
-   "built": true
-  },
-  {
-   "osm_id": "978042780",
-   "archetype": "ranch",
-   "style": "midcentury",
-   "storeys": 1,
-   "address": "Northshore Avenue",
-   "street": "Northshore Avenue",
-   "area_m2": 189,
-   "key": "northshore-s2",
-   "style_chosen": "auto",
-   "gate": "pass",
-   "fails": [],
-   "export": "exports/northshore-s2.building.json",
-   "built": true
-  },
-  {
-   "osm_id": "978042774",
-   "archetype": "ranch",
-   "style": "midcentury",
-   "storeys": 1,
-   "address": "Ducros Drive",
-   "street": "Ducros Drive",
-   "area_m2": 207,
-   "key": "ducros-s1",
-   "style_chosen": "auto",
-   "gate": "pass",
-   "fails": [],
-   "export": "exports/ducros-s1.building.json",
    "built": true
   }
  ],

@@ -141,7 +141,7 @@ sends its requests to your fork (`build_viewer.py` reads `GITHUB_REPOSITORY`).
 ```sh
 micromamba create -f architecture/environment.yml && micromamba activate houses   # Python 3.11, FreeCAD 1.0, CGAL 6
 bash architecture/pipeline/roofgen/build.sh
-python architecture/pipeline/generate_area.py --lat 30.3916 --lon -91.2061 --blocks 1.5 --max 12 --id my-area
+python architecture/pipeline/generate_area.py --lat 30.4425 --lon -91.1659 --blocks 1.5 --max 12 --id my-area
 python architecture/build_viewer.py      # then: npm run app → http://localhost:5180/houses/
 ```
 
