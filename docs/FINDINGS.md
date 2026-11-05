@@ -295,6 +295,9 @@ $$n_{\max} = \Big\lfloor \frac{H^\ast - 0.3}{3.0} \Big\rfloor :$$
 | 54 m | two exits per floor (scissor stair), shared fire lobby, refuge room in every dwelling | 17 storeys (51.3 m) |
 | 100 m | refuge floors, the first ≤ 50 m up and then every ≤ 50 m | 33 storeys (99.3 m) |
 
+
+![Generated slabs of 10, 17, 24, 33 and 34 storeys](img/viewer-highrise-heights.jpg)
+
 This is why Chinese blocks cluster at 10, 17 and 33 storeys. Winter sunlight (hours on the Major Cold day against a
 row of equal blocks to the south) sets the row spacing; leaving the neighbour's parapet and roof towers out of the
 shadow model understated the spacing of a 10-storey row by 2 m (46 m gave 1.7 h of sun, a fail; 48 m gives 2.7 h).

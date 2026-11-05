@@ -12,7 +12,10 @@ The floor plans follow Merrell, Schkufza & Koltun, *Computer-Generated Residenti
 2010), adapted to a harder case: the outline is fixed by the map, not designed. Generation is deterministic and uses
 no AI model.
 
-![Place Builder — Third Street, Baton Rouge](docs/img/place-builder-3d.jpg)
+![The house viewer: 2116 Quail Oak Drive, Baton Rouge, generated from its OpenStreetMap footprint and public record, with its 23 design checks](docs/img/viewer-model.jpg)
+
+*2116 Quail Oak Drive, Baton Rouge, generated from its OpenStreetMap footprint and its public record (3 bedrooms,
+1,838 sq ft). Right: the 23 design checks it passed.*
 
 > **Status — moving to 3D modelling only.** The project began as the map generator of a voxel tactics game. The voxel
 > maps, the town engine and every game rule are moving to the game's repository (voxel-tactics), which converts
@@ -70,6 +73,72 @@ python architecture/build_viewer.py
 
 [docs/INTEGRATE.md](docs/INTEGRATE.md) explains how to use each output in your own project: coordinate frames,
 building a navigation graph, engine axes, IFC conversion, forking the generator, and the licences.
+
+## How to use it
+
+Everything below happens in the house viewer, in a browser. No install, no account, no command line (except to send
+a generation request, which needs a GitHub sign-in).
+
+### 1. Pick a building
+
+The list on the left holds every generated building: the example houses, each generated area and the high-rise
+apartments. Click one to load its 3D model. The panel on the right says what the map told us about it (OSM way, the
+street it faces, the public record), what was planned (storeys, bedrooms, style) and every design check with its
+result. Drag to orbit, right-drag to pan, scroll to zoom.
+
+![301 Stanford Avenue: a two-storey colonial revival house, 21 of 21 checks passed](docs/img/viewer-model-stanford.jpg)
+
+### 2. Look inside
+
+**Level 1** and **Level 2** cut the model at that floor, so you look into the rooms from above. **Furniture** shows
+the furnished rooms; **Shell only** shows the bare walls, doors, windows and stairs.
+
+| Level 1, furnished (2116 Quail Oak Drive) | Level 2 (301 Stanford Avenue) |
+|---|---|
+| ![Level 1 cutaway with furniture: garage with two cars, kitchen, living room, stair, porch](docs/img/viewer-level1.jpg) | ![Level 2 cutaway: bedrooms, bathrooms and the hall](docs/img/viewer-level2.jpg) |
+
+### 3. Read the blueprint
+
+**Blueprint** (top right) draws every storey from the generated geometry: thick walls are exterior, thin ones
+interior, blue lines are windows, arcs are door swings, the arrow is the stair, and the street is at the bottom of each
+sheet. Point at a room to see its name and size.
+
+![Blueprints of 2116 Quail Oak Drive, levels 1 and 2](docs/img/viewer-blueprint.jpg)
+
+### 4. Generate a new area
+
+1. Press **World map · generate an area**.
+2. Go to a place: one of the bundled areas, or type an address, a place name or a latitude and longitude and press
+   **Go**. Bundled areas draw at once; anywhere else loads OpenStreetMap live.
+3. Click the map to centre the area, and set the radius (1–2 blocks; one block is about 110 m). The houses inside
+   turn red and are listed on the right, nearest first; the nearest 12 are generated.
+4. Choose a style for the whole area, or one per house (**Inferred per house** lets the map decide).
+5. Press **Request generation**. A GitHub issue opens with everything filled in; sign in and submit it. The repository's
+   workflow plans, models and checks the houses, then republishes the viewer with the new area in the list. It runs
+   for the owner, or for requests the owner approves.
+
+![World map, South Baton Rouge: a 1.5-block area centred at 30.4425, −91.1659 holds 34 houses; the nearest 12 will be generated](docs/img/viewer-worldmap.jpg)
+
+### 5. Restyle a building, or take it with you
+
+- **Restyle:** pick a style in the drop-down above the model and press **Regenerate**. The plan stays the same; only
+  the style template changes (Cottage, Italianate, Tudor, Craftsman and 16 more). This opens a restyle request.
+- **Game export:** downloads the building's `building-export@1` JSON: rooms, every door with the two rooms it joins
+  and the bearing it faces, windows, stairs, furniture and the garage. See
+  [docs/INTEGRATE.md](docs/INTEGRATE.md#1-games-and-simulations-the-building-export).
+- **IFC4 models** for BIM tools are in `architecture/areas/<area>/deliver/bim/`.
+
+### 6. High-rise apartments
+
+The high-rise section of the list holds Chinese residential slabs from 10 to 34 storeys, planned dwelling by dwelling
+against the Chinese codes. The same plan can wear four facades; the storey count decides the core, the exits and the
+refuge floors.
+
+![The 24-storey test building in its plain version and four facade styles](docs/img/viewer-highrise-styles.jpg)
+
+![Generated slabs of 10, 17, 24, 33 and 34 storeys (each framed to fit, not to scale)](docs/img/viewer-highrise-heights.jpg)
+
+![Blueprints of the 24-storey building: pilotis ground floor with the entrance hall, then typical floors with two dwellings around the core](docs/img/viewer-highrise-blueprint.jpg)
 
 ## What is new here
 
@@ -131,15 +200,7 @@ $\beta$ rises from 0.03 to 6. [architecture/README.md](architecture/README.md) d
 3. **Build**: footprints into wings, streets by box distance, lots, terrain plateaus, shells with rooms and furniture,
    OSM 3D parts and roof shapes, trees, signs, road paint.
 
-| Raw OSM geometry on a voxel grid | Straightened (the default) |
-|---|---|
-| ![raw](docs/img/baton-rouge-sherwood-florida-raw.png) | ![grid](docs/img/baton-rouge-sherwood-florida-grid.png) |
-
 [docs/METHOD.md](docs/METHOD.md) covers every stage; [docs/ENGINE.md](docs/ENGINE.md) maps the engine.
-
-| Shop fascia and house number from OpenStreetMap | The Details tab: what every building is, and the sources |
-|---|---|
-| ![signs](docs/img/place-builder-signs.jpg) | ![details](docs/img/place-builder-details.jpg) |
 
 ## Where the data comes from
 
