@@ -1,0 +1,266 @@
+[
+ {
+  "id": "xa-B1",
+  "kind": "reference",
+  "score": 9.75,
+  "groups": {
+   "G": 9.44,
+   "M": 10.0,
+   "T": 9.82
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 108.5
+ },
+ {
+  "id": "xa-A4",
+  "kind": "reference",
+  "score": 9.49,
+  "groups": {
+   "G": 10.0,
+   "M": 10.0,
+   "T": 8.92
+  },
+  "layout": "2 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 107.5
+ },
+ {
+  "id": "xa-B2",
+  "kind": "reference",
+  "score": 9.75,
+  "groups": {
+   "G": 10.0,
+   "M": 10.0,
+   "T": 9.46
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 131
+ },
+ {
+  "id": "xa-C6",
+  "kind": "reference",
+  "score": 9.74,
+  "groups": {
+   "G": 9.75,
+   "M": 9.55,
+   "T": 9.82
+  },
+  "layout": "4 bed \u00b7 2 living \u00b7 3 bath",
+  "gfa": 170
+ },
+ {
+  "id": "xa-C2",
+  "kind": "reference",
+  "score": 9.88,
+  "groups": {
+   "G": 10.0,
+   "M": 9.86,
+   "T": 9.82
+  },
+  "layout": "4 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 149
+ },
+ {
+  "id": "xa-C1",
+  "kind": "reference",
+  "score": 9.8,
+  "groups": {
+   "G": 9.34,
+   "M": 10.0,
+   "T": 10.0
+  },
+  "layout": "4 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 147
+ },
+ {
+  "id": "xa-C5",
+  "kind": "reference",
+  "score": 9.43,
+  "groups": {
+   "G": 9.62,
+   "M": 9.48,
+   "T": 9.28
+  },
+  "layout": "4 bed \u00b7 2 living \u00b7 3 bath",
+  "gfa": 161
+ },
+ {
+  "id": "xa-B5",
+  "kind": "reference",
+  "score": 9.68,
+  "groups": {
+   "G": 9.44,
+   "M": 9.73,
+   "T": 9.82
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 137
+ },
+ {
+  "id": "lx-E1",
+  "kind": "reference",
+  "score": 8.96,
+  "groups": {
+   "G": 8.2,
+   "M": 10.0,
+   "T": 9.06
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 115
+ },
+ {
+  "id": "lx-F2",
+  "kind": "reference",
+  "score": 9.61,
+  "groups": {
+   "G": 10.0,
+   "M": 10.0,
+   "T": 9.11
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 130
+ },
+ {
+  "id": "lx-A3",
+  "kind": "reference",
+  "score": 9.58,
+  "groups": {
+   "G": 10.0,
+   "M": 10.0,
+   "T": 9.1
+  },
+  "layout": "2 bed \u00b7 2 living \u00b7 1 bath",
+  "gfa": 87
+ },
+ {
+  "id": "lx-C1",
+  "kind": "reference",
+  "score": 9.38,
+  "groups": {
+   "G": 10.0,
+   "M": 9.62,
+   "T": 8.87
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 1 bath",
+  "gfa": 98
+ },
+ {
+  "id": "hr10-120",
+  "kind": "generated",
+  "name": "10-storey slab, 1 lift, 2 dwellings per floor, 120 m\u00b2",
+  "score": 9.94,
+  "groups": {
+   "G": 10.0,
+   "C": 10.0,
+   "M": 10.0,
+   "T": 9.82
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 117.8,
+  "height_m": 30.3,
+  "gate_pass": "9/12",
+  "repairs": [],
+  "sun_h": 2.72,
+  "row_spacing_m": 48,
+  "below_1": {
+   "T3 North-south through ventilation": 0.75
+  }
+ },
+ {
+  "id": "hr17-125",
+  "kind": "generated",
+  "name": "17-storey slab, 2 lifts, 2 dwellings per floor, 125 m\u00b2",
+  "score": 9.85,
+  "groups": {
+   "G": 10.0,
+   "C": 10.0,
+   "M": 9.4,
+   "T": 9.82
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 122.9,
+  "height_m": 51.3,
+  "gate_pass": "7/12",
+  "repairs": [
+   "br3"
+  ],
+  "sun_h": 2.05,
+  "row_spacing_m": 60,
+  "below_1": {
+   "M3 C_d room sizes vs reference priors": 0.8,
+   "T3 North-south through ventilation": 0.75
+  }
+ },
+ {
+  "id": "hr24-140",
+  "kind": "generated",
+  "name": "24-storey slab, 2 lifts, 2 dwellings per floor, 140 m\u00b2 (test building)",
+  "score": 9.9,
+  "groups": {
+   "G": 10.0,
+   "C": 10.0,
+   "M": 9.7,
+   "T": 9.82
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 137.3,
+  "height_m": 72.3,
+  "gate_pass": "11/12",
+  "repairs": [
+   "na",
+   "cl",
+   "st"
+  ],
+  "sun_h": 2.03,
+  "row_spacing_m": 65,
+  "below_1": {
+   "M3 C_d room sizes vs reference priors": 0.9,
+   "T3 North-south through ventilation": 0.75
+  }
+ },
+ {
+  "id": "hr33-125",
+  "kind": "generated",
+  "name": "33-storey slab, 2 lifts, 2 dwellings per floor, 125 m\u00b2",
+  "score": 9.8,
+  "groups": {
+   "G": 10.0,
+   "C": 10.0,
+   "M": 9.1,
+   "T": 9.82
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 123.6,
+  "height_m": 99.3,
+  "gate_pass": "6/12",
+  "repairs": [],
+  "sun_h": 2.08,
+  "row_spacing_m": 60,
+  "below_1": {
+   "M3 C_d room sizes vs reference priors": 0.7,
+   "T3 North-south through ventilation": 0.75
+  }
+ },
+ {
+  "id": "hr34-125",
+  "kind": "generated",
+  "name": "34-storey slab over 100 m, refuge floors, 125 m\u00b2",
+  "score": 9.81,
+  "groups": {
+   "G": 10.0,
+   "C": 10.0,
+   "M": 9.1,
+   "T": 9.82
+  },
+  "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
+  "gfa": 123.6,
+  "height_m": 102.3,
+  "gate_pass": "7/12",
+  "repairs": [],
+  "sun_h": 2.08,
+  "row_spacing_m": 60,
+  "below_1": {
+   "M3 C_d room sizes vs reference priors": 0.7,
+   "T3 North-south through ventilation": 0.75
+  }
+ }
+]

@@ -1,0 +1,2187 @@
+{
+ "rooms": {
+  "BA": {
+   "name": "Bathroom",
+   "net": {
+    "n": 14,
+    "mean": 3.21,
+    "sd": 0.76,
+    "min": 2.06,
+    "max": 5.06
+   },
+   "share": {
+    "n": 14,
+    "mean": 0.04,
+    "sd": 0.01,
+    "min": 0.02,
+    "max": 0.06
+   },
+   "aspect": {
+    "n": 14,
+    "mean": 1.42,
+    "sd": 0.38,
+    "min": 1.0,
+    "max": 2.12
+   },
+   "short": {
+    "n": 14,
+    "mean": 1.5,
+    "sd": 0.15,
+    "min": 1.3,
+    "max": 1.75
+   },
+   "band": {
+    "M": 8,
+    "N": 6
+   },
+   "window_rate": 0.79,
+   "south_rate": 0.0
+  },
+  "BAM": {
+   "name": "Master bath",
+   "net": {
+    "n": 10,
+    "mean": 5.17,
+    "sd": 0.96,
+    "min": 3.53,
+    "max": 6.59
+   },
+   "share": {
+    "n": 10,
+    "mean": 0.06,
+    "sd": 0.01,
+    "min": 0.05,
+    "max": 0.08
+   },
+   "aspect": {
+    "n": 10,
+    "mean": 1.7,
+    "sd": 0.45,
+    "min": 1.01,
+    "max": 2.12
+   },
+   "short": {
+    "n": 10,
+    "mean": 1.75,
+    "sd": 0.31,
+    "min": 1.5,
+    "max": 2.55
+   },
+   "band": {
+    "M": 9,
+    "S": 1
+   },
+   "window_rate": 1.0,
+   "south_rate": 0.1
+  },
+  "BR": {
+   "name": "Bedroom",
+   "net": {
+    "n": 21,
+    "mean": 9.32,
+    "sd": 1.84,
+    "min": 6.66,
+    "max": 13.01
+   },
+   "share": {
+    "n": 21,
+    "mean": 0.1,
+    "sd": 0.03,
+    "min": 0.07,
+    "max": 0.17
+   },
+   "aspect": {
+    "n": 21,
+    "mean": 1.24,
+    "sd": 0.21,
+    "min": 1.0,
+    "max": 1.78
+   },
+   "short": {
+    "n": 21,
+    "mean": 2.76,
+    "sd": 0.24,
+    "min": 2.0,
+    "max": 3.1
+   },
+   "band": {
+    "S": 9,
+    "N": 10,
+    "M": 2
+   },
+   "window_rate": 1.0,
+   "south_rate": 0.43
+  },
+  "BRM": {
+   "name": "Master bedroom",
+   "net": {
+    "n": 12,
+    "mean": 12.48,
+    "sd": 1.22,
+    "min": 10.36,
+    "max": 14.55
+   },
+   "share": {
+    "n": 12,
+    "mean": 0.15,
+    "sd": 0.03,
+    "min": 0.1,
+    "max": 0.18
+   },
+   "aspect": {
+    "n": 12,
+    "mean": 1.2,
+    "sd": 0.16,
+    "min": 1.0,
+    "max": 1.5
+   },
+   "short": {
+    "n": 12,
+    "mean": 2.98,
+    "sd": 0.48,
+    "min": 2.04,
+    "max": 3.4
+   },
+   "band": {
+    "S": 12
+   },
+   "window_rate": 1.0,
+   "south_rate": 1.0
+  },
+  "CL": {
+   "name": "Walk-in closet",
+   "net": {
+    "n": 5,
+    "mean": 2.82,
+    "sd": 0.86,
+    "min": 1.96,
+    "max": 3.88
+   },
+   "share": {
+    "n": 5,
+    "mean": 0.03,
+    "sd": 0.01,
+    "min": 0.02,
+    "max": 0.05
+   },
+   "aspect": {
+    "n": 5,
+    "mean": 1.54,
+    "sd": 0.36,
+    "min": 1.09,
+    "max": 1.88
+   },
+   "short": {
+    "n": 5,
+    "mean": 1.33,
+    "sd": 0.15,
+    "min": 1.1,
+    "max": 1.45
+   },
+   "band": {
+    "M": 5
+   },
+   "window_rate": 0.8,
+   "south_rate": 0.0
+  },
+  "DR": {
+   "name": "Dining room",
+   "net": {
+    "n": 12,
+    "mean": 11.8,
+    "sd": 4.73,
+    "min": 5.01,
+    "max": 18.19
+   },
+   "share": {
+    "n": 12,
+    "mean": 0.13,
+    "sd": 0.05,
+    "min": 0.06,
+    "max": 0.22
+   },
+   "aspect": {
+    "n": 12,
+    "mean": 1.34,
+    "sd": 0.48,
+    "min": 1.03,
+    "max": 2.77
+   },
+   "short": {
+    "n": 12,
+    "mean": 2.83,
+    "sd": 0.81,
+    "min": 1.15,
+    "max": 4.0
+   },
+   "band": {
+    "M": 7,
+    "N": 5
+   },
+   "window_rate": 0.5,
+   "south_rate": 0.0
+  },
+  "EN": {
+   "name": "Entry",
+   "net": {
+    "n": 12,
+    "mean": 3.43,
+    "sd": 1.93,
+    "min": 2.04,
+    "max": 9.27
+   },
+   "share": {
+    "n": 12,
+    "mean": 0.05,
+    "sd": 0.03,
+    "min": 0.02,
+    "max": 0.14
+   },
+   "aspect": {
+    "n": 12,
+    "mean": 1.48,
+    "sd": 0.72,
+    "min": 1.01,
+    "max": 3.5
+   },
+   "short": {
+    "n": 12,
+    "mean": 1.49,
+    "sd": 0.19,
+    "min": 1.16,
+    "max": 1.85
+   },
+   "band": {
+    "M": 10,
+    "N": 2
+   },
+   "window_rate": 0.0,
+   "south_rate": 0.0
+  },
+  "HL": {
+   "name": "Hall",
+   "net": {
+    "n": 12,
+    "mean": 3.91,
+    "sd": 3.0,
+    "min": 0.84,
+    "max": 9.45
+   },
+   "share": {
+    "n": 12,
+    "mean": 0.05,
+    "sd": 0.04,
+    "min": 0.01,
+    "max": 0.15
+   },
+   "aspect": {
+    "n": 12,
+    "mean": 2.01,
+    "sd": 0.86,
+    "min": 1.0,
+    "max": 4.0
+   },
+   "short": {
+    "n": 12,
+    "mean": 1.24,
+    "sd": 0.51,
+    "min": 0.7,
+    "max": 2.36
+   },
+   "band": {
+    "M": 10,
+    "N": 1,
+    "S": 1
+   },
+   "window_rate": 0.0,
+   "south_rate": 0.0
+  },
+  "KT": {
+   "name": "Kitchen",
+   "net": {
+    "n": 12,
+    "mean": 6.33,
+    "sd": 1.34,
+    "min": 4.38,
+    "max": 8.99
+   },
+   "share": {
+    "n": 12,
+    "mean": 0.08,
+    "sd": 0.01,
+    "min": 0.06,
+    "max": 0.11
+   },
+   "aspect": {
+    "n": 12,
+    "mean": 1.59,
+    "sd": 0.34,
+    "min": 1.1,
+    "max": 2.11
+   },
+   "short": {
+    "n": 12,
+    "mean": 1.99,
+    "sd": 0.3,
+    "min": 1.7,
+    "max": 2.7
+   },
+   "band": {
+    "N": 11,
+    "M": 1
+   },
+   "window_rate": 1.0,
+   "south_rate": 0.0
+  },
+  "KW": {
+   "name": "Open kitchen",
+   "net": {
+    "n": 1,
+    "mean": 3.68,
+    "sd": 0.0,
+    "min": 3.68,
+    "max": 3.68
+   },
+   "share": {
+    "n": 1,
+    "mean": 0.04,
+    "sd": 0.0,
+    "min": 0.04,
+    "max": 0.04
+   },
+   "aspect": {
+    "n": 1,
+    "mean": 2.36,
+    "sd": 0.0,
+    "min": 2.36,
+    "max": 2.36
+   },
+   "short": {
+    "n": 1,
+    "mean": 1.2,
+    "sd": 0.0,
+    "min": 1.2,
+    "max": 1.2
+   },
+   "band": {
+    "N": 1
+   },
+   "window_rate": 1.0,
+   "south_rate": 0.0
+  },
+  "LR": {
+   "name": "Living room",
+   "net": {
+    "n": 12,
+    "mean": 18.34,
+    "sd": 8.14,
+    "min": 12.2,
+    "max": 42.8
+   },
+   "share": {
+    "n": 12,
+    "mean": 0.2,
+    "sd": 0.05,
+    "min": 0.15,
+    "max": 0.33
+   },
+   "aspect": {
+    "n": 12,
+    "mean": 1.12,
+    "sd": 0.11,
+    "min": 1.01,
+    "max": 1.38
+   },
+   "short": {
+    "n": 12,
+    "mean": 3.97,
+    "sd": 0.67,
+    "min": 3.4,
+    "max": 5.95
+   },
+   "band": {
+    "S": 12
+   },
+   "window_rate": 1.0,
+   "south_rate": 1.0
+  },
+  "NA": {
+   "name": "Maid's room",
+   "net": {
+    "n": 3,
+    "mean": 2.37,
+    "sd": 1.51,
+    "min": 0.76,
+    "max": 3.74
+   },
+   "share": {
+    "n": 3,
+    "mean": 0.03,
+    "sd": 0.01,
+    "min": 0.01,
+    "max": 0.04
+   },
+   "aspect": {
+    "n": 3,
+    "mean": 1.44,
+    "sd": 0.33,
+    "min": 1.2,
+    "max": 1.81
+   },
+   "short": {
+    "n": 3,
+    "mean": 1.2,
+    "sd": 0.35,
+    "min": 0.8,
+    "max": 1.4
+   },
+   "band": {
+    "N": 3
+   },
+   "window_rate": 1.0,
+   "south_rate": 0.0
+  },
+  "SR": {
+   "name": "Storage",
+   "net": {
+    "n": 4,
+    "mean": 1.81,
+    "sd": 0.31,
+    "min": 1.36,
+    "max": 2.06
+   },
+   "share": {
+    "n": 4,
+    "mean": 0.02,
+    "sd": 0.0,
+    "min": 0.02,
+    "max": 0.03
+   },
+   "aspect": {
+    "n": 4,
+    "mean": 1.8,
+    "sd": 0.5,
+    "min": 1.29,
+    "max": 2.44
+   },
+   "short": {
+    "n": 4,
+    "mean": 1.0,
+    "sd": 0.22,
+    "min": 0.7,
+    "max": 1.2
+   },
+   "band": {
+    "M": 3,
+    "N": 1
+   },
+   "window_rate": 0.25,
+   "south_rate": 0.0
+  },
+  "ST": {
+   "name": "Study",
+   "net": {
+    "n": 5,
+    "mean": 8.28,
+    "sd": 1.03,
+    "min": 7.46,
+    "max": 9.82
+   },
+   "share": {
+    "n": 5,
+    "mean": 0.1,
+    "sd": 0.02,
+    "min": 0.06,
+    "max": 0.11
+   },
+   "aspect": {
+    "n": 5,
+    "mean": 1.22,
+    "sd": 0.11,
+    "min": 1.1,
+    "max": 1.4
+   },
+   "short": {
+    "n": 5,
+    "mean": 2.6,
+    "sd": 0.26,
+    "min": 2.3,
+    "max": 2.99
+   },
+   "band": {
+    "N": 5
+   },
+   "window_rate": 1.0,
+   "south_rate": 0.0
+  }
+ },
+ "access": {
+  "EN": {
+   "OUT:door": 12,
+   "DR:open": 8,
+   "BA:door": 2,
+   "BR:door": 3,
+   "LR:open": 2,
+   "HL:open": 4,
+   "ST:door": 1,
+   "BRM:door": 1
+  },
+  "OUT": {
+   "EN:door": 12
+  },
+  "DR": {
+   "EN:open": 8,
+   "KT:slide": 7,
+   "ST:door": 1,
+   "LR:open": 8,
+   "HL:open": 8,
+   "BRM:door": 1,
+   "BR:door": 2,
+   "KW:open": 1,
+   "BA:door": 1,
+   "KT:door": 4,
+   "BLN:door": 3
+  },
+  "KT": {
+   "DR:slide": 7,
+   "NA:door": 2,
+   "KW:door": 1,
+   "BLN:door": 1,
+   "DR:door": 4
+  },
+  "ST": {
+   "DR:door": 1,
+   "LR:door": 1,
+   "HL:door": 2,
+   "EN:door": 1
+  },
+  "LR": {
+   "DR:open": 8,
+   "BRM:door": 5,
+   "BL:slide": 8,
+   "EN:open": 2,
+   "HL:open": 7,
+   "ST:door": 1,
+   "BR:door": 4,
+   "BL:door": 4
+  },
+  "BRM": {
+   "LR:door": 5,
+   "BAM:door": 5,
+   "DR:door": 1,
+   "CL:open": 3,
+   "HL:door": 5,
+   "EN:door": 1
+  },
+  "BAM": {
+   "BRM:door": 5,
+   "SR:door": 1,
+   "CL:door": 3,
+   "HL:door": 2,
+   "CL:open": 1
+  },
+  "HL": {
+   "DR:open": 8,
+   "BA:door": 9,
+   "BR:door": 12,
+   "LR:open": 7,
+   "EN:open": 4,
+   "SR:door": 3,
+   "BRM:door": 5,
+   "CL:door": 1,
+   "ST:door": 2,
+   "BAM:door": 2
+  },
+  "BA": {
+   "HL:door": 9,
+   "EN:door": 2,
+   "BR:door": 1,
+   "SR:door": 1,
+   "DR:door": 1
+  },
+  "BR": {
+   "HL:door": 12,
+   "EN:door": 3,
+   "LR:door": 4,
+   "BA:door": 1,
+   "DR:door": 2,
+   "BL:door": 1
+  },
+  "BL": {
+   "LR:slide": 8,
+   "BR:door": 1,
+   "LR:door": 4
+  },
+  "SR": {
+   "BAM:door": 1,
+   "HL:door": 3,
+   "BA:door": 1
+  },
+  "NA": {
+   "KT:door": 2,
+   "KW:door": 1
+  },
+  "CL": {
+   "BRM:open": 3,
+   "BAM:door": 3,
+   "HL:door": 1,
+   "BAM:open": 1
+  },
+  "KW": {
+   "DR:open": 1,
+   "KT:door": 1,
+   "NA:door": 1
+  },
+  "BLN": {
+   "KT:door": 1,
+   "DR:door": 3
+  }
+ },
+ "plan": {
+  "gfa": {
+   "n": 12,
+   "mean": 128.42,
+   "sd": 25.76,
+   "min": 87,
+   "max": 170
+  },
+  "axis_area": {
+   "n": 12,
+   "mean": 99.98,
+   "sd": 21.52,
+   "min": 66.09,
+   "max": 138.27
+  },
+  "net_area": {
+   "n": 12,
+   "mean": 86.79,
+   "sd": 18.88,
+   "min": 56.93,
+   "max": 121.65
+  },
+  "efficiency": {
+   "n": 12,
+   "mean": 0.81,
+   "sd": 0.04,
+   "min": 0.76,
+   "max": 0.89
+  },
+  "frontage_m": {
+   "n": 12,
+   "mean": 10.83,
+   "sd": 1.68,
+   "min": 7.6,
+   "max": 14.3
+  },
+  "depth_m": {
+   "n": 12,
+   "mean": 11.44,
+   "sd": 1.55,
+   "min": 8.7,
+   "max": 13.1
+  },
+  "south_rooms": {
+   "n": 12,
+   "mean": 2.75,
+   "sd": 0.45,
+   "min": 2,
+   "max": 3
+  },
+  "circulation_share": {
+   "n": 12,
+   "mean": 0.1,
+   "sd": 0.05,
+   "min": 0.05,
+   "max": 0.2
+  },
+  "bedrooms": {
+   "n": 12,
+   "mean": 2.75,
+   "sd": 0.87,
+   "min": 2,
+   "max": 4
+  },
+  "baths": {
+   "n": 12,
+   "mean": 2.0,
+   "sd": 0.6,
+   "min": 1,
+   "max": 3
+  }
+ },
+ "rates": {
+  "through_strict": 0.42,
+  "through_loose": 0.83,
+  "kitchen_window": 1.0,
+  "master_ensuite": 0.67,
+  "living_south": 1.0,
+  "master_south": 1.0,
+  "reachable": 1.0
+ },
+ "programme": [
+  {
+   "id": "xa-B1",
+   "gfa": 108.5,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 2,
+   "studies": 1,
+   "baths": 2,
+   "types": {
+    "ST": 1,
+    "KT": 1,
+    "BAM": 1,
+    "BRM": 1,
+    "DR": 1,
+    "LR": 1,
+    "EN": 1,
+    "HL": 1,
+    "BA": 1,
+    "BR": 1
+   }
+  },
+  {
+   "id": "xa-A4",
+   "gfa": 107.5,
+   "layout": "2 bed · 2 living · 2 bath",
+   "bedrooms": 2,
+   "studies": 0,
+   "baths": 2,
+   "types": {
+    "BR": 1,
+    "BA": 1,
+    "EN": 1,
+    "KT": 1,
+    "DR": 1,
+    "LR": 1,
+    "SR": 1,
+    "BAM": 1,
+    "BRM": 1
+   }
+  },
+  {
+   "id": "xa-B2",
+   "gfa": 131,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 3,
+   "studies": 0,
+   "baths": 2,
+   "types": {
+    "BR": 2,
+    "KT": 1,
+    "NA": 1,
+    "BA": 1,
+    "HL": 1,
+    "BAM": 1,
+    "BRM": 1,
+    "DR": 1,
+    "EN": 1,
+    "LR": 1
+   }
+  },
+  {
+   "id": "xa-C6",
+   "gfa": 170,
+   "layout": "4 bed · 2 living · 3 bath",
+   "bedrooms": 3,
+   "studies": 1,
+   "baths": 3,
+   "types": {
+    "BR": 2,
+    "BA": 2,
+    "HL": 1,
+    "ST": 1,
+    "KT": 1,
+    "NA": 1,
+    "DR": 1,
+    "EN": 1,
+    "BAM": 1,
+    "CL": 1,
+    "BRM": 1,
+    "LR": 1
+   }
+  },
+  {
+   "id": "xa-C2",
+   "gfa": 149,
+   "layout": "4 bed · 2 living · 2 bath",
+   "bedrooms": 4,
+   "studies": 0,
+   "baths": 2,
+   "types": {
+    "BR": 3,
+    "KT": 1,
+    "BA": 1,
+    "HL": 1,
+    "BAM": 1,
+    "CL": 1,
+    "BRM": 1,
+    "DR": 1,
+    "EN": 1,
+    "LR": 1
+   }
+  },
+  {
+   "id": "xa-C1",
+   "gfa": 147,
+   "layout": "4 bed · 2 living · 2 bath",
+   "bedrooms": 4,
+   "studies": 0,
+   "baths": 2,
+   "types": {
+    "BR": 3,
+    "NA": 1,
+    "KW": 1,
+    "KT": 1,
+    "SR": 1,
+    "HL": 2,
+    "CL": 1,
+    "BAM": 1,
+    "BRM": 1,
+    "DR": 1,
+    "LR": 1,
+    "EN": 1,
+    "BA": 1
+   }
+  },
+  {
+   "id": "xa-C5",
+   "gfa": 161,
+   "layout": "4 bed · 2 living · 3 bath",
+   "bedrooms": 4,
+   "studies": 0,
+   "baths": 3,
+   "types": {
+    "BR": 3,
+    "BA": 2,
+    "HL": 2,
+    "KT": 1,
+    "SR": 1,
+    "DR": 1,
+    "EN": 1,
+    "CL": 1,
+    "LR": 1,
+    "BAM": 1,
+    "BRM": 1
+   }
+  },
+  {
+   "id": "xa-B5",
+   "gfa": 137,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 3,
+   "studies": 0,
+   "baths": 2,
+   "types": {
+    "KT": 1,
+    "BR": 2,
+    "DR": 1,
+    "EN": 1,
+    "SR": 1,
+    "HL": 1,
+    "LR": 1,
+    "BA": 1,
+    "BAM": 1,
+    "BRM": 1
+   }
+  },
+  {
+   "id": "lx-E1",
+   "gfa": 115,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 2,
+   "studies": 1,
+   "baths": 2,
+   "types": {
+    "KT": 1,
+    "DR": 1,
+    "BA": 1,
+    "ST": 1,
+    "EN": 1,
+    "HL": 1,
+    "BAM": 1,
+    "BRM": 1,
+    "LR": 1,
+    "BR": 1
+   }
+  },
+  {
+   "id": "lx-F2",
+   "gfa": 130,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 2,
+   "studies": 1,
+   "baths": 2,
+   "types": {
+    "ST": 1,
+    "BA": 1,
+    "DR": 1,
+    "KT": 1,
+    "BAM": 1,
+    "CL": 1,
+    "HL": 1,
+    "EN": 1,
+    "BRM": 1,
+    "LR": 1,
+    "BR": 1
+   }
+  },
+  {
+   "id": "lx-A3",
+   "gfa": 87,
+   "layout": "2 bed · 2 living · 1 bath",
+   "bedrooms": 2,
+   "studies": 0,
+   "baths": 1,
+   "types": {
+    "BR": 1,
+    "DR": 1,
+    "KT": 1,
+    "EN": 1,
+    "HL": 1,
+    "BA": 1,
+    "BRM": 1,
+    "LR": 1
+   }
+  },
+  {
+   "id": "lx-C1",
+   "gfa": 98,
+   "layout": "3 bed · 2 living · 1 bath",
+   "bedrooms": 2,
+   "studies": 1,
+   "baths": 1,
+   "types": {
+    "BR": 1,
+    "ST": 1,
+    "DR": 1,
+    "KT": 1,
+    "EN": 1,
+    "BA": 1,
+    "BRM": 1,
+    "LR": 1
+   }
+  }
+ ],
+ "plans": [
+  {
+   "id": "xa-B1",
+   "gfa": 108.5,
+   "axis_area": 84.71,
+   "net_area": 73.38,
+   "balcony_area": 7.02,
+   "efficiency": 0.813,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 2,
+   "studies": 1,
+   "baths": 2,
+   "frontage_m": 10.4,
+   "depth_m": 9.7,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": false,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 0.5,
+   "master_ensuite": true,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.063,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "slide"
+    ],
+    [
+     "DR",
+     "ST",
+     "door"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "BRM",
+     "door"
+    ],
+    [
+     "BRM",
+     "BAM",
+     "door"
+    ],
+    [
+     "DR",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "slide"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "xa-A4",
+   "gfa": 107.5,
+   "axis_area": 77.5,
+   "net_area": 67.08,
+   "balcony_area": 10.19,
+   "efficiency": 0.768,
+   "layout": "2 bed · 2 living · 2 bath",
+   "bedrooms": 2,
+   "studies": 0,
+   "baths": 2,
+   "frontage_m": 7.6,
+   "depth_m": 12.2,
+   "south_rooms": 2,
+   "south_habitable": [
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": false,
+   "through_loose": false,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": true,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 1,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.066,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "BA",
+     "door"
+    ],
+    [
+     "EN",
+     "BR",
+     "door"
+    ],
+    [
+     "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "slide"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "DR",
+     "BRM",
+     "door"
+    ],
+    [
+     "BRM",
+     "BAM",
+     "door"
+    ],
+    [
+     "BAM",
+     "SR",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "slide"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "xa-B2",
+   "gfa": 131,
+   "axis_area": 95.41,
+   "net_area": 82.84,
+   "balcony_area": 6.89,
+   "efficiency": 0.755,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 3,
+   "studies": 0,
+   "baths": 2,
+   "frontage_m": 10.6,
+   "depth_m": 11.7,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": false,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": true,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 1,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.066,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "EN",
+     "BR",
+     "door"
+    ],
+    [
+     "DR",
+     "KT",
+     "slide"
+    ],
+    [
+     "KT",
+     "NA",
+     "door"
+    ],
+    [
+     "DR",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "LR",
+     "BRM",
+     "door"
+    ],
+    [
+     "BRM",
+     "BAM",
+     "door"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "BL",
+     "slide"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "xa-C6",
+   "gfa": 170,
+   "axis_area": 138.27,
+   "net_area": 121.65,
+   "balcony_area": 5.87,
+   "efficiency": 0.831,
+   "layout": "4 bed · 2 living · 3 bath",
+   "bedrooms": 3,
+   "studies": 1,
+   "baths": 3,
+   "frontage_m": 14.3,
+   "depth_m": 12.9,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": false,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": true,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.049,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "LR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "slide"
+    ],
+    [
+     "KT",
+     "NA",
+     "door"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "LR",
+     "ST",
+     "door"
+    ],
+    [
+     "LR",
+     "BRM",
+     "door"
+    ],
+    [
+     "BRM",
+     "CL",
+     "open"
+    ],
+    [
+     "CL",
+     "BAM",
+     "door"
+    ],
+    [
+     "LR",
+     "BR",
+     "door"
+    ],
+    [
+     "BR",
+     "BA",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "slide"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "xa-C2",
+   "gfa": 149,
+   "axis_area": 108.98,
+   "net_area": 94.79,
+   "balcony_area": 7.15,
+   "efficiency": 0.755,
+   "layout": "4 bed · 2 living · 2 bath",
+   "bedrooms": 4,
+   "studies": 0,
+   "baths": 2,
+   "frontage_m": 11.0,
+   "depth_m": 12.5,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": false,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": true,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.059,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "slide"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "DR",
+     "BR",
+     "door"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "DR",
+     "HL",
+     "open"
+    ],
+    [
+     "LR",
+     "BRM",
+     "door"
+    ],
+    [
+     "BRM",
+     "CL",
+     "open"
+    ],
+    [
+     "CL",
+     "BAM",
+     "door"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "BR",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "slide"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "xa-C1",
+   "gfa": 147,
+   "axis_area": 117.0,
+   "net_area": 100.56,
+   "balcony_area": 6.63,
+   "efficiency": 0.818,
+   "layout": "4 bed · 2 living · 2 bath",
+   "bedrooms": 4,
+   "studies": 0,
+   "baths": 2,
+   "frontage_m": 12.3,
+   "depth_m": 12.9,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": true,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": true,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.081,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "EN",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "DR",
+     "KW",
+     "open"
+    ],
+    [
+     "KW",
+     "KT",
+     "door"
+    ],
+    [
+     "KW",
+     "NA",
+     "door"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "DR",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "HL",
+     "SR",
+     "door"
+    ],
+    [
+     "HL",
+     "BRM",
+     "door"
+    ],
+    [
+     "BRM",
+     "CL",
+     "open"
+    ],
+    [
+     "CL",
+     "BAM",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "slide"
+    ],
+    [
+     "LR",
+     "HL",
+     "open"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "xa-C5",
+   "gfa": 161,
+   "axis_area": 127.14,
+   "net_area": 109.29,
+   "balcony_area": 11.14,
+   "efficiency": 0.824,
+   "layout": "4 bed · 2 living · 3 bath",
+   "bedrooms": 4,
+   "studies": 0,
+   "baths": 3,
+   "frontage_m": 11.3,
+   "depth_m": 13.1,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": false,
+   "through_loose": false,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 0.67,
+   "master_ensuite": true,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.1,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "slide"
+    ],
+    [
+     "DR",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "HL",
+     "SR",
+     "door"
+    ],
+    [
+     "SR",
+     "BA",
+     "door"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "HL",
+     "CL",
+     "door"
+    ],
+    [
+     "LR",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "HL",
+     "BRM",
+     "door"
+    ],
+    [
+     "BRM",
+     "BAM",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "slide"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "xa-B5",
+   "gfa": 137,
+   "axis_area": 105.31,
+   "net_area": 92.23,
+   "balcony_area": 9.8,
+   "efficiency": 0.804,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 3,
+   "studies": 0,
+   "baths": 2,
+   "frontage_m": 10.6,
+   "depth_m": 12.1,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": false,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": true,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.052,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "slide"
+    ],
+    [
+     "KT",
+     "BLN",
+     "door"
+    ],
+    [
+     "DR",
+     "BR",
+     "door"
+    ],
+    [
+     "DR",
+     "BA",
+     "door"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "SR",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "LR",
+     "BRM",
+     "door"
+    ],
+    [
+     "BRM",
+     "BAM",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "slide"
+    ],
+    [
+     "BR",
+     "BL",
+     "door"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "lx-E1",
+   "gfa": 115,
+   "axis_area": 97.38,
+   "net_area": 84.75,
+   "balcony_area": 10.32,
+   "efficiency": 0.892,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 2,
+   "studies": 1,
+   "baths": 2,
+   "frontage_m": 11.0,
+   "depth_m": 11.2,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": true,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": false,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [
+    "ch"
+   ],
+   "has_core": true,
+   "circulation_share": 0.135,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "door"
+    ],
+    [
+     "DR",
+     "BLN",
+     "door"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "HL",
+     "ST",
+     "door"
+    ],
+    [
+     "HL",
+     "BAM",
+     "door"
+    ],
+    [
+     "HL",
+     "BRM",
+     "door"
+    ],
+    [
+     "HL",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "BR",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "door"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "lx-F2",
+   "gfa": 130,
+   "axis_area": 105.41,
+   "net_area": 91.57,
+   "balcony_area": 11.49,
+   "efficiency": 0.855,
+   "layout": "3 bed · 2 living · 2 bath",
+   "bedrooms": 2,
+   "studies": 1,
+   "baths": 2,
+   "frontage_m": 11.8,
+   "depth_m": 11.35,
+   "south_rooms": 3,
+   "south_habitable": [
+    "BR",
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": true,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": false,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": true,
+   "circulation_share": 0.144,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "door"
+    ],
+    [
+     "DR",
+     "BLN",
+     "door"
+    ],
+    [
+     "HL",
+     "ST",
+     "door"
+    ],
+    [
+     "HL",
+     "BAM",
+     "door"
+    ],
+    [
+     "BAM",
+     "CL",
+     "open"
+    ],
+    [
+     "HL",
+     "BRM",
+     "door"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "HL",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "BR",
+     "door"
+    ],
+    [
+     "LR",
+     "BL",
+     "door"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "lx-A3",
+   "gfa": 87,
+   "axis_area": 66.09,
+   "net_area": 56.93,
+   "balcony_area": 6.08,
+   "efficiency": 0.795,
+   "layout": "2 bed · 2 living · 1 bath",
+   "bedrooms": 2,
+   "studies": 0,
+   "baths": 1,
+   "frontage_m": 8.7,
+   "depth_m": 8.7,
+   "south_rooms": 2,
+   "south_habitable": [
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": true,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 0.0,
+   "master_ensuite": false,
+   "entry": "en",
+   "reachable": true,
+   "bed_off_entry": 0,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.195,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "HL",
+     "open"
+    ],
+    [
+     "HL",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "door"
+    ],
+    [
+     "HL",
+     "BR",
+     "door"
+    ],
+    [
+     "HL",
+     "BA",
+     "door"
+    ],
+    [
+     "HL",
+     "BRM",
+     "door"
+    ],
+    [
+     "HL",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "BL",
+     "door"
+    ]
+   ],
+   "infeasible_links": []
+  },
+  {
+   "id": "lx-C1",
+   "gfa": 98,
+   "axis_area": 76.62,
+   "net_area": 66.44,
+   "balcony_area": 9.77,
+   "efficiency": 0.832,
+   "layout": "3 bed · 2 living · 1 bath",
+   "bedrooms": 2,
+   "studies": 1,
+   "baths": 1,
+   "frontage_m": 10.4,
+   "depth_m": 8.9,
+   "south_rooms": 2,
+   "south_habitable": [
+    "BRM",
+    "LR"
+   ],
+   "living_south": true,
+   "master_south": true,
+   "through_strict": true,
+   "through_loose": true,
+   "dining_joins_living": true,
+   "kitchen_window": true,
+   "bath_window_share": 1.0,
+   "master_ensuite": false,
+   "entry": "hl",
+   "reachable": true,
+   "bed_off_entry": 2,
+   "privacy_violations": 0,
+   "bed_next_to_lift": [],
+   "has_core": false,
+   "circulation_share": 0.143,
+   "links": [
+    [
+     "EN",
+     "OUT",
+     "door"
+    ],
+    [
+     "EN",
+     "BR",
+     "door"
+    ],
+    [
+     "EN",
+     "ST",
+     "door"
+    ],
+    [
+     "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "door"
+    ],
+    [
+     "DR",
+     "BLN",
+     "door"
+    ],
+    [
+     "EN",
+     "BA",
+     "door"
+    ],
+    [
+     "EN",
+     "BRM",
+     "door"
+    ],
+    [
+     "EN",
+     "LR",
+     "open"
+    ],
+    [
+     "LR",
+     "BL",
+     "door"
+    ]
+   ],
+   "infeasible_links": []
+  }
+ ]
+}

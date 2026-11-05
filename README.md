@@ -1,219 +1,192 @@
-# geo-voxels
+# Map Interior Generator
 
-**Any real place → a straight-street voxel map.** Type a latitude and longitude, drag a box over the map, and get that
-piece of the world as a furnished voxel map: the real buildings in their real outlines (with interiors chosen by what
-each building is), the real streets — **warped onto a straight grid** so no road runs as a ragged pixel staircase — the
-terrain, the trees, and the details a visitor reads on the street: shop signs in their brand colours, street names,
-house numbers, speed limits, stop signs. Everything comes from open data, fetched live, with no API keys and no scraping.
+*Formerly Geo-voxel. The repository is being renamed to `map-interior-generator`.*
+
+**Real map data → buildings you can walk into.** Pick any place on Earth. Map Interior Generator reads what open data says about
+each building there: its outline, its use, its storeys, the street it faces, the neighbours it shares walls with and,
+where one exists, its public record. From that it generates the inside: a room programme, a floor plan for every
+storey, doors, windows, stairs, a roof and furniture, all checked against building-code rules. You get BIM models
+(IFC4), a JSON file per building for game engines, blueprints, and furnished voxel maps of whole streets.
+
+The floor plans follow Merrell, Schkufza & Koltun, *Computer-Generated Residential Building Layouts* (SIGGRAPH Asia
+2010), adapted to a harder case: the outline is fixed by the map, not designed. Generation is deterministic and uses
+no AI model.
 
 ![Place Builder — Third Street, Baton Rouge](docs/img/place-builder-3d.jpg)
+
+> **Status — moving to 3D modelling only.** The project began as the map generator of a voxel tactics game. The voxel
+> maps, the town engine and every game rule are moving to the game's repository (voxel-tactics), which converts
+> this project's downloads into voxels with its own converter. Map Interior Generator keeps the map-to-model side: planned buildings
+> and interiors in FreeCAD/IFC4, area scenes in Blender/glTF, and an installable Python package. Until that lands, the
+> voxel sections below still describe the code in this repository. See
+> [PLAN-geo-voxel-02](docs/plans/PLAN-geo-voxel-02.md).
+
+## What you get
+
+| Output | Per | Format | Opens in |
+|---|---|---|---|
+| Building model | building | IFC4, FreeCAD `.FCStd` | FreeCAD BIM, Blender (Bonsai), IfcOpenShell, other IFC tools |
+| Game export | building | `building-export@1` JSON: rooms, doors (which rooms they join, facing, swing), windows, stairs, furniture, garage, in local metres and lat/lon | any engine |
+| Blueprint | storey | SVG in the house viewer | browser |
+| Gate report | building | JSON: every design check and its result | — |
+| Voxel map | street (30–172 m) | `.vox`, `.glb`, `map.json`, `grid.json` | MagicaVoxel, Blender, Godot, Unity, Unreal |
+
+## Who it is for
+
+| You are | What Geo-voxel gives you | Start at |
+|---|---|---|
+| **A game or simulation developer** who wants real places with enterable, navigable buildings | one JSON per building with a room graph, door facings and a frame to place it; meshes through IFC → glTF | [docs/INTEGRATE.md §1](docs/INTEGRATE.md#1-games-and-simulations-the-building-export) |
+| **A voxel artist or voxel-game developer** | whole streets as `.vox`, with straight streets, terrain, signs and rooms | [§2](docs/INTEGRATE.md#2-voxel-maps-of-whole-streets) |
+| **An AEC, BIM or digital-twin builder** | code-checked, typed IFC4 interiors for buildings that only exist as outlines in the map | [§3](docs/INTEGRATE.md#3-bim-and-digital-twins-ifc4) |
+| **A researcher in procedural or architectural generation** | a full, reproducible reimplementation of Merrell et al. on real footprints, with ablations, a design gate, a scorecard and a fixed test set | [docs/FINDINGS.md](docs/FINDINGS.md), [§5](docs/INTEGRATE.md#5-porting-the-method) |
+| **A mapper, planner or teacher** | a way to see what typical buildings in a place are like inside, with every inferred choice explained | the house viewer |
+
+Generated interiors are plausible and code-checked. They are not surveys of the real buildings; say so wherever you
+show them.
+
+## Quick start
+
+**No command line.** Open the house viewer (`https://dankcode.github.io/Geo-voxel/houses/`). Browse the example
+houses, or open **World map**, go to any place, highlight 1–2 blocks and press **Request generation**. That opens a
+pre-filled GitHub issue; the repository's workflow generates the houses for requests the owner approves and
+republishes the site. Each building has a 3D view, blueprints, its checks and a **Game export** button.
+
+**Voxel maps in the browser:**
+
+```sh
+git clone https://github.com/Dankcode/Geo-voxel && cd Geo-voxel
+npm install
+npm run app            # → http://localhost:5180 (Place Builder) and /houses/ (house viewer)
+```
+
+**Houses on your own machine:**
+
+```sh
+micromamba create -f architecture/environment.yml && micromamba activate houses
+bash architecture/pipeline/roofgen/build.sh
+python architecture/pipeline/generate_area.py --lat 30.3916 --lon -91.2061 --blocks 1.5 --id my-area
+python architecture/build_viewer.py
+```
+
+[docs/INTEGRATE.md](docs/INTEGRATE.md) explains how to use each output in your own project: coordinate frames,
+building a navigation graph, engine axes, IFC conversion, forking the generator, and the licences.
+
+## What is new here
+
+The full discussion, with formulas and evidence, is in [docs/FINDINGS.md](docs/FINDINGS.md). In short:
+
+1. **Fixed outlines turn the paper inside out.** Merrell et al. design the outline; on a map it is given. Daylight,
+   the street entry and garage access become constraints on particular edges of the footprint.
+2. **Fidelity to the paper beats improvements to it.** Each of our departures (normalising the corner count, exempting
+   halls from the dimension term, adding non-paper terms to the objective, testing windows at one point) produced a
+   specific defect: irregular rooms, 70 m² halls, stairs that go nowhere, roofs that don't meet. Restoring the paper's
+   terms fixed each one.
+3. **Adjacency is not access.** The paper's accessibility term passes plans joined through a 0.4 m neck. We test
+   circulation by morphological erosion with a 914 mm disc, $W_d = \Omega \ominus B_{d/2}$, on the real wall solids,
+   and charge narrow strips inside the optimiser.
+4. **On a fixed outline the start state decides what is reachable.** A street-to-back "rows" start (public row, hall
+   spine, private row, small rooms attached to their parent) plus programme edges relaxed to classes doubled the pass
+   rate (7 → 14 of 25) and cut missing connections from 20 to 5.
+5. **A footprint is not a house size.** OSM outlines include garages and patios; calibrating rooms on public records
+   took a modelled 4,736 sq ft five-bedroom house back toward its recorded 1,838 sq ft and three bedrooms.
+6. **Design in vectors, voxelise last.** At 0.9 m voxels a typical room loses about 40% of its area to one-cell walls;
+   $A_{\text{vox}}/A \approx (1 - (c - t)/a)^2$ predicts the measured 37–46%. At 0.3 m the loss is 9–18%.
+7. **An independent rebuild catches what self-checks miss.** Rebuilding every design in a second BIM modeller found
+   walk-through bedrooms and a hall merged with a stair that our own gate had passed.
+8. **For high-rises, height decides the plan.** With 3.0 m storeys, $n_{\max} = \lfloor (H^\ast - 0.3)/3 \rfloor$ puts
+   Chinese code thresholds at 10, 17 and 33 storeys; the core, exits and refuge floors follow from the storey count.
+
+## How it works
+
+### Buildings (`architecture/`)
+
+```
+OpenStreetMap footprint + tags, neighbours, streets, land use, historic districts, Wikidata, public records
+  → frame       walls axis-aligned, front toward the street, party walls marked          (mapctx.py)
+  → theme       archetype, era and style, each with its evidence                          (theme.py)
+  → programme   rooms, area and aspect priors, tiers, edge classes                        (programs.py, house_facts.py)
+  → plan        Metropolis–Hastings on a 0.4 m label grid per storey                      (planner.py)
+  → gate        21 checks on the built walls; restart until one passes                    (blueprint.py, circulation.py)
+  → compile     doors near corners with swings, windows, stairs, straight-skeleton roofs  (doors2.py, openings.py, stairs.py, roofs.py)
+  → furnish     legal poses proposed, Merrell 2011 cost chooses                            (furnish2.py)
+  → outputs     FreeCAD/IFC4 model, blueprint, gate report, game export                   (bim.py, export_game.py)
+```
+
+The plan minimises the paper's cost, with every room in the dimension term and the raw corner count in the shape term:
+
+$$C = k_a C_a + k_d C_d + k_s C_s + k_f C_f + k_o \sum_i \big(e(F_i) - 4\big),\qquad
+M_c(S) = \frac{A(H(S)) - A(S)}{A(S)} + \big(e(S) - 4\big)$$
+
+with $k_a = 100$, $k_d = 1.5$, $k_s = 1$, $k_f = 1000$, $k_o = 0.6$, and acceptance $\min(1, e^{-\beta\Delta C})$ as
+$\beta$ rises from 0.03 to 6. [architecture/README.md](architecture/README.md) documents the house pipeline,
+[architecture/highrise/README.md](architecture/highrise/README.md) the high-rise apartments.
+
+### Voxel maps (`src/`, `engine/`, `app/`)
+
+1. **Frame**: rotate by the length-weighted $4\theta$ mean of street and wall directions,
+   $\theta = \tfrac14\operatorname{atan2}\!\big(\sum w L \sin 4\alpha,\ \sum w L \cos 4\alpha\big)$, which treats
+   directions 90° apart as one.
+2. **Straighten**: simplify centrelines (junctions pinned), snap segments to axes, tie shared coordinates by
+   union-find and solve each as a weighted least-squares mean, then rubber-sheet buildings and land use along.
+3. **Build**: footprints into wings, streets by box distance, lots, terrain plateaus, shells with rooms and furniture,
+   OSM 3D parts and roof shapes, trees, signs, road paint.
+
+| Raw OSM geometry on a voxel grid | Straightened (the default) |
+|---|---|
+| ![raw](docs/img/baton-rouge-sherwood-florida-raw.png) | ![grid](docs/img/baton-rouge-sherwood-florida-grid.png) |
+
+[docs/METHOD.md](docs/METHOD.md) covers every stage; [docs/ENGINE.md](docs/ENGINE.md) maps the engine.
 
 | Shop fascia and house number from OpenStreetMap | The Details tab: what every building is, and the sources |
 |---|---|
 | ![signs](docs/img/place-builder-signs.jpg) | ![details](docs/img/place-builder-details.jpg) |
 
-## The Place Builder
-
-```sh
-git clone https://github.com/Dankcode/Geo-voxel && cd Geo-voxel
-npm install
-npm run app            # → http://localhost:5180
-```
-
-1. **Location** — a latitude and longitude (paste “30.4466, -91.1891” into either box), or one of the saved places.
-2. **Area** — an OpenStreetMap map with a box: drag its centre to move it, a corner to resize it (30–172 m a side; the
-   map is 0.9 m a cell, at most 192 cells). The dashed line is the 30 m margin fetched around it so the rotated map has
-   real data in its corners.
-3. **Build** — the place is fetched in the browser, then straightened and built in a web worker (a few seconds):
-   - *Straighten streets* (on): rotate the map onto its street grid and snap every street to a straight grid line,
-     carrying buildings and land use along — the warp is reported (rotation, how far streets moved).
-   - *Gather details* (on): signs, building types and documentation (below).
-   - *Game cover fill* (off): add trees and low walls to open land, as a tactics game wants; off keeps land as mapped.
-   - *Tactics plugin* (off): spawns, half/full cover per tile and the design-gate metrics.
-
-Then: **3D** (orbit, floor cutaway, signs / props / road paint / rooms layers, click a voxel for its building, use,
-address, tenants and room), **Details** (below) and **Export** — `.vox` (MagicaVoxel; Blender, Godot, Unity, Unreal
-importers), `.glb` (the mesh as shown, signs included), `map.json`, `grid.json`, `source.json` (the fetched data, to
-rebuild later or offline — open it again with *Open a saved source.json*) and a screenshot. The URL keeps the area.
-
-## Houses: real buildings planned room by room
-
-**Design the houses here →** (in the Place Builder) opens the house viewer at the same spot. On its world map you can:
-- pick any place on Earth and highlight 1–2 blocks;
-- request the houses inside;
-- regenerate any of them in another style (the paper's Cottage, Italianate, Tudor and Craftsman, and more);
-- download each house's game export: its rooms, every door with the rooms it joins and its facing, and the garage
-  door's bearing against the street.
-
-A request is a pre-filled GitHub issue. The repository's workflow runs the generator for the owner, or for a request
-the owner approves, then republishes the site. You don't need a command line, and no AI model takes part.
-
-The rooms are planned with the method of Merrell, Schkufza & Koltun (2010); the furniture follows Germer & Schwarz
-(2009) and Merrell et al. (2011). Each house is modelled in FreeCAD with stock-size doors, and checked so that a
-person fits through every hall and doorway. See [architecture/README.md](architecture/README.md).
-
 ## Where the data comes from
 
-| Request | What it gives |
+| Source | What it gives |
 |---|---|
-| **1 Overpass request** (OpenStreetMap) | buildings, streets, land use, parking; tenants (shops, offices, amenities); OSM 3D building parts; trees, lamps, signals, hydrants, bus stops; traffic signs, entrances, house numbers, advertising |
-| **AWS Terrain Tiles** (terrarium PNG, 1–9 tiles) | terrain — USGS 3DEP bare earth in the US, SRTM-class elsewhere |
-| **≤ 3 Wikidata requests** | landmark facts (floors, height, architectural style, year, architect, heritage listing) and brand colours and logos for the shop signs |
-| **≤ 6 Wikipedia + 1 Commons request** | the documentation: article leads for the landmarks, geotagged photos taken inside the box (references for facades, colours and signs, each with author and licence) |
+| **OpenStreetMap** (Overpass, keyless) | building outlines and tags, streets, land use, tenants, 3D building parts, entrances, house numbers, street furniture |
+| **AWS Terrain Tiles** | terrain (USGS 3DEP bare earth in the US, SRTM-class elsewhere) |
+| **Wikidata, Wikipedia, Commons** | landmark facts (floors, height, style, year, architect, heritage), brand colours, documentation and photo references |
+| **Public property records** | living area, bedrooms, baths and garage bays for the example houses; each design cites its sources |
 
-All are open, keyless and CORS-enabled, so the app needs no server. Credit them when you ship a map: © OpenStreetMap
-contributors (ODbL), USGS 3DEP (public domain), Wikidata (CC0), Wikipedia (CC BY-SA), Commons per photo. The
-Details tab and `map.json → details.sources` list exactly what a map used.
+Credit them when you ship anything built from them: © OpenStreetMap contributors (ODbL), USGS 3DEP (public domain),
+Wikidata (CC0), Wikipedia (CC BY-SA), Commons per photo. See [DATA.md](DATA.md).
 
-## Details: signs, building types, documentation
-
-- **Signs** (`layers.signs`): a fascia over each shop's door with its name in its brand colour (Wikidata P465 or OSM
-  `brand:colour`, else a colour from the name); the two street names on each junction's blades; house numbers by the
-  door; STOP / YIELD / speed / other traffic signs where OSM maps them; speed-limit signs from each street's `maxspeed`
-  where it enters the map; billboards. Each sign has `kind, text, x, y, z, facing, w, h` and its OSM source.
-- **Building types** (`details.buildings`): per building its name, the use the map built it as (shop, diner, office,
-  hotel, civic, chapel, museum, school, clinic …), the OSM building type, storeys (and OSM levels), address, tenants,
-  roof shape, material, colour and — for landmarks — style, year, architect, heritage and height from Wikidata.
-- **Documentation** (`details.docs`): Wikipedia summaries and Commons photos, shown in the Details tab.
-
-## CLI and library
-
-```sh
-node bin/geo-voxels.mjs place --lat 30.4466 --lon -91.1891 --width 160 --out out/capitol   # fetch + build
-node bin/geo-voxels.mjs fetch --lat 39.9489 --lon -75.1500 --out out/ih                       # just source.json
-node bin/geo-voxels.mjs generate --generator place --geo out/ih/source.json --out out/ih      # build a saved source
-```
-
-```js
-import { fetchPlace, decodePNG, generate, tactics, toVoxBytes } from 'geo-voxels';
-
-const source = await fetchPlace({ lat: 30.4466, lon: -91.1891, widthM: 160, depthM: 160 },
-    { decodeTile: bytes => decodePNG(bytes, inflate) });            // inflate: zlib.inflateSync or DecompressionStream
-const map = generate({ generator: 'place', geo: source, seed: 1, params: { straighten: 'grid', coverRepair: false } });
-map.grid;               // VoxelGrid: width × depth × height, one byte per voxel (x east, y south, z up), .palette
-map.layers.buildings;   // [{ id, name, program, x0, y0, w, d, baseZ, storeys, doors, windows, stairs, exits, rooms }]
-map.layers.rooms;       // [{ id, buildingId, storey, kind, cells: [[x, y]], floorZ }]
-map.layers.signs;       // shop fascias, street names, house numbers, traffic signs
-map.layers.decor;       // street lights, signals, awnings, furniture … by `kind`, for your prop models
-map.layers.roadPaint;   // { quads: [{ c: [[x, y] ×4], z, color }] }
-map.details;            // buildings directory, docs, sources, warp
-toVoxBytes(map.grid);   // .vox
-```
-
-`bakePlacePrefabs(generate({ …, engineMap: true }).engine, { place })` turns every real building into a prefab
-(voxels, rooms, doors, stairs, decor) to stamp into other maps (`stampPrefab`, `placePrefabInLot`).
-
-## The warp: straight streets
-
-Real streets are a few degrees off north, bend slightly and meet at 79° rather than 90°. Rasterised as they are, they
-become pixel staircases. The builder rotates the map by the length × class weighted mean direction of its streets and
-walls, simplifies each centreline (junctions pinned), snaps every segment to an axis (true diagonals become an L),
-solves shared coordinates as weighted least-squares means so parallel streets stay parallel, and rubber-sheets the
-buildings and land use along; each outline is then squared to the grid. Streets are drawn by box distance (square
-ends and corners) and each street segment is a level plateau, so height steps run straight across the road.
-
-| Raw OSM geometry on a voxel grid | Straightened (the default) |
-|---|---|
-| ![raw](docs/img/baton-rouge-sherwood-florida-raw.png) | ![grid](docs/img/baton-rouge-sherwood-florida-grid.png) |
-| ![raw](docs/img/baton-rouge-third-street-raw.png) | ![grid](docs/img/baton-rouge-third-street-grid.png) |
-
-*Sherwood Forest Blvd × Florida Blvd and Third Street, Baton Rouge. Florida Blvd really meets Sherwood at about 79°; on
-the straightened map it is 90° and the shopping centre slides with it.*
-
-## The town engine
-
-The voxels are built by `engine/`, the map generation of [voxel-tactics](https://github.com/Dankcode/voxel-tactics)
-(a turn-based tactics game in Three.js), copied verbatim by `tools/sync-engine.mjs` (`engine/SOURCE.json` records the
-commit and file hashes; `--check` compares). Real outlines are cut into wings at reflex corners and each wing is planned
-by the game's interior builder for its real use — rooms, doors, windows, stairs, furniture; landmarks rise to their OSM
-3D parts at real heights or get a style grammar (gothic, Georgian, classical, deco) from Wikidata. A map built here is
-voxel-identical to the same place in the game. [docs/ENGINE.md](docs/ENGINE.md) walks through it. (The engine's
-procedural generators — `operation` and `district` — are still reachable through `generate()` but are not part of the
-app.)
-
-## Fetching through Blender instead (optional)
-
-The original pipeline, still supported: BlenderGIS in Blender fetches OSM and an OpenTopography DEM (needs a free
-OpenTopography key, kept in the add-on preferences) and writes a `blender-export.json` in the same format as
-`source.json`. Use it when you want the DEM from OpenTopography or a scene in Blender.
-
-
-1. Install Blender (4.x/5.x) and the BlenderGIS add-on; put your [OpenTopography](https://opentopography.org) API key in
-   the add-on preferences (the key is read there — never put it in a script or repo).
-2. Pick the map window in metres around a point (≤ ~230 m a side at 0.9 m cells for MagicaVoxel's 256 limit):
-   ```sh
-   node bin/geo-voxels.mjs blender --lat 30.4583 --lon -91.0587 --window -100,71,-97,74 --pad 30 --out ./out/place
-   ```
-   and run the printed Python in Blender (Scripting tab, or a Blender MCP `run_blender_python` call). It runs in the
-   background (Blender stays responsive), fetches DEM and OSM for the window **plus `pad` metres on every side**, and
-   writes `blender-export.json` (with a `context` block) + a top-down reference render. `context_only(out)` adds the
-   context to an older export without re-fetching anything else. Overpass mirrors are retried; `resume(out, 'osm')`
-   re-runs only the OSM stage.
-3. `node bin/geo-voxels.mjs generate --generator place --geo out/place/blender-export.json --out out/place/map` (or open the
-   export in the app; `build` for the light builder).
-
-Use `dem='USGS10m'` (3DEP, US, bare earth) wherever it exists. `SRTMGL1` is a *surface* model — buildings bleed into it
-(downtown Baton Rouge read 21–46 m on SRTM vs 14.5–16.1 m on 3DEP).
-
-## The method
-
-[docs/METHOD.md](docs/METHOD.md) explains every stage. In short:
-
-1. **Frame** — rotate by the length × class weighted 4θ mean of street segments and building walls, crop to the window
-   (the padded fetch means a rotated window has real data in its corners), one uniform scale.
-2. **Straighten** — Douglas–Peucker the centrelines (junctions pinned), snap each segment to an axis (true diagonals
-   become an L), tie shared coordinates by union-find and solve them as the weighted least-squares mean, keeping
-   parallel carriageways in order; rubber-sheet buildings and land use along; square each outline to the grid.
-3. **Footprints** — rasterise, one party wall between touching buildings, cut into wing rectangles at reflex corners.
-4. **Streets** — box (L∞) distance gives square road ends and corners; junction squares belong wholly to the longer
-   street (nearest-wins would split them diagonally).
-5. **Lots and open land** — mapped parking, implied strip-centre car parks (retail land only) with a storefront walk and
-   stall rows per section; parks and grass are lawn, named plazas paved, footpaths straight paved walks.
-6. **Terrain** — DTM → whole-voxel heights; buildings, lots and *each street segment* are level plateaus, touching
-   plateaus ≤ 1 step apart, the rest relaxed — so height steps run straight across streets.
-7. **Voxels** — ground, surfaces, shells (storeys, glazing, doors facing the street or the car park, roof, parapet),
-   OSM 3D parts above the shell at their real heights with their roof shapes, real trees.
-8. **Paint** — a road-paint plan (centre/lane/edge lines, stop bars, crosswalks) as quads for the renderer.
-
-## Layout
+## Repository layout
 
 ```
-app/                            Place Builder (Vite + Three.js + Leaflet): selector.js (area picker), main.js, worker.js,
-                                mesher.js, props.js, signs.js, details-view.js
-src/live/                       live fetch: fetchPlace.js, overpass.js, terrain.js, wiki.js, png.js
-src/details.js                  signs, building directory, docs on the built map
-engine/                         the town engine (synced from voxel-tactics; SOURCE.json)
-src/town.js                     generate(): engine map → MapResult (+ details for real places)
-src/plugins/tactics.js          tactics plugin (spawns, cover, gate metrics)
-src/vox.js                      .vox writer (browser + Node)
-skill/voxel-map-builder/        Claude skill: real-place maps with this repo in any project
-tools/sync-engine.mjs           copy / check the engine against a voxel-tactics checkout
-blender/blender_geo_import.py   Blender stage (BlenderGIS OSM + DEM, padded window, status file, resume)
-src/frame.js                    frame, rasterisation, DEM → heightfield, plateaus + relaxation
-src/rectify.js                  street straightening, rubber sheet, outline squaring
-src/footprint.js                outline → wings, party walls
-src/osm.js                      OSM tag rules (street classes/widths, slip lanes, storeys, use)
-src/context.js, src/uses.js     tenants, uses, 3D parts, Wikidata facts, street furniture per building
-src/roadPaint.js                road-paint plan from the road graph
-src/build.js                    buildPlace: every stage in order
-src/grid.js, src/export.js      VoxelGrid, MagicaVoxel .vox, PNG slate
-bin/geo-voxels.mjs              CLI
-examples/                       Baton Rouge (Third Street, Sherwood & Florida, Old State Capitol) and Philadelphia
-                                (Independence Hall) Blender exports; live-third-street/source.json (a live fetch)
+architecture/pipeline/     house pipeline (Python): planner, gate, FreeCAD/IFC, game export, area generation
+architecture/highrise/     Chinese high-rise apartments: codes, core, dwelling planner, sunlight, facades
+architecture/areas/        generated areas: plans, exports, IFC models, gate reports
+architecture/data/         bundled OpenStreetMap extracts (Baton Rouge)
+architecture/viewer/       house viewer source; build_viewer.py → app/public/houses/
+app/                       Place Builder (Vite, Three.js, Leaflet) and the published viewer
+src/                       voxel map library: live fetch, frame, straighten, footprints, details, .vox export
+engine/                    town engine: buildings, rooms, furniture, terrain, voxels
+bin/geo-voxels.mjs         CLI for voxel maps
+blender/                   optional Blender/BlenderGIS fetch stage
+docs/                      FINDINGS, INTEGRATE, METHOD, ENGINE, plans/, research/
+.github/                   request forms and the generate-houses and Pages workflows
 ```
 
 ## References
 
-- D. Lysz, [BlenderGIS](https://github.com/domlysz/BlenderGIS) — OSM and DEM import into Blender.
-- [OpenTopography API](https://portal.opentopography.org/apidocs/) — USGS 3DEP (`usgsdem`) and global DEMs.
-- M. Sester, *Generalization based on least squares adjustment*, IAPRS XXXIII-B4 (2000) — least-squares map generalisation.
-- S. Cabello, M. de Berg, M. van Kreveld, *Schematization of networks*, Comput. Geom. 30 (2005) — rectilinear schematisation.
-- A. Saalfeld, *Conflation: automated map compilation*, IJGIS 2(3) (1988) — rubber-sheeting.
-- D. Camozzato et al., *Procedural floor plan generation from building sketches* (2015) — outline → wings.
-- M. Gumin, [WaveFunctionCollapse](https://github.com/mxgmn/WaveFunctionCollapse) (2016) — the constraint solver behind parcel and building choices.
-- D. Douglas, T. Peucker, *Algorithms for the reduction of the number of points…* (1973).
+- P. Merrell, E. Schkufza, V. Koltun. *Computer-Generated Residential Building Layouts.* ACM TOG 29(6), 2010.
+- P. Merrell, E. Schkufza, Z. Li, M. Agrawala, V. Koltun. *Interactive Furniture Layout Using Interior Design
+  Guidelines.* ACM TOG 30(4), 2011.
+- T. Germer, M. Schwarz. *Procedural Arrangement of Furniture for Real-Time Walkthroughs.* CGF 28(8), 2009.
+- A. Raistrick et al. *Infinigen Indoors.* CVPR 2024.
+- M. Sester. *Generalization based on least squares adjustment.* IAPRS XXXIII-B4, 2000.
+- S. Cabello, M. de Berg, M. van Kreveld. *Schematization of networks.* Comput. Geom. 30, 2005.
+- A. Saalfeld. *Conflation: automated map compilation.* IJGIS 2(3), 1988.
+- D. Camozzato et al. *Procedural floor plan generation from building sketches.* 2015.
+- D. Douglas, T. Peucker. *Algorithms for the reduction of the number of points required to represent a digitized
+  line or its caricature.* 1973.
+
+The papers are cited, not included.
 
 ## Licence
 
-Code: MIT ([LICENSE](LICENSE)). Example data: © OpenStreetMap contributors (ODbL) and USGS 3DEP (public domain) — see
-[DATA.md](DATA.md). BlenderGIS (GPL-3.0) is a separate install; this repo only calls it.
+Code: MIT ([LICENSE](LICENSE)). Data: © OpenStreetMap contributors (ODbL) and the other sources in [DATA.md](DATA.md).
+FreeCAD (LGPL), CGAL (GPL/LGPL) and BlenderGIS (GPL-3.0) are separate installs that this repository calls.

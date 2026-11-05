@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1005" height="1032" viewBox="0 0 1005 1032" font-family="Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="#fbfaf7"/>
+<rect x="160.0" y="210.0" width="175.0" height="145.0" fill="#e6def2" stroke="none" stroke-width="0" />
+<rect x="335.0" y="210.0" width="195.0" height="55.0" fill="#dcefd6" stroke="none" stroke-width="0" />
+<rect x="335.0" y="265.0" width="75.0" height="145.0" fill="#ddf1ef" stroke="none" stroke-width="0" />
+<rect x="410.0" y="265.0" width="140.0" height="150.0" fill="#f8ecd4" stroke="none" stroke-width="0" />
+<rect x="550.0" y="175.0" width="100.0" height="175.0" fill="#f3d3cf" stroke="none" stroke-width="0" />
+<rect x="125.0" y="355.0" width="150.0" height="90.0" fill="#d3ecea" stroke="none" stroke-width="0" />
+<rect x="125.0" y="445.0" width="150.0" height="80.0" fill="#eadfd2" stroke="none" stroke-width="0" />
+<rect x="275.0" y="355.0" width="60.0" height="125.0" fill="#edf4e6" stroke="none" stroke-width="0" />
+<rect x="335.0" y="415.0" width="215.0" height="95.0" fill="#edf4e6" stroke="none" stroke-width="0" />
+<rect x="550.0" y="428.5" width="101.5" height="98.0" fill="#e3efd8" stroke="none" stroke-width="0" />
+<rect x="275.0" y="480.0" width="60.0" height="45.0" fill="#d5e1f2" stroke="none" stroke-width="0" />
+<rect x="160.0" y="525.0" width="175.0" height="217.5" fill="#d5e1f2" stroke="none" stroke-width="0" />
+<rect x="335.0" y="510.0" width="215.0" height="232.5" fill="#f6e3c8" stroke="none" stroke-width="0" />
+<rect x="550.0" y="532.5" width="165.0" height="210.0" fill="#e0eaf6" stroke="none" stroke-width="0" />
+<rect x="320.0" y="742.5" width="240.0" height="75.0" fill="#dcefd6" stroke="none" stroke-width="0" />
+<rect x="650.5" y="175.0" width="127.5" height="174.5" fill="#e4e4e4" stroke="none" stroke-width="0" />
+<rect x="550.0" y="349.5" width="330.0" height="79.0" fill="#e4e4e4" stroke="none" stroke-width="0" />
+<rect x="651.5" y="428.5" width="118.5" height="98.0" fill="#e4e4e4" stroke="none" stroke-width="0" />
+<rect x="335.0" y="210.0" width="195.0" height="55.0" fill="none" stroke="#7a8b70" stroke-width="2" />
+<rect x="320.0" y="742.5" width="240.0" height="75.0" fill="none" stroke="#7a8b70" stroke-width="2" />
+<line x1="125.0" y1="355.0" x2="125.0" y2="445.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="125.0" y1="445.0" x2="125.0" y2="525.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="160.0" y1="210.0" x2="160.0" y2="355.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="160.0" y1="525.0" x2="160.0" y2="742.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="275.0" y1="355.0" x2="275.0" y2="445.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="275.0" y1="445.0" x2="275.0" y2="480.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="275.0" y1="480.0" x2="275.0" y2="525.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="335.0" y1="210.0" x2="335.0" y2="265.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="335.0" y1="265.0" x2="335.0" y2="355.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="335.0" y1="355.0" x2="335.0" y2="410.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="335.0" y1="410.0" x2="335.0" y2="415.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="335.0" y1="480.0" x2="335.0" y2="510.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="335.0" y1="510.0" x2="335.0" y2="742.5" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="410.0" y1="265.0" x2="410.0" y2="410.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="410.0" y1="410.0" x2="410.0" y2="415.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="550.0" y1="175.0" x2="550.0" y2="265.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="550.0" y1="265.0" x2="550.0" y2="350.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="550.0" y1="350.0" x2="550.0" y2="415.0" stroke="#2b2b2b" stroke-width="12.5" stroke-linecap="square"/>
+<line x1="550.0" y1="415.0" x2="550.0" y2="427.5" stroke="#2b2b2b" stroke-width="12.5" stroke-linecap="square"/>
+<line x1="550.0" y1="427.5" x2="550.0" y2="510.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="550.0" y1="510.0" x2="550.0" y2="527.5" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="550.0" y1="527.5" x2="550.0" y2="532.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="550.0" y1="532.5" x2="550.0" y2="742.5" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="650.0" y1="175.0" x2="650.0" y2="350.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="650.5" y1="175.0" x2="650.5" y2="350.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="651.5" y1="427.5" x2="651.5" y2="527.5" stroke="#2b2b2b" stroke-width="12.5" stroke-linecap="square"/>
+<line x1="715.0" y1="532.5" x2="715.0" y2="742.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="770.0" y1="427.5" x2="770.0" y2="527.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="778.0" y1="175.0" x2="778.0" y2="350.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="880.0" y1="350.0" x2="880.0" y2="427.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="550.0" y1="175.0" x2="650.0" y2="175.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="650.0" y1="175.0" x2="777.5" y2="175.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="160.0" y1="210.0" x2="335.0" y2="210.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="335.0" y1="265.0" x2="410.0" y2="265.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="410.0" y1="265.0" x2="550.0" y2="265.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="650.0" y1="349.5" x2="777.5" y2="349.5" stroke="#2b2b2b" stroke-width="12.5" stroke-linecap="square"/>
+<line x1="777.5" y1="349.5" x2="880.0" y2="349.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="550.0" y1="350.0" x2="650.0" y2="350.0" stroke="#2b2b2b" stroke-width="12.5" stroke-linecap="square"/>
+<line x1="125.0" y1="355.0" x2="160.0" y2="355.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="160.0" y1="355.0" x2="275.0" y2="355.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="275.0" y1="355.0" x2="335.0" y2="355.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="335.0" y1="410.0" x2="410.0" y2="410.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="335.0" y1="415.0" x2="410.0" y2="415.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="410.0" y1="415.0" x2="550.0" y2="415.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="550.0" y1="428.5" x2="652.5" y2="428.5" stroke="#2b2b2b" stroke-width="12.5" stroke-linecap="square"/>
+<line x1="652.5" y1="428.5" x2="770.0" y2="428.5" stroke="#2b2b2b" stroke-width="12.5" stroke-linecap="square"/>
+<line x1="770.0" y1="428.5" x2="880.0" y2="428.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="125.0" y1="445.0" x2="275.0" y2="445.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="275.0" y1="480.0" x2="335.0" y2="480.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="335.0" y1="510.0" x2="550.0" y2="510.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="125.0" y1="525.0" x2="160.0" y2="525.0" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="160.0" y1="525.0" x2="275.0" y2="525.0" stroke="#555" stroke-width="6.0" stroke-linecap="square"/>
+<line x1="550.0" y1="526.5" x2="652.5" y2="526.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="652.5" y1="526.5" x2="770.0" y2="526.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="550.0" y1="532.5" x2="715.0" y2="532.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="160.0" y1="742.5" x2="335.0" y2="742.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="335.0" y1="742.5" x2="550.0" y2="742.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<line x1="550.0" y1="742.5" x2="715.0" y2="742.5" stroke="#2b2b2b" stroke-width="15.625" stroke-linecap="square"/>
+<text x="247.5" y="282.5" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Study</text>
+<text x="247.5" y="295.5" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">8.9 m²</text>
+<text x="432.5" y="237.5" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Service balcony</text>
+<text x="372.5" y="337.5" font-size="8" text-anchor="middle" fill="#222" font-weight="normal">Bathroom</text>
+<text x="372.5" y="350.5" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">3.5 m²</text>
+<text x="480.0" y="340.0" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Dining room</text>
+<text x="480.0" y="353.0" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">7.2 m²</text>
+<text x="600.0" y="262.5" font-size="8" text-anchor="middle" fill="#222" font-weight="normal">Kitchen</text>
+<text x="600.0" y="275.5" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">5.9 m²</text>
+<text x="200.0" y="400.0" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Master bath</text>
+<text x="200.0" y="413.0" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">4.4 m²</text>
+<text x="200.0" y="485.0" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Walk-in closet</text>
+<text x="200.0" y="498.0" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">3.9 m²</text>
+<text x="442.5" y="462.5" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Hall</text>
+<text x="442.5" y="475.5" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">9.4 m²</text>
+<text x="600.8" y="477.5" font-size="8" text-anchor="middle" fill="#222" font-weight="normal">Entry</text>
+<text x="600.8" y="490.5" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">3.2 m²</text>
+<text x="247.5" y="633.8" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Master bedroom</text>
+<text x="247.5" y="646.8" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">14.6 m²</text>
+<text x="442.5" y="626.2" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Living room</text>
+<text x="442.5" y="639.2" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">18.2 m²</text>
+<text x="632.5" y="637.5" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Bedroom</text>
+<text x="632.5" y="650.5" font-size="9" text-anchor="middle" fill="#666" font-weight="normal">12.4 m²</text>
+<text x="440.0" y="780.0" font-size="11" text-anchor="middle" fill="#222" font-weight="normal">Balcony</text>
+<path d="M945.0,25 L936.0,58 L945.0,50 L954.0,58 Z" fill="#333"/>
+<text x="945.0" y="74.0" font-size="12" text-anchor="middle" fill="#222" font-weight="normal">N</text>
+<line x1="40.0" y1="1002.5" x2="290.0" y2="1002.5" stroke="#333" stroke-width="3" />
+<text x="40.0" y="994.5" font-size="10" text-anchor="start" fill="#222" font-weight="normal">0</text>
+<text x="290.0" y="994.5" font-size="10" text-anchor="end" fill="#222" font-weight="normal">5 m</text>
+<text x="40.0" y="34.0" font-size="18" text-anchor="start" fill="#222" font-weight="bold">Lingxiu Lanpo Lake · Type F2 · 130 m² (traced, rooms only)</text>
+<text x="40.0" y="857.5" font-size="12" text-anchor="start" fill="#333" font-weight="normal">score 9.61 · 3 bed · 2 living · 2 bath · efficiency 0.855</text>
+</svg>

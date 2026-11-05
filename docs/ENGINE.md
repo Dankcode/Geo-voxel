@@ -1,10 +1,15 @@
 # The town engine
 
-`engine/` is the map generation of the voxel-tactics game, copied file for file (its own folder layout, so every import
-works unchanged). This page is the map of it. Cells are 1 voxel wide; a storey is a floor slab plus two voxels of
-headroom (3 voxels); x runs east, y south, z up.
+`engine/` builds the voxels: terrain, streets, building shells, rooms, doors, stairs and furniture. It began as the
+map generation of the voxel-tactics game (forked at voxel-tactics `4ab3623`, 2026-10-21) and is now Geo-voxel's own
+code; the game converts Geo-voxel maps for its own use. Parts that exist only for the game (weapons, ballistic
+material fields, cover and line-of-sight rules, spawns and objectives, the procedural `operation` and `district`
+generators) are still here and are being removed: [PLAN-geo-voxel-02](plans/PLAN-geo-voxel-02.md), phase A. They are
+marked *(game, to be removed)* below.
 
-## Operation — an XCOM-style plot (`mapgen/Generator.js`)
+Cells are 1 voxel wide; a storey is a floor slab plus two voxels of headroom (3 voxels); x runs east, y south, z up.
+
+## Operation — an XCOM-style plot (`mapgen/Generator.js`) *(game, to be removed)*
 
 `generateOperation({ plot, seed })` → `compileV3Map(layout)`:
 
@@ -24,7 +29,7 @@ headroom (3 voxels); x runs east, y south, z up.
    safety; a failure un-collapses only the region around it and re-solves it with pins toward the fix (after Merrell's
    model synthesis). Every repair is recorded, so the same seed rebuilds byte-identically.
 
-## Large districts (`mission/LargeDistricts.js`, `mapgen/district/`)
+## Large districts (`mission/LargeDistricts.js`, `mapgen/district/`) *(game, to be removed)*
 
 A skeleton per theme — footprint (rectangle, L, T), levels, roads, landmark features (the merged arcade, drainage
 channels, terraces, sunken boulevards) — then `District.js` fills everything between the roads:
@@ -60,17 +65,20 @@ lights …) are visual extras. A building may bring its own plan as `programDef`
 
 ## Materials and voxels (`voxel/`)
 
-`Materials.js` defines every material (colour, solid, opaque, glass, hit points, bullet resistance, walkable, family);
-`VoxelStore.js` holds the grid. The game's rules live beside them (`Cover.js`, `Destruction.js`, `Raycast.js`,
-`world/PathSearch.js`) because generation uses them to check maps; the library exposes them only through the tactics
-plugin.
+`Materials.js` defines every material (colour, solid, opaque, glass, walkable, family; hit points and bullet
+resistance are game fields, to be removed); `VoxelStore.js` holds the grid. `world/PathSearch.js` (reachability) and
+`world/StairRun.js` stay: the interior checks use them. The game's rules beside them (`Cover.js`, `Destruction.js`,
+`Raycast.js`) are to be removed.
 
-## Keeping it in sync
+## Interiors
 
-```sh
-node tools/sync-engine.mjs ~/Documents/GitHub/voxel-tactics          # copy the closure, write engine/SOURCE.json
-node tools/sync-engine.mjs --check ~/Documents/GitHub/voxel-tactics  # exit 1 if engine/ no longer matches
-```
+The engine's interiors come from `planRows` (rows of rooms from the street front to the back). The planned houses in
+`architecture/` (Merrell et al. 2010 on the real footprint, a 21-check gate, IFC4 models) are a separate, more
+accurate pipeline; importing their plans into the voxel maps is [PLAN-geo-voxel-02](plans/PLAN-geo-voxel-02.md),
+phase C. See [FINDINGS.md](FINDINGS.md) for why interiors are designed in vectors and voxelised last.
 
-The closure starts at the generators' entry files (`ENTRIES` in the script) and follows relative imports; tests are
-never copied. Change generation in the game, re-sync here, run `npm test`.
+## Provenance
+
+`engine/SOURCE.json` records the voxel-tactics files and commit the engine was forked from. `tools/sync-engine.mjs`
+(`npm run engine:sync` / `engine:check`) compares against a game checkout; it no longer applies, because the engine
+is maintained here, and it will be replaced by a short `engine/PROVENANCE.md` (plan 02, phase A).

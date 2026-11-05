@@ -1,7 +1,7 @@
 {
   "name": "geo-voxels",
   "version": "0.1.0",
-  "description": "Voxel map builder: procedural towns (XCOM-style operations, large districts) and real places (OpenStreetMap + USGS 3DEP via Blender/BlenderGIS) to straight-street, furnished voxel maps — library, CLI and a Three.js app.",
+  "description": "Real map data to buildings you can walk into: OpenStreetMap footprints planned room by room (Merrell et al. 2010) into code-checked IFC4 models, game-engine building exports and furnished voxel maps of whole streets — library, CLI, Python pipeline and a Three.js app.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -22,19 +22,24 @@
   },
   "keywords": [
     "3dep",
+    "architecture",
+    "bim",
     "blender",
     "blendergis",
-    "game",
+    "digital-twin",
+    "floor-plan",
+    "floor-plan-generation",
+    "ifc",
+    "interior-generation",
     "magicavoxel",
     "map",
     "openstreetmap",
     "procedural",
+    "procedural-architecture",
     "procedural-generation",
     "three.js",
     "town-generator",
-    "voxel",
-    "wave-function-collapse",
-    "xcom"
+    "voxel"
   ],
   "license": "MIT",
   "repository": {

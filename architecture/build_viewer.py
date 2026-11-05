@@ -2,7 +2,8 @@
 
     python architecture/build_viewer.py
 
-Reads every generated area (architecture/areas/<id>/area.json, with its plans, exports and FreeCAD meshes) and writes:
+Reads every generated area (architecture/areas/<id>/area.json, with its plans, exports and FreeCAD meshes), plus the
+Chinese high-rise buildings in architecture/highrise/buildings/<id>/, and writes:
   index.html, assets/          the 3D / blueprint viewer and the world-map tool (assets/worldmap.js)
   models/<vk>.mesh.json        the FreeCAD model of each built house, as triangles
   plans/<vk>.json              the in-page blueprint (rooms, walls, doors, windows, furniture outlines)
@@ -83,6 +84,7 @@ def main():
             ah.append(rec); print(aid, vk, rec["style"], h.get("gate"), flush=True)
         areas.append(dict(id=aid, title=("Example buildings" if aid == "examples" else title), center=A.get("center"), radius_m=A.get("radius_m"),
                           blocks=A.get("blocks"), created=A.get("created"), style=A.get("style"), houses=ah, skipped=len(A.get("skipped", []))))
+    add_highrise(tmp, idx)
     json.dump(idx, open(os.path.join(tmp, "models", "index.json"), "w"))
     json.dump(areas, open(os.path.join(tmp, "areas", "index.json"), "w"))
     json.dump(dict(repo=REPO_SLUG, issues=f"https://github.com/{REPO_SLUG}/issues", max_houses=12, block_m=110), open(os.path.join(tmp, "config.json"), "w"), indent=1)
@@ -92,6 +94,26 @@ def main():
     shutil.rmtree(N, ignore_errors=True); os.rename(tmp, N)
     prune()
     print(len(idx), "buildings in", len(areas), "groups →", os.path.relpath(N, REPO))
+
+
+def add_highrise(tmp, idx):
+    """Chinese high-rise test buildings (architecture/highrise/buildings/<id>/, including facade variants
+    <id>-<style>/): mesh, blueprint, index entry."""
+    for bj in sorted(glob.glob(os.path.join(ROOT, "highrise", "buildings", "*", "building.json"))):
+        d = os.path.dirname(bj); k = os.path.basename(d); vk = vkey("highrise", k)
+        mesh, p2d = os.path.join(d, f"{k}.mesh.json"), os.path.join(d, f"{k}.plan2d.json")
+        if not (os.path.exists(mesh) and os.path.exists(p2d)): continue
+        B = json.load(open(bj)); m = json.load(open(mesh)); m["meta"]["key"] = vk
+        json.dump(m, open(os.path.join(tmp, "models", f"{vk}.mesh.json"), "w"), separators=(",", ":"))
+        shutil.copy(p2d, os.path.join(tmp, "plans", f"{vk}.json"))
+        sty = B.get("style")                     # facade variant (highrise.facade): same plan, another exterior
+        sname = m["meta"].get("style", {}).get("name") if sty else None
+        ok = all(c.get("pass") for c in B.get("facade_checks", []))
+        idx.append(dict(key=vk, name=B["name"], archetype="apartments", style=f"chinese_highrise_{sty}" if sty else "chinese_highrise_slab",
+                        storeys=len(B["floors"]), group="High-rise apartments (China)",
+                        sub=f"{sname + ' facade · ' if sname else ''}{B['score']['measure']['layout']} · score {B['score']['score']}"
+                            + (" · facade checks ✓" if sty and ok else (" · facade checks ✗" if sty else ""))))
+        print("highrise", vk, B["score"]["score"], flush=True)
 
 
 def build_map(path):
