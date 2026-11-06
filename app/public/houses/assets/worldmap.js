@@ -1,8 +1,8 @@
 // World map tool (2026-11-03): pick any spot on Earth, highlight 1–2 blocks around it, request its houses, restyle any
 // generated building in the paper's styles (Merrell et al. 2010, Fig. 9) and download a building's game export.
 // The bundled Baton Rouge data draws at once; anywhere else the map fetches OpenStreetMap live (Overpass, keyless).
-// A request is a pre-filled GitHub issue on the repository in config.json; the repository's workflow runs the
-// generator (the planned algorithm, no AI) for the owner or for a request the owner approves, then republishes.
+// A request runs on the user's own computer: the page shows the run_request.py command for the area or building
+// picked here (FreeCAD 1.0 and the other requirements in the README must be installed); the planned algorithm, no AI.
 const BLOCK_M = 110, MAX_HOUSES = 12;
 const STYLE_GROUPS = [
   ["Classic styles", [["cape_cod", "Cottage"], ["italianate", "Italianate"], ["tudor_revival", "Tudor"], ["craftsman", "Craftsman"]]],
@@ -50,7 +50,7 @@ const css = `
 #wm .card{background:var(--chip);border-radius:8px;padding:8px 10px;margin-top:10px}
 #wm .card b{font:600 14px var(--display)}
 .toolbar .seg select{border:0;border-radius:0;background:transparent}
-#bx-msg{position:absolute;left:12px;top:calc(var(--tb-h, 44px) + 20px);z-index:3;font:11px var(--mono);color:var(--muted);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:4px 8px}
+#bx-msg{position:absolute;left:12px;top:calc(var(--tb-h, 44px) + 20px);z-index:3;max-width:min(520px,calc(100% - 24px));font:11px var(--mono);color:var(--muted);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:4px 8px}
 #bx-msg:empty{display:none}
 @media (max-width:980px){.app>nav{grid-row:2;grid-column:1}.app>.toolbar{grid-row:3;grid-column:1}.app>main{grid-row:4;grid-column:1}.app>aside{grid-row:5;grid-column:1}#wm{grid-row:2/-1;grid-template-columns:minmax(0,1fr);grid-template-rows:62vh auto}#wm .side{border-left:0;border-top:1px solid var(--rule)}}
 `;
@@ -74,8 +74,9 @@ app.insertAdjacentHTML("beforeend", `
     <h2>Houses in the area <span id="wm-n"></span></h2>
     <div class="row"><label for="wm-style">Style for the area</label><select id="wm-style">${styleOptions("Inferred per house (auto)")}</select></div>
     <ul class="hl" id="wm-houses"></ul>
-    <div class="row" style="margin-top:10px"><button class="wbtn primary" id="wm-req" disabled>Request generation</button><span class="note" id="wm-reqmsg"></span></div>
-    <p class="note">Up to ${MAX_HOUSES} houses per request. Opens a pre-filled GitHub issue.</p>
+    <div class="row" style="margin-top:10px"><button class="wbtn primary" id="wm-req" disabled>Request generation</button></div>
+    <div class="note" id="wm-reqmsg"></div>
+    <p class="note">Up to ${MAX_HOUSES} houses per request. Generation runs on your computer with FreeCAD.</p>
     <h2>Generated areas</h2>
     <div id="wm-areas"><p class="note">Loading…</p></div>
   </div>
@@ -334,32 +335,39 @@ async function find() {
 document.getElementById("wm-findgo").addEventListener("click", find);
 document.getElementById("wm-find").addEventListener("keydown", e => { if (e.key === "Enter") find(); });
 
-// ---------- requests: pre-filled GitHub issues ----------
+// ---------- requests: a command to run on this computer ----------
 let CFG = { repo: "Dankcode/Geo-voxel" }, downloads = null;
 const cfgReady = (async () => {
   try { CFG = { ...CFG, ...(await (await fetch("./config.json")).json()) }; } catch { }
   try { downloads = await window.claude?.use?.("downloads"); } catch { downloads = null; }
   updateExportButton();
 })();
+const shq = v => "'" + String(v).replace(/'/g, "'\\''") + "'";
+function command(req) {
+  if (req.type === "area") {
+    let c = `python architecture/pipeline/run_request.py --lat ${req.center[0]} --lon ${req.center[1]} --blocks ${req.blocks} --style ${req.style || "auto"}`;
+    if (req.styles && Object.keys(req.styles).length) c += ` --styles ${shq(JSON.stringify(req.styles))}`;
+    return c;
+  }
+  return `python architecture/pipeline/run_request.py --restyle ${shq(req.area)} ${shq(req.key)} ${req.style}`;
+}
 async function queue(req, msgEl) {
   await cfgReady;
-  const p = new URLSearchParams();
-  let title;
-  if (req.type === "area") {
-    p.set("template", "generate-area.yml"); p.set("labels", "generate-houses");
-    p.set("latitude", String(req.center[0])); p.set("longitude", String(req.center[1])); p.set("radius", String(req.blocks));
-    p.set("style", req.style || "auto"); if (req.styles && Object.keys(req.styles).length) p.set("styles", JSON.stringify(req.styles));
-    p.set("houses", req.addresses.map((a, i) => `${a || "OSM " + req.houses[i]} (OSM ${req.houses[i]})`).join("\n"));
-    title = `Generate houses: ${req.center[0].toFixed(5)}, ${req.center[1].toFixed(5)} (${req.blocks} blocks)`;
-  } else {
-    p.set("template", "restyle-building.yml"); p.set("labels", "generate-houses");
-    p.set("area", req.area); p.set("key", req.key); p.set("style", req.style);
-    title = `Restyle ${req.label || req.key} as ${styleName(req.style)}`;
-  }
-  p.set("title", title);
-  const url = `https://github.com/${CFG.repo}/issues/new?${p.toString()}`;
-  msgEl.innerHTML = `<a href="${esc(url)}" target="_blank" rel="noopener">Open the request on GitHub</a> — sign in, check it, and submit.`;
-  try { window.open(url, "_blank", "noopener"); } catch { }
+  const cmd = command(req);
+  msgEl.innerHTML = `Runs on your computer with FreeCAD (<a href="https://github.com/${esc(CFG.repo)}#requirements" target="_blank" rel="noopener">requirements</a>).
+    In the repository folder, run this, or ask your CLI agent to run it, then reload the viewer:
+    <code class="cmd" style="display:block;margin:6px 0;padding:6px 8px;font:12px/1.4 var(--mono);white-space:pre-wrap;word-break:break-all;background:rgba(127,127,127,.12);border-radius:4px;user-select:all">${esc(cmd)}</code>
+    <button class="wbtn" type="button" data-copy>Copy command</button> <button class="wbtn" type="button" data-close>Close</button>`;
+  msgEl.querySelector("[data-close]").onclick = () => { msgEl.innerHTML = ""; };
+  try { msgEl.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch { }
+  const b = msgEl.querySelector("[data-copy]");
+  b.onclick = async () => {
+    try { await navigator.clipboard.writeText(cmd); b.textContent = "Copied"; }
+    catch {
+      const r = document.createRange(); r.selectNodeContents(msgEl.querySelector("code.cmd"));
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = "Selected — copy it";
+    }
+  };
   return true;
 }
 document.getElementById("wm-req").addEventListener("click", async e => {

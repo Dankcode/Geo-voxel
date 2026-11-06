@@ -12,6 +12,8 @@ Stage 3  unit plan  (paper §5): Metropolis over a banded slicing layout of one 
          dwelling door off the lobby, daylight, code minimum areas, master-suite access and bedrooms against a lift
          shaft (GB 55038 4.2.3). C_t holds the Chinese typology terms: south-facing rooms, north-south through
          ventilation, windowed bathrooms, bedrooms kept off the entry, circulation share, dining open to living.
+         Default search since 2026-11-05: lattice.py, the houses' label grid and moves with this cost (HR_SEARCH=banded
+         runs the banded search below).
 Stage 4  compile    (paper §6): doors near corners, windows and AC platforms on exterior walls, the second
          dwelling mirrored about the core axis.
 Coordinates: mm, dwelling frame with x = 0 on the core's centre line, y = 0 at the north face, y growing south.
@@ -220,7 +222,7 @@ def realise(R, T, U):
 
 
 def cost(st, U, T, targets, want_south, detail=False):
-    R = rects_of(st, U)
+    R = st["R"] if "R" in st else rects_of(st, U)        # lattice.optimise hands over the rooms' rectangles
     links, unreached, pen, sh = realise(R, T, U)
     ext = exterior(R, U)
     Ca = len(unreached)

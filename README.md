@@ -49,10 +49,11 @@ show them.
 
 ## Quick start
 
-**No command line.** Open the house viewer (`https://dankcode.github.io/Geo-voxel/houses/`). Browse the example
-houses, or open **World map**, go to any place, highlight 1–2 blocks and press **Request generation**. That opens a
-pre-filled GitHub issue; the repository's workflow generates the houses for requests the owner approves and
-republishes the site. Each building has a 3D view, blueprints, its checks and a **Game export** button.
+**Browse.** Open the house viewer (`https://dankcode.github.io/Geo-voxel/houses/`, or `npm run app` locally). Browse
+the example houses and high-rises, or open **World map**, go to any place, highlight 1–2 blocks and press **Request
+generation**. The viewer shows the command that generates those houses; generation runs on your own computer, so
+FreeCAD and the other [requirements](#requirements) must be installed. Each building has a 3D view, blueprints, its
+checks and a **Game export** button.
 
 **Voxel maps in the browser:**
 
@@ -62,14 +63,29 @@ npm install
 npm run app            # → http://localhost:5180 (Place Builder) and /houses/ (house viewer)
 ```
 
-**Houses on your own machine:**
+**Houses on your own machine** (needs the [requirements](#requirements)):
 
 ```sh
 micromamba create -f architecture/environment.yml && micromamba activate houses
 bash architecture/pipeline/roofgen/build.sh
-python architecture/pipeline/generate_area.py --lat 30.4425 --lon -91.1659 --blocks 1.5 --id my-area
-python architecture/build_viewer.py
+python architecture/pipeline/run_request.py --lat 30.4425 --lon -91.1659 --blocks 1.5     # plan, check, model, rebuild the viewer
+python architecture/pipeline/run_request.py --restyle <area> <building key> craftsman     # same rooms, another style
 ```
+
+### Requirements
+
+| Requirement | Version | Used for | Install |
+|---|---|---|---|
+| **FreeCAD** (required) | 1.0 | BIM models (`.FCStd`), IFC4 export and the viewer meshes (`bim.py`, `highrise/bim.py`) | `architecture/environment.yml` (conda-forge `freecad=1.0`) or [freecad.org](https://www.freecad.org/downloads.php) |
+| **CGAL** (required) with GMP and MPFR | CGAL ≥ 6.0 | roofs from the weighted straight skeleton (`roofgen/`) | `architecture/environment.yml`, then `bash architecture/pipeline/roofgen/build.sh` |
+| C++17 compiler | | building `roofgen` | `architecture/environment.yml` (`cxx-compiler`), Xcode command-line tools or `g++` |
+| Python | 3.11 | the planner, checks, openings, furniture, blueprints | `architecture/environment.yml` |
+| numpy, scipy, shapely ≥ 2, ifcopenshell, lark, matplotlib | | as above | `architecture/environment.yml` or `pip install -r architecture/requirements.txt` |
+| Node.js | ≥ 20 | the viewer and Place Builder (`npm run app`), the JS library and its tests | [nodejs.org](https://nodejs.org) |
+| Blender (optional) | ≥ 4.2 | importing the map and models into Blender (`blender/blender_geo_import.py`) | [blender.org](https://www.blender.org/download/) |
+
+`run_request.py` checks for FreeCAD, the roof tools and the Python packages before it starts and says what is missing.
+A browser alone can view and export the buildings that are already generated; generating or restyling needs these.
 
 [docs/INTEGRATE.md](docs/INTEGRATE.md) explains how to use each output in your own project: coordinate frames,
 building a navigation graph, engine axes, IFC conversion, forking the generator, and the licences.
@@ -117,16 +133,17 @@ sheet. Point at a room to see its name and size. Consecutive floors with the sam
 3. Click the map to centre the area, and set the radius (1–2 blocks; one block is about 110 m). The houses inside
    turn red and are listed on the right, nearest first; the nearest 12 are generated.
 4. Choose a style for the whole area, or one per house (**Inferred per house** lets the map decide).
-5. Press **Request generation**. A GitHub issue opens with everything filled in; sign in and submit it. The repository's
-   workflow plans, models and checks the houses, then republishes the viewer with the new area in the list. It runs
-   for the owner, or for requests the owner approves.
+5. Press **Request generation**. The viewer shows the `run_request.py` command for that area, with a **Copy command**
+   button. Run it in the repository folder (or ask your CLI agent to); it plans, models and checks the houses on your
+   computer with FreeCAD and rebuilds the viewer, which then lists the new area. See [Requirements](#requirements).
 
 ![World map, South Baton Rouge: a 1.5-block area around Government Street and Oleander Street (30.4425, −91.1659) holds 34 houses; the nearest 12 will be generated](docs/img/viewer-worldmap.jpg)
 
 ### 5. Restyle a building, or take it with you
 
 - **Restyle:** pick a style in the drop-down above the model and press **Regenerate**. The plan stays the same; only
-  the style template changes (Cottage, Italianate, Tudor, Craftsman and 16 more). This opens a restyle request.
+  the style template changes (Cottage, Italianate, Tudor, Craftsman and 16 more). The viewer shows the restyle
+  command to run on your computer.
 - **Game export:** downloads the building's `building-export@1` JSON: rooms, every door with the two rooms it joins
   and the bearing it faces, windows, stairs, furniture and the garage. See
   [docs/INTEGRATE.md](docs/INTEGRATE.md#1-games-and-simulations-the-building-export).

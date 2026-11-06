@@ -1,6 +1,11 @@
-"""Run one generation request from a GitHub issue (2026-11-03). Used by .github/workflows/generate-houses.yml.
+"""Run one generation request on this computer, or from a GitHub issue (2026-11-03).
 
-    python run_request.py --issue-body body.md [--issue N] --summary summary.md
+    python run_request.py --lat 30.4425 --lon -91.1659 [--blocks 1.5] [--style auto] [--styles '{"<osm id>": "<style>"}']
+    python run_request.py --restyle <area> <building key> <style>
+    python run_request.py --issue-body body.md [--issue N] --summary summary.md      (.github/workflows/generate-houses.yml)
+
+The house viewer's World map shows the first two commands, filled in, for the area or building picked on it.
+Requirements (README → Requirements): FreeCAD 1.0, the CGAL roof tools (roofgen/build.sh), numpy, scipy, shapely.
 
 The issue comes from one of the two issue forms (.github/ISSUE_TEMPLATE/generate-area.yml, restyle-building.yml),
 which the house viewer pre-fills when someone picks a spot on its world map. Issue-form bodies are markdown:
@@ -55,12 +60,43 @@ def inside_bundled(lat, lon, r):
 def safe(s, pat=r"[^a-z_]"): return re.sub(pat, "", (s or "").lower())
 
 
+def require():
+    """Stop early, with the fix, when a requirement is missing (README → Requirements)."""
+    problems = []
+    try:
+        import FreeCAD  # noqa: F401  (conda-forge puts FreeCAD.so in $CONDA_PREFIX/lib)
+    except ImportError:
+        lib = os.path.join(os.environ.get("CONDA_PREFIX", sys.prefix), "lib")
+        sys.path.append(lib)
+        try:
+            import FreeCAD  # noqa: F401
+            os.environ["PYTHONPATH"] = os.pathsep.join(x for x in (lib, os.environ.get("PYTHONPATH")) if x)
+        except ImportError:
+            problems.append("FreeCAD 1.0 cannot be imported by this Python: micromamba create -f architecture/environment.yml")
+    for t in ("roofgen", "roofgen_exact"):
+        if not os.access(os.path.join(HERE, "roofgen", t), os.X_OK):
+            problems.append(f"the roof tool {t} is not built: bash architecture/pipeline/roofgen/build.sh")
+    for m in ("numpy", "scipy", "shapely"):
+        try: __import__(m)
+        except ImportError: problems.append(f"the Python package {m} is missing: micromamba create -f architecture/environment.yml")
+    if problems: sys.exit("Missing requirements (see README → Requirements):\n  - " + "\n  - ".join(problems))
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--issue-body", required=True); ap.add_argument("--issue", default="")
-    ap.add_argument("--summary", required=True)
+    ap.add_argument("--issue-body"); ap.add_argument("--issue", default="")
+    ap.add_argument("--lat", type=float); ap.add_argument("--lon", type=float)
+    ap.add_argument("--blocks", type=float, default=1.5); ap.add_argument("--style", default="auto"); ap.add_argument("--styles", default="")
+    ap.add_argument("--restyle", nargs=3, metavar=("AREA", "KEY", "STYLE"))
+    ap.add_argument("--summary")
     a = ap.parse_args()
-    F = fields(open(a.issue_body).read())
+    if a.issue_body: F = fields(open(a.issue_body).read())
+    elif a.restyle: F = {"area": a.restyle[0], "building key": a.restyle[1], "new style": a.restyle[2]}
+    elif a.lat is not None and a.lon is not None:
+        F = {"latitude": str(a.lat), "longitude": str(a.lon), "radius in blocks": str(a.blocks), "style for the area": a.style}
+        if a.styles: F["per-house styles"] = a.styles
+    else: ap.error("give --lat and --lon, --restyle AREA KEY STYLE, or --issue-body")
+    require()
     import generate_area as GA
     lines = []
     if get(F, "building key"):                                    # restyle form
@@ -97,7 +133,7 @@ def main():
         for h in A["houses"]:
             lines.append(f"- {h.get('address') or 'OSM ' + str(h['osm_id'])}: {h.get('style', '').replace('_', ' ')} {h.get('archetype', '').replace('_', ' ')}, gate {h.get('gate')}")
     subprocess.run([PY, os.path.join(ROOT, "build_viewer.py")], check=True, cwd=ROOT)
-    open(a.summary, "w").write("\n".join(lines) + "\n")
+    if a.summary: open(a.summary, "w").write("\n".join(lines) + "\n")
     print("\n".join(lines))
 
 

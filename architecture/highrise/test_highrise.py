@@ -75,6 +75,29 @@ def test_planner_is_deterministic():
     assert a[0] == b[0] and a[1] == b[1]
 
 
+def test_lattice_search_is_deterministic_and_tiles_the_dwelling():
+    from highrise import lattice
+    from scipy import ndimage
+    import numpy as np
+    req = codes.core_requirements(10, pilotis=True); core = build_core(req)
+    prog = sample_programme(120, random.Random(3), P)
+    wn, dc = core["width"] // 2, core["depth"]
+    U = Unit(10200, 11300, wn, dc, core["lobby_y"], lifts=lifts_in_unit_frame(core))
+    tg, _ = area_targets(prog, U.X * U.D - wn * dc, P)
+    a = lattice.optimise(prog, U, tg, 3, "t:0", iters=1500)
+    b = lattice.optimise(prog, U, tg, 3, "t:0", iters=1500)
+    assert a[0]["R"] == b[0]["R"] and a[1] == b[1]
+    R = a[0]["R"]
+    assert set(R) == {rid for rid, _ in prog}                          # no room lost
+    area = sum((q[2] - q[0]) * (q[3] - q[1]) for rs in R.values() for q in rs)
+    assert area == U.X * U.D - wn * dc                                  # the rooms tile the dwelling exactly
+    L = np.array(a[0]["labels"])
+    for k in range(1, len(prog) + 1):                                   # every room in one piece
+        assert ndimage.label(L == k)[1] == 1
+    for rs in R.values():                                               # nothing in the core notch
+        assert all(not (q[0] < wn and q[1] < dc) for q in rs)
+
+
 def test_building_passes_gate():
     b = assemble({"id": "t10", "name": "t", "storeys": 10, "gfa": 120, "depth": 11300, "seed": 3}, P, restarts=4, iters=4000, log=lambda *a: None)
     sc = b["score"]

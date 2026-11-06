@@ -1,0 +1,10 @@
+# Python packages for the building pipeline (architecture/pipeline, architecture/highrise).
+# FreeCAD 1.0 and CGAL >= 6.0 are not on PyPI: install everything at once with
+#   micromamba create -f architecture/environment.yml
+# or install FreeCAD 1.0 and CGAL/GMP/MPFR yourself and then: pip install -r architecture/requirements.txt
+numpy
+scipy
+shapely>=2
+ifcopenshell
+lark
+matplotlib

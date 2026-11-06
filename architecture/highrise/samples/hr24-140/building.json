@@ -165,73 +165,18 @@
   ]
  },
  "plan": {
-  "id": "hr24-140#r6",
-  "gfa": 137.3,
+  "id": "hr24-140#r9",
+  "gfa": 136.6,
   "gfa_target": 140,
   "rooms": {
-   "ba": {
-    "type": "BA",
-    "rects": [
-     [
-      3600,
-      0,
-      5200,
-      3200
-     ]
-    ]
-   },
-   "br2": {
-    "type": "BR",
-    "rects": [
-     [
-      5200,
-      0,
-      8400,
-      3200
-     ]
-    ]
-   },
-   "kt": {
-    "type": "KT",
-    "rects": [
-     [
-      8400,
-      0,
-      10700,
-      3200
-     ]
-    ]
-   },
    "en": {
     "type": "EN",
     "rects": [
      [
       3600,
-      3200,
-      5500,
-      7200
-     ]
-    ]
-   },
-   "hl": {
-    "type": "HL",
-    "rects": [
-     [
-      5500,
-      3200,
-      7600,
-      4400
-     ]
-    ]
-   },
-   "bam": {
-    "type": "BAM",
-    "rects": [
-     [
-      5500,
-      4400,
-      7600,
-      7200
+      4000,
+      5700,
+      6800
      ]
     ]
    },
@@ -239,10 +184,16 @@
     "type": "DR",
     "rects": [
      [
-      7600,
-      3200,
-      10700,
-      7200
+      5700,
+      2900,
+      8900,
+      8900
+     ],
+     [
+      3600,
+      6800,
+      5700,
+      8900
      ]
     ]
    },
@@ -254,12 +205,28 @@
       7700,
       3600,
       12200
-     ],
+     ]
+    ]
+   },
+   "kt": {
+    "type": "KT",
+    "rects": [
+     [
+      7400,
+      0,
+      10700,
+      2900
+     ]
+    ]
+   },
+   "hl": {
+    "type": "HL",
+    "rects": [
      [
       3600,
-      7200,
-      4700,
-      12200
+      2900,
+      5700,
+      4000
      ]
     ]
    },
@@ -267,9 +234,9 @@
     "type": "BRM",
     "rects": [
      [
-      4700,
-      7200,
-      8000,
+      6600,
+      8900,
+      10700,
       12200
      ]
     ]
@@ -278,10 +245,43 @@
     "type": "BR",
     "rects": [
      [
-      8000,
-      7200,
-      10700,
+      3600,
+      0,
+      7400,
+      2900
+     ]
+    ]
+   },
+   "br2": {
+    "type": "BR",
+    "rects": [
+     [
+      3600,
+      8900,
+      6600,
       12200
+     ]
+    ]
+   },
+   "bam": {
+    "type": "BAM",
+    "rects": [
+     [
+      8900,
+      5500,
+      10700,
+      8900
+     ]
+    ]
+   },
+   "ba": {
+    "type": "BA",
+    "rects": [
+     [
+      8900,
+      2900,
+      10700,
+      5500
      ]
     ]
    },
@@ -291,7 +291,7 @@
      [
       0,
       12200,
-      3700,
+      2600,
       13600
      ]
     ]
@@ -305,21 +305,41 @@
    ],
    [
     "en",
+    "dr",
+    "open"
+   ],
+   [
+    "dr",
+    "lr",
+    "open"
+   ],
+   [
+    "dr",
+    "kt",
+    "slide"
+   ],
+   [
+    "dr",
     "hl",
     "open"
    ],
    [
     "hl",
+    "br1",
+    "door"
+   ],
+   [
+    "lr",
     "br2",
     "door"
    ],
    [
-    "en",
-    "lr",
-    "open"
+    "dr",
+    "ba",
+    "door"
    ],
    [
-    "lr",
+    "dr",
     "brm",
     "door"
    ],
@@ -330,23 +350,8 @@
    ],
    [
     "en",
-    "ba",
-    "door"
-   ],
-   [
     "hl",
-    "dr",
     "open"
-   ],
-   [
-    "dr",
-    "kt",
-    "slide"
-   ],
-   [
-    "dr",
-    "br1",
-    "door"
    ],
    [
     "lr",
@@ -355,12 +360,13 @@
    ]
   ],
   "win": {
-   "ba": "N",
-   "br2": "N",
-   "kt": "NE",
    "lr": "S",
-   "brm": "S",
-   "br1": "SE"
+   "kt": "NE",
+   "brm": "SE",
+   "br1": "N",
+   "br2": "S",
+   "bam": "E",
+   "ba": "E"
   },
   "doors": [
    {
@@ -368,8 +374,8 @@
     "b": "CORE",
     "orient": "v",
     "at": 3600,
-    "from": 3700.0,
-    "to": 4700.0,
+    "from": 4100.0,
+    "to": 5100.0,
     "kind": "door",
     "role": "unit",
     "swing": 1,
@@ -377,49 +383,90 @@
    },
    {
     "orient": "v",
-    "at": 5500,
-    "from": 3350,
-    "to": 4250,
+    "at": 5700,
+    "from": 4150,
+    "to": 6650,
     "kind": "open",
     "swing": 1,
     "a": "en",
+    "b": "dr"
+   },
+   {
+    "orient": "v",
+    "at": 3600,
+    "from": 7850,
+    "to": 8750,
+    "kind": "open",
+    "swing": -1,
+    "a": "dr",
+    "b": "lr"
+   },
+   {
+    "orient": "h",
+    "at": 2900,
+    "from": 7520,
+    "to": 8780,
+    "kind": "slide",
+    "swing": -1,
+    "a": "dr",
+    "b": "kt"
+   },
+   {
+    "orient": "v",
+    "at": 5700,
+    "from": 3050,
+    "to": 3850,
+    "kind": "open",
+    "swing": -1,
+    "a": "dr",
     "b": "hl"
    },
    {
     "orient": "h",
-    "at": 3200,
-    "from": 5620,
-    "to": 6520,
+    "at": 2900,
+    "from": 3720,
+    "to": 4620,
     "kind": "door",
     "swing": -1,
     "a": "hl",
-    "b": "br2"
-   },
-   {
-    "orient": "h",
-    "at": 7200,
-    "from": 3750,
-    "to": 4550,
-    "kind": "open",
-    "swing": 1,
-    "a": "en",
-    "b": "lr"
+    "b": "br1",
+    "fire": "B"
    },
    {
     "orient": "v",
-    "at": 4700,
-    "from": 7320,
-    "to": 8220,
+    "at": 3600,
+    "from": 11180,
+    "to": 12080,
     "kind": "door",
     "swing": 1,
     "a": "lr",
+    "b": "br2"
+   },
+   {
+    "orient": "v",
+    "at": 8900,
+    "from": 3020,
+    "to": 3820,
+    "kind": "door",
+    "swing": 1,
+    "a": "dr",
+    "b": "ba"
+   },
+   {
+    "orient": "h",
+    "at": 8900,
+    "from": 6720,
+    "to": 7620,
+    "kind": "door",
+    "swing": 1,
+    "a": "dr",
     "b": "brm"
    },
    {
     "orient": "h",
-    "at": 7200,
-    "from": 6680,
-    "to": 7480,
+    "at": 8900,
+    "from": 9780,
+    "to": 10580,
     "kind": "door",
     "swing": -1,
     "a": "brm",
@@ -427,50 +474,19 @@
    },
    {
     "orient": "h",
-    "at": 3200,
-    "from": 3720,
-    "to": 4520,
-    "kind": "door",
+    "at": 4000,
+    "from": 3750,
+    "to": 5550,
+    "kind": "open",
     "swing": -1,
     "a": "en",
-    "b": "ba"
-   },
-   {
-    "orient": "v",
-    "at": 7600,
-    "from": 3350,
-    "to": 4250,
-    "kind": "open",
-    "swing": 1,
-    "a": "hl",
-    "b": "dr"
-   },
-   {
-    "orient": "h",
-    "at": 3200,
-    "from": 9080,
-    "to": 10580,
-    "kind": "slide",
-    "swing": -1,
-    "a": "dr",
-    "b": "kt"
-   },
-   {
-    "orient": "h",
-    "at": 7200,
-    "from": 9680,
-    "to": 10580,
-    "kind": "door",
-    "swing": 1,
-    "a": "dr",
-    "b": "br1",
-    "fire": "B"
+    "b": "hl"
    },
    {
     "orient": "h",
     "at": 12200,
     "from": 120,
-    "to": 3480,
+    "to": 2480,
     "kind": "slide",
     "swing": -1,
     "a": "lr",
@@ -479,59 +495,67 @@
   ],
   "windows": [
    {
-    "room": "ba",
-    "side": "N",
-    "y": 0,
-    "from": 3950.0,
-    "to": 4850.0,
-    "orient": "h"
-   },
-   {
-    "room": "br2",
-    "side": "N",
-    "y": 0,
-    "from": 5775.0,
-    "to": 6975.0,
-    "orient": "h"
-   },
-   {
     "room": "kt",
     "side": "N",
     "y": 0,
-    "from": 8950.0,
-    "to": 10150.0,
+    "from": 8450.0,
+    "to": 9650.0,
     "orient": "h"
    },
    {
     "room": "kt",
     "side": "E",
     "x": 10700,
-    "from": 1150.0,
-    "to": 2050.0,
+    "from": 1000.0,
+    "to": 1900.0,
     "orient": "v"
    },
    {
     "room": "brm",
     "side": "S",
     "y": 12200,
-    "from": 5175.0,
-    "to": 6675.0,
+    "from": 7625.0,
+    "to": 8825.0,
     "orient": "h"
    },
    {
-    "room": "br1",
-    "side": "S",
-    "y": 12200,
-    "from": 8325.0,
-    "to": 9525.0,
-    "orient": "h"
-   },
-   {
-    "room": "br1",
+    "room": "brm",
     "side": "E",
     "x": 10700,
-    "from": 9250.0,
-    "to": 10150.0,
+    "from": 10100.0,
+    "to": 11000.0,
+    "orient": "v"
+   },
+   {
+    "room": "br1",
+    "side": "N",
+    "y": 0,
+    "from": 4475.0,
+    "to": 5675.0,
+    "orient": "h"
+   },
+   {
+    "room": "br2",
+    "side": "S",
+    "y": 12200,
+    "from": 4075.0,
+    "to": 5275.0,
+    "orient": "h"
+   },
+   {
+    "room": "bam",
+    "side": "E",
+    "x": 10700,
+    "from": 6750.0,
+    "to": 7650.0,
+    "orient": "v"
+   },
+   {
+    "room": "ba",
+    "side": "E",
+    "x": 10700,
+    "from": 3750.0,
+    "to": 4650.0,
     "orient": "v"
    }
   ],
@@ -540,39 +564,39 @@
     "room": "lr",
     "side": "S",
     "rect": [
-     3700,
+     2600,
      12200,
-     4700,
+     3600,
      12900
     ]
    },
    {
     "room": "br1",
-    "side": "S",
+    "side": "N",
     "rect": [
-     9700,
-     12200,
-     10700,
-     12900
+     6400,
+     -700,
+     7400,
+     0
     ]
    },
    {
     "room": "br2",
-    "side": "N",
+    "side": "S",
     "rect": [
-     7400,
-     -700,
-     8400,
-     0
+     5600,
+     12200,
+     6600,
+     12900
     ]
    },
    {
     "room": "brm",
     "side": "S",
     "rect": [
-     7000,
+     9700,
      12200,
-     8000,
+     10700,
      12900
     ]
    }
@@ -604,18 +628,18 @@
   },
   "planner": {
    "Ca": 0,
-   "dining_living": false,
+   "dining_living": true,
    "bed_on_lift": [],
-   "Cd": 5.246,
-   "Cs": 0.306,
+   "Cd": 3.915,
+   "Cs": 1.03,
    "south": 3,
    "through": true,
-   "dark_baths": 1,
+   "dark_baths": 0,
    "bed_off_entry": 0,
-   "circ_share": 0.098,
+   "circ_share": 0.08,
    "unreached": []
   },
-  "cost": 46.05
+  "cost": 8.94
  },
  "floor_plate": {
   "rooms": {
@@ -691,69 +715,14 @@
      ]
     ]
    },
-   "E.ba": {
-    "type": "BA",
-    "rects": [
-     [
-      3600,
-      0,
-      5200,
-      3200
-     ]
-    ]
-   },
-   "E.br2": {
-    "type": "BR",
-    "rects": [
-     [
-      5200,
-      0,
-      8400,
-      3200
-     ]
-    ]
-   },
-   "E.kt": {
-    "type": "KT",
-    "rects": [
-     [
-      8400,
-      0,
-      10700,
-      3200
-     ]
-    ]
-   },
    "E.en": {
     "type": "EN",
     "rects": [
      [
       3600,
-      3200,
-      5500,
-      7200
-     ]
-    ]
-   },
-   "E.hl": {
-    "type": "HL",
-    "rects": [
-     [
-      5500,
-      3200,
-      7600,
-      4400
-     ]
-    ]
-   },
-   "E.bam": {
-    "type": "BAM",
-    "rects": [
-     [
-      5500,
-      4400,
-      7600,
-      7200
+      4000,
+      5700,
+      6800
      ]
     ]
    },
@@ -761,10 +730,16 @@
     "type": "DR",
     "rects": [
      [
-      7600,
-      3200,
-      10700,
-      7200
+      5700,
+      2900,
+      8900,
+      8900
+     ],
+     [
+      3600,
+      6800,
+      5700,
+      8900
      ]
     ]
    },
@@ -776,12 +751,28 @@
       7700,
       3600,
       12200
-     ],
+     ]
+    ]
+   },
+   "E.kt": {
+    "type": "KT",
+    "rects": [
+     [
+      7400,
+      0,
+      10700,
+      2900
+     ]
+    ]
+   },
+   "E.hl": {
+    "type": "HL",
+    "rects": [
      [
       3600,
-      7200,
-      4700,
-      12200
+      2900,
+      5700,
+      4000
      ]
     ]
    },
@@ -789,9 +780,9 @@
     "type": "BRM",
     "rects": [
      [
-      4700,
-      7200,
-      8000,
+      6600,
+      8900,
+      10700,
       12200
      ]
     ]
@@ -800,10 +791,43 @@
     "type": "BR",
     "rects": [
      [
-      8000,
-      7200,
-      10700,
+      3600,
+      0,
+      7400,
+      2900
+     ]
+    ]
+   },
+   "E.br2": {
+    "type": "BR",
+    "rects": [
+     [
+      3600,
+      8900,
+      6600,
       12200
+     ]
+    ]
+   },
+   "E.bam": {
+    "type": "BAM",
+    "rects": [
+     [
+      8900,
+      5500,
+      10700,
+      8900
+     ]
+    ]
+   },
+   "E.ba": {
+    "type": "BA",
+    "rects": [
+     [
+      8900,
+      2900,
+      10700,
+      5500
      ]
     ]
    },
@@ -813,41 +837,8 @@
      [
       0,
       12200,
-      3700,
+      2600,
       13600
-     ]
-    ]
-   },
-   "W.ba": {
-    "type": "BA",
-    "rects": [
-     [
-      -5200,
-      0,
-      -3600,
-      3200
-     ]
-    ]
-   },
-   "W.br2": {
-    "type": "BR",
-    "rects": [
-     [
-      -8400,
-      0,
-      -5200,
-      3200
-     ]
-    ]
-   },
-   "W.kt": {
-    "type": "KT",
-    "rects": [
-     [
-      -10700,
-      0,
-      -8400,
-      3200
      ]
     ]
    },
@@ -855,32 +846,10 @@
     "type": "EN",
     "rects": [
      [
-      -5500,
-      3200,
+      -5700,
+      4000,
       -3600,
-      7200
-     ]
-    ]
-   },
-   "W.hl": {
-    "type": "HL",
-    "rects": [
-     [
-      -7600,
-      3200,
-      -5500,
-      4400
-     ]
-    ]
-   },
-   "W.bam": {
-    "type": "BAM",
-    "rects": [
-     [
-      -7600,
-      4400,
-      -5500,
-      7200
+      6800
      ]
     ]
    },
@@ -888,10 +857,16 @@
     "type": "DR",
     "rects": [
      [
-      -10700,
-      3200,
-      -7600,
-      7200
+      -8900,
+      2900,
+      -5700,
+      8900
+     ],
+     [
+      -5700,
+      6800,
+      -3600,
+      8900
      ]
     ]
    },
@@ -903,12 +878,28 @@
       7700,
       0,
       12200
-     ],
+     ]
+    ]
+   },
+   "W.kt": {
+    "type": "KT",
+    "rects": [
      [
-      -4700,
-      7200,
+      -10700,
+      0,
+      -7400,
+      2900
+     ]
+    ]
+   },
+   "W.hl": {
+    "type": "HL",
+    "rects": [
+     [
+      -5700,
+      2900,
       -3600,
-      12200
+      4000
      ]
     ]
    },
@@ -916,9 +907,9 @@
     "type": "BRM",
     "rects": [
      [
-      -8000,
-      7200,
-      -4700,
+      -10700,
+      8900,
+      -6600,
       12200
      ]
     ]
@@ -927,10 +918,43 @@
     "type": "BR",
     "rects": [
      [
-      -10700,
-      7200,
-      -8000,
+      -7400,
+      0,
+      -3600,
+      2900
+     ]
+    ]
+   },
+   "W.br2": {
+    "type": "BR",
+    "rects": [
+     [
+      -6600,
+      8900,
+      -3600,
       12200
+     ]
+    ]
+   },
+   "W.bam": {
+    "type": "BAM",
+    "rects": [
+     [
+      -10700,
+      5500,
+      -8900,
+      8900
+     ]
+    ]
+   },
+   "W.ba": {
+    "type": "BA",
+    "rects": [
+     [
+      -10700,
+      2900,
+      -8900,
+      5500
      ]
     ]
    },
@@ -938,7 +962,7 @@
     "type": "BL",
     "rects": [
      [
-      -3700,
+      -2600,
       12200,
       0,
       13600
@@ -952,8 +976,8 @@
     "b": "CORE",
     "orient": "v",
     "at": 3600,
-    "from": 3700.0,
-    "to": 4700.0,
+    "from": 4100.0,
+    "to": 5100.0,
     "kind": "door",
     "role": "unit",
     "swing": 1,
@@ -962,53 +986,98 @@
    },
    {
     "orient": "v",
-    "at": 5500,
-    "from": 3350,
-    "to": 4250,
+    "at": 5700,
+    "from": 4150,
+    "to": 6650,
     "kind": "open",
     "swing": 1,
     "a": "en",
+    "b": "dr",
+    "side": "E"
+   },
+   {
+    "orient": "v",
+    "at": 3600,
+    "from": 7850,
+    "to": 8750,
+    "kind": "open",
+    "swing": -1,
+    "a": "dr",
+    "b": "lr",
+    "side": "E"
+   },
+   {
+    "orient": "h",
+    "at": 2900,
+    "from": 7520,
+    "to": 8780,
+    "kind": "slide",
+    "swing": -1,
+    "a": "dr",
+    "b": "kt",
+    "side": "E"
+   },
+   {
+    "orient": "v",
+    "at": 5700,
+    "from": 3050,
+    "to": 3850,
+    "kind": "open",
+    "swing": -1,
+    "a": "dr",
     "b": "hl",
     "side": "E"
    },
    {
     "orient": "h",
-    "at": 3200,
-    "from": 5620,
-    "to": 6520,
+    "at": 2900,
+    "from": 3720,
+    "to": 4620,
     "kind": "door",
     "swing": -1,
     "a": "hl",
-    "b": "br2",
-    "side": "E"
-   },
-   {
-    "orient": "h",
-    "at": 7200,
-    "from": 3750,
-    "to": 4550,
-    "kind": "open",
-    "swing": 1,
-    "a": "en",
-    "b": "lr",
+    "b": "br1",
+    "fire": "B",
     "side": "E"
    },
    {
     "orient": "v",
-    "at": 4700,
-    "from": 7320,
-    "to": 8220,
+    "at": 3600,
+    "from": 11180,
+    "to": 12080,
     "kind": "door",
     "swing": 1,
     "a": "lr",
+    "b": "br2",
+    "side": "E"
+   },
+   {
+    "orient": "v",
+    "at": 8900,
+    "from": 3020,
+    "to": 3820,
+    "kind": "door",
+    "swing": 1,
+    "a": "dr",
+    "b": "ba",
+    "side": "E"
+   },
+   {
+    "orient": "h",
+    "at": 8900,
+    "from": 6720,
+    "to": 7620,
+    "kind": "door",
+    "swing": 1,
+    "a": "dr",
     "b": "brm",
     "side": "E"
    },
    {
     "orient": "h",
-    "at": 7200,
-    "from": 6680,
-    "to": 7480,
+    "at": 8900,
+    "from": 9780,
+    "to": 10580,
     "kind": "door",
     "swing": -1,
     "a": "brm",
@@ -1017,54 +1086,20 @@
    },
    {
     "orient": "h",
-    "at": 3200,
-    "from": 3720,
-    "to": 4520,
-    "kind": "door",
+    "at": 4000,
+    "from": 3750,
+    "to": 5550,
+    "kind": "open",
     "swing": -1,
     "a": "en",
-    "b": "ba",
-    "side": "E"
-   },
-   {
-    "orient": "v",
-    "at": 7600,
-    "from": 3350,
-    "to": 4250,
-    "kind": "open",
-    "swing": 1,
-    "a": "hl",
-    "b": "dr",
-    "side": "E"
-   },
-   {
-    "orient": "h",
-    "at": 3200,
-    "from": 9080,
-    "to": 10580,
-    "kind": "slide",
-    "swing": -1,
-    "a": "dr",
-    "b": "kt",
-    "side": "E"
-   },
-   {
-    "orient": "h",
-    "at": 7200,
-    "from": 9680,
-    "to": 10580,
-    "kind": "door",
-    "swing": 1,
-    "a": "dr",
-    "b": "br1",
-    "fire": "B",
+    "b": "hl",
     "side": "E"
    },
    {
     "orient": "h",
     "at": 12200,
     "from": 120,
-    "to": 3480,
+    "to": 2480,
     "kind": "slide",
     "swing": -1,
     "a": "lr",
@@ -1076,8 +1111,8 @@
     "b": "CORE",
     "orient": "v",
     "at": -3600,
-    "from": 3700.0,
-    "to": 4700.0,
+    "from": 4100.0,
+    "to": 5100.0,
     "kind": "door",
     "role": "unit",
     "swing": -1,
@@ -1086,53 +1121,98 @@
    },
    {
     "orient": "v",
-    "at": -5500,
-    "from": 3350,
-    "to": 4250,
+    "at": -5700,
+    "from": 4150,
+    "to": 6650,
     "kind": "open",
     "swing": -1,
     "a": "en",
+    "b": "dr",
+    "side": "W"
+   },
+   {
+    "orient": "v",
+    "at": -3600,
+    "from": 7850,
+    "to": 8750,
+    "kind": "open",
+    "swing": 1,
+    "a": "dr",
+    "b": "lr",
+    "side": "W"
+   },
+   {
+    "orient": "h",
+    "at": 2900,
+    "from": -8780,
+    "to": -7520,
+    "kind": "slide",
+    "swing": -1,
+    "a": "dr",
+    "b": "kt",
+    "side": "W"
+   },
+   {
+    "orient": "v",
+    "at": -5700,
+    "from": 3050,
+    "to": 3850,
+    "kind": "open",
+    "swing": 1,
+    "a": "dr",
     "b": "hl",
     "side": "W"
    },
    {
     "orient": "h",
-    "at": 3200,
-    "from": -6520,
-    "to": -5620,
+    "at": 2900,
+    "from": -4620,
+    "to": -3720,
     "kind": "door",
     "swing": -1,
     "a": "hl",
-    "b": "br2",
-    "side": "W"
-   },
-   {
-    "orient": "h",
-    "at": 7200,
-    "from": -4550,
-    "to": -3750,
-    "kind": "open",
-    "swing": 1,
-    "a": "en",
-    "b": "lr",
+    "b": "br1",
+    "fire": "B",
     "side": "W"
    },
    {
     "orient": "v",
-    "at": -4700,
-    "from": 7320,
-    "to": 8220,
+    "at": -3600,
+    "from": 11180,
+    "to": 12080,
     "kind": "door",
     "swing": -1,
     "a": "lr",
+    "b": "br2",
+    "side": "W"
+   },
+   {
+    "orient": "v",
+    "at": -8900,
+    "from": 3020,
+    "to": 3820,
+    "kind": "door",
+    "swing": -1,
+    "a": "dr",
+    "b": "ba",
+    "side": "W"
+   },
+   {
+    "orient": "h",
+    "at": 8900,
+    "from": -7620,
+    "to": -6720,
+    "kind": "door",
+    "swing": 1,
+    "a": "dr",
     "b": "brm",
     "side": "W"
    },
    {
     "orient": "h",
-    "at": 7200,
-    "from": -7480,
-    "to": -6680,
+    "at": 8900,
+    "from": -10580,
+    "to": -9780,
     "kind": "door",
     "swing": -1,
     "a": "brm",
@@ -1141,53 +1221,19 @@
    },
    {
     "orient": "h",
-    "at": 3200,
-    "from": -4520,
-    "to": -3720,
-    "kind": "door",
-    "swing": -1,
-    "a": "en",
-    "b": "ba",
-    "side": "W"
-   },
-   {
-    "orient": "v",
-    "at": -7600,
-    "from": 3350,
-    "to": 4250,
+    "at": 4000,
+    "from": -5550,
+    "to": -3750,
     "kind": "open",
     "swing": -1,
-    "a": "hl",
-    "b": "dr",
-    "side": "W"
-   },
-   {
-    "orient": "h",
-    "at": 3200,
-    "from": -10580,
-    "to": -9080,
-    "kind": "slide",
-    "swing": -1,
-    "a": "dr",
-    "b": "kt",
-    "side": "W"
-   },
-   {
-    "orient": "h",
-    "at": 7200,
-    "from": -10580,
-    "to": -9680,
-    "kind": "door",
-    "swing": 1,
-    "a": "dr",
-    "b": "br1",
-    "fire": "B",
+    "a": "en",
+    "b": "hl",
     "side": "W"
    },
    {
     "orient": "h",
     "at": 12200,
-    "from": -3480,
+    "from": -2480,
     "to": -120,
     "kind": "slide",
     "swing": -1,
@@ -1218,115 +1264,131 @@
   ],
   "windows": [
    {
-    "room": "ba",
-    "side": "N",
-    "y": 0,
-    "from": 3950.0,
-    "to": 4850.0,
-    "orient": "h"
-   },
-   {
-    "room": "br2",
-    "side": "N",
-    "y": 0,
-    "from": 5775.0,
-    "to": 6975.0,
-    "orient": "h"
-   },
-   {
     "room": "kt",
     "side": "N",
     "y": 0,
-    "from": 8950.0,
-    "to": 10150.0,
+    "from": 8450.0,
+    "to": 9650.0,
     "orient": "h"
    },
    {
     "room": "kt",
     "side": "E",
     "x": 10700,
-    "from": 1150.0,
-    "to": 2050.0,
+    "from": 1000.0,
+    "to": 1900.0,
     "orient": "v"
    },
    {
     "room": "brm",
     "side": "S",
     "y": 12200,
-    "from": 5175.0,
-    "to": 6675.0,
+    "from": 7625.0,
+    "to": 8825.0,
     "orient": "h"
    },
    {
-    "room": "br1",
-    "side": "S",
-    "y": 12200,
-    "from": 8325.0,
-    "to": 9525.0,
-    "orient": "h"
-   },
-   {
-    "room": "br1",
+    "room": "brm",
     "side": "E",
     "x": 10700,
-    "from": 9250.0,
-    "to": 10150.0,
+    "from": 10100.0,
+    "to": 11000.0,
     "orient": "v"
    },
    {
-    "room": "ba",
+    "room": "br1",
     "side": "N",
     "y": 0,
-    "from": -4850.0,
-    "to": -3950.0,
+    "from": 4475.0,
+    "to": 5675.0,
     "orient": "h"
    },
    {
     "room": "br2",
-    "side": "N",
-    "y": 0,
-    "from": -6975.0,
-    "to": -5775.0,
+    "side": "S",
+    "y": 12200,
+    "from": 4075.0,
+    "to": 5275.0,
     "orient": "h"
+   },
+   {
+    "room": "bam",
+    "side": "E",
+    "x": 10700,
+    "from": 6750.0,
+    "to": 7650.0,
+    "orient": "v"
+   },
+   {
+    "room": "ba",
+    "side": "E",
+    "x": 10700,
+    "from": 3750.0,
+    "to": 4650.0,
+    "orient": "v"
    },
    {
     "room": "kt",
     "side": "N",
     "y": 0,
-    "from": -10150.0,
-    "to": -8950.0,
+    "from": -9650.0,
+    "to": -8450.0,
     "orient": "h"
    },
    {
     "room": "kt",
     "side": "E",
     "x": -10700,
-    "from": 1150.0,
-    "to": 2050.0,
+    "from": 1000.0,
+    "to": 1900.0,
     "orient": "v"
    },
    {
     "room": "brm",
     "side": "S",
     "y": 12200,
-    "from": -6675.0,
-    "to": -5175.0,
+    "from": -8825.0,
+    "to": -7625.0,
     "orient": "h"
    },
    {
-    "room": "br1",
-    "side": "S",
-    "y": 12200,
-    "from": -9525.0,
-    "to": -8325.0,
-    "orient": "h"
-   },
-   {
-    "room": "br1",
+    "room": "brm",
     "side": "E",
     "x": -10700,
-    "from": 9250.0,
-    "to": 10150.0,
+    "from": 10100.0,
+    "to": 11000.0,
+    "orient": "v"
+   },
+   {
+    "room": "br1",
+    "side": "N",
+    "y": 0,
+    "from": -5675.0,
+    "to": -4475.0,
+    "orient": "h"
+   },
+   {
+    "room": "br2",
+    "side": "S",
+    "y": 12200,
+    "from": -5275.0,
+    "to": -4075.0,
+    "orient": "h"
+   },
+   {
+    "room": "bam",
+    "side": "E",
+    "x": -10700,
+    "from": 6750.0,
+    "to": 7650.0,
+    "orient": "v"
+   },
+   {
+    "room": "ba",
+    "side": "E",
+    "x": -10700,
+    "from": 3750.0,
+    "to": 4650.0,
     "orient": "v"
    }
   ],
@@ -1335,14 +1397,34 @@
     "room": "lr",
     "side": "S",
     "rect": [
-     3700,
+     2600,
      12200,
-     4700,
+     3600,
      12900
     ]
    },
    {
     "room": "br1",
+    "side": "N",
+    "rect": [
+     6400,
+     -700,
+     7400,
+     0
+    ]
+   },
+   {
+    "room": "br2",
+    "side": "S",
+    "rect": [
+     5600,
+     12200,
+     6600,
+     12900
+    ]
+   },
+   {
+    "room": "brm",
     "side": "S",
     "rect": [
      9700,
@@ -1352,62 +1434,42 @@
     ]
    },
    {
-    "room": "br2",
-    "side": "N",
-    "rect": [
-     7400,
-     -700,
-     8400,
-     0
-    ]
-   },
-   {
-    "room": "brm",
-    "side": "S",
-    "rect": [
-     7000,
-     12200,
-     8000,
-     12900
-    ]
-   },
-   {
     "room": "lr",
     "side": "S",
     "rect": [
-     -4700,
+     -3600,
      12200,
-     -3700,
+     -2600,
      12900
     ]
    },
    {
     "room": "br1",
-    "side": "S",
+    "side": "N",
     "rect": [
-     -10700,
-     12200,
-     -9700,
-     12900
+     -7400,
+     -700,
+     -6400,
+     0
     ]
    },
    {
     "room": "br2",
-    "side": "N",
+    "side": "S",
     "rect": [
-     -8400,
-     -700,
-     -7400,
-     0
+     -6600,
+     12200,
+     -5600,
+     12900
     ]
    },
    {
     "room": "brm",
     "side": "S",
     "rect": [
-     -8000,
+     -10700,
      12200,
-     -7000,
+     -9700,
      12900
     ]
    }
@@ -1448,46 +1510,42 @@
    ],
    [
     -10700,
-    3200
+    2900
    ],
    [
     -10700,
-    7200
+    5500
+   ],
+   [
+    -10700,
+    8900
    ],
    [
     -10700,
     12200
    ],
    [
-    -8400,
+    -8900,
+    2900
+   ],
+   [
+    -8900,
+    5500
+   ],
+   [
+    -8900,
+    8900
+   ],
+   [
+    -7400,
     0
    ],
    [
-    -8400,
-    3200
+    -7400,
+    2900
    ],
    [
-    -8000,
-    7200
-   ],
-   [
-    -8000,
-    12200
-   ],
-   [
-    -7600,
-    3200
-   ],
-   [
-    -7600,
-    4400
-   ],
-   [
-    -5200,
-    0
-   ],
-   [
-    -4700,
+    -6600,
     12200
    ],
    [
@@ -1511,36 +1569,28 @@
     12200
    ],
    [
-    4700,
+    6600,
     12200
    ],
    [
-    5200,
+    7400,
     0
    ],
    [
-    7600,
-    3200
+    7400,
+    2900
    ],
    [
-    7600,
-    4400
+    8900,
+    2900
    ],
    [
-    7600,
-    7200
+    8900,
+    5500
    ],
    [
-    8000,
-    12200
-   ],
-   [
-    8400,
-    0
-   ],
-   [
-    8400,
-    3200
+    8900,
+    8900
    ],
    [
     10700,
@@ -1548,11 +1598,15 @@
    ],
    [
     10700,
-    3200
+    2900
    ],
    [
     10700,
-    7200
+    5500
+   ],
+   [
+    10700,
+    8900
    ],
    [
     10700,
@@ -1594,6 +1648,12 @@
    "at": 5200,
    "from": -500.0,
    "to": 500.0
+  },
+  "roof_exit": {
+   "orient": "v",
+   "at": 3600,
+   "from": 3400.0,
+   "to": 4400.0
   }
  },
  "floors": [
@@ -1733,13 +1793,13 @@
   "obstruction": "next row of equal slabs incl. parapet and roof towers, 13 m gaps"
  },
  "score": {
-  "id": "hr24-140#r6",
-  "score": 9.9,
+  "id": "hr24-140#r9",
+  "score": 9.92,
   "pass": true,
   "groups": {
    "G": 10.0,
    "C": 10.0,
-   "M": 9.7,
+   "M": 9.83,
    "T": 9.82
   },
   "checks": {
@@ -1761,8 +1821,8 @@
    "C7 Winter sunlight hours": 1.0,
    "M1 C_a connections and reachability": 1.0,
    "M2 Privacy gradient": 1.0,
-   "M3 C_d room sizes vs reference priors": 0.9,
-   "M4 C_s room shape": 1.0,
+   "M3 C_d room sizes vs reference priors": 1.0,
+   "M4 C_s room shape": 0.889,
    "T1 Living room faces south": 1.0,
    "T2 Master bedroom faces south": 1.0,
    "T3 North-south through ventilation": 0.75,
@@ -1792,29 +1852,26 @@
    "C7 Winter sunlight hours": [
     "2.0 h on Major Cold day (Jan 20) at the lowest dwelling's south window, need 2.0 h"
    ],
-   "M3 C_d room sizes vs reference priors": [
-    "br1 BR 11.96 m2, aspect 1.85"
-   ],
    "T3 North-south through ventilation": [
     "only through a kitchen slider"
    ],
    "T9 Circulation share": [
-    "10%"
+    "8%"
    ],
    "T10 Net-to-gross efficiency": [
-    "76.8%"
+    "76.6%"
    ],
    "T11 Living room width >= 3.6 m": [
-    "4.70 m"
+    "3.60 m"
    ]
   },
   "measure": {
-   "id": "hr24-140#r6",
-   "gfa": 137.3,
+   "id": "hr24-140#r9",
+   "gfa": 136.6,
    "axis_area": 102.82,
-   "net_area": 90.1,
-   "balcony_area": 5.18,
-   "efficiency": 0.768,
+   "net_area": 90.08,
+   "balcony_area": 3.64,
+   "efficiency": 0.766,
    "layout": "3 bed \u00b7 2 living \u00b7 2 bath",
    "bedrooms": 3,
    "studies": 0,
@@ -1833,7 +1890,7 @@
    "through_loose": true,
    "dining_joins_living": true,
    "kitchen_window": true,
-   "bath_window_share": 0.5,
+   "bath_window_share": 1.0,
    "master_ensuite": true,
    "entry": "en",
    "reachable": true,
@@ -1841,7 +1898,7 @@
    "privacy_violations": 0,
    "bed_next_to_lift": [],
    "has_core": false,
-   "circulation_share": 0.098,
+   "circulation_share": 0.08,
    "links": [
     [
      "EN",
@@ -1850,6 +1907,21 @@
     ],
     [
      "EN",
+     "DR",
+     "open"
+    ],
+    [
+     "DR",
+     "LR",
+     "open"
+    ],
+    [
+     "DR",
+     "KT",
+     "slide"
+    ],
+    [
+     "DR",
      "HL",
      "open"
     ],
@@ -1859,12 +1931,17 @@
      "door"
     ],
     [
-     "EN",
      "LR",
-     "open"
+     "BR",
+     "door"
     ],
     [
-     "LR",
+     "DR",
+     "BA",
+     "door"
+    ],
+    [
+     "DR",
      "BRM",
      "door"
     ],
@@ -1875,23 +1952,8 @@
     ],
     [
      "EN",
-     "BA",
-     "door"
-    ],
-    [
      "HL",
-     "DR",
      "open"
-    ],
-    [
-     "DR",
-     "KT",
-     "slide"
-    ],
-    [
-     "DR",
-     "BR",
-     "door"
     ],
     [
      "LR",
@@ -1947,11 +2009,11 @@
  "programme_repairs": [
   {
    "dropped": "na",
-   "gate_pass_before": "0/12"
+   "gate_pass_before": "1/12"
   },
   {
    "dropped": "cl",
-   "gate_pass_before": "0/12"
+   "gate_pass_before": "1/12"
   },
   {
    "dropped": "st",
@@ -1961,89 +2023,89 @@
  "restarts": [
   {
    "k": 0,
-   "cost": 43.36,
+   "cost": 11.67,
    "Ca": 0,
-   "score": 9.59,
+   "score": 9.87,
    "clean": true
   },
   {
    "k": 1,
-   "cost": 45.92,
-   "Ca": 0,
-   "score": 9.85,
-   "clean": true
+   "cost": 153.66,
+   "Ca": 1,
+   "score": 9.09,
+   "clean": false
   },
   {
    "k": 2,
-   "cost": 109.22,
+   "cost": 161.89,
    "Ca": 1,
-   "score": 9.14,
+   "score": 9.21,
    "clean": false
   },
   {
    "k": 3,
-   "cost": 29.5,
+   "cost": 303.68,
+   "Ca": 1,
+   "score": 8.9,
+   "clean": false
+  },
+  {
+   "k": 4,
+   "cost": 74.38,
+   "Ca": 0,
+   "score": 9.61,
+   "clean": true
+  },
+  {
+   "k": 5,
+   "cost": 15.95,
+   "Ca": 0,
+   "score": 9.82,
+   "clean": true
+  },
+  {
+   "k": 6,
+   "cost": 54.32,
+   "Ca": 0,
+   "score": 9.42,
+   "clean": true
+  },
+  {
+   "k": 7,
+   "cost": 58.52,
    "Ca": 0,
    "score": 9.67,
    "clean": true
   },
   {
-   "k": 4,
-   "cost": 56.09,
-   "Ca": 0,
-   "score": 9.81,
-   "clean": true
-  },
-  {
-   "k": 5,
-   "cost": 29.58,
-   "Ca": 0,
-   "score": 9.69,
-   "clean": true
-  },
-  {
-   "k": 6,
-   "cost": 46.05,
-   "Ca": 0,
-   "score": 9.89,
-   "clean": true
-  },
-  {
-   "k": 7,
-   "cost": 20.59,
-   "Ca": 0,
-   "score": 9.81,
-   "clean": true
-  },
-  {
    "k": 8,
-   "cost": 18.1,
-   "Ca": 0,
-   "score": 9.81,
-   "clean": true
+   "cost": 153.02,
+   "Ca": 1,
+   "score": 8.91,
+   "clean": false
   },
   {
    "k": 9,
-   "cost": 40.51,
+   "cost": 13.28,
    "Ca": 0,
-   "score": 9.65,
+   "score": 9.91,
    "clean": true
   },
   {
    "k": 10,
-   "cost": 18.39,
-   "Ca": 0,
-   "score": 9.81,
-   "clean": true
+   "cost": 116.69,
+   "Ca": 1,
+   "score": 9.39,
+   "clean": false
   },
   {
    "k": 11,
-   "cost": 18.19,
+   "cost": 32.54,
    "Ca": 0,
-   "score": 9.81,
+   "score": 9.54,
    "clean": true
   }
  ],
- "gate_pass": 11,
- "picked": 6
+ "gate_pass": 7,
+ "picked": 9
 }

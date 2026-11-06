@@ -10,14 +10,19 @@
 Heights: storey h (>= 3.00 m), ground floor + 0.30 m above grade; building height = 0.30 + N * h to the roof
 surface (GB 50016 Appendix A.0.1).
 """
+import os
 import random
 
-from highrise import codes, facade, sun
+from highrise import codes, facade, lattice, sun
 from highrise.compile import compile_unit, floor_plate
 from highrise.core import build_core, lifts_in_unit_frame
 from highrise.planner import Unit, area_targets, optimise, sample_programme
 from highrise.score import score_plan
 
+# Stage 3 search: "lattice" = the house planner's label grid, wall slides and swaps (lattice.py); "banded" = the
+# earlier banded slicing layout (planner.optimise). Both use planner.cost and the same gate.
+SEARCH = os.environ.get("HR_SEARCH", "lattice")
+OPTIMISE = lattice.optimise if SEARCH == "lattice" else optimise
 DROP_ORDER = ["NA", "SR", "CL", "ST"]   # optional rooms, lowest priority first; then a 4th bedroom
 PERSONS_PER_DWELLING = 3.2
 
@@ -39,7 +44,7 @@ def plan_dwelling(cfg, priors, req, core, restarts=12, iters=8000, log=print):
         want_south = 3 if beds >= 3 else 2
         runs = []
         for k in range(restarts):
-            st, c = optimise(prog, U, targets, want_south, f"{cfg['id']}:{len(repairs)}:{k}", iters=iters)
+            st, c = OPTIMISE(prog, U, targets, want_south, f"{cfg['id']}:{len(repairs)}:{k}", iters=iters)
             plan = compile_unit(st, U, prog, targets, want_south, core, f"{cfg['id']}#r{k}", cfg["gfa"], req)
             sc = score_plan(plan, priors, floor)
             clean = plan["planner"]["Ca"] == 0 and all(v == 1 for k2, v in sc["checks"].items() if k2.startswith("G"))
