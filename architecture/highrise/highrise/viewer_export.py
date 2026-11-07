@@ -7,18 +7,28 @@ import sys
 
 from highrise.plan import NAMES, net_area
 from highrise.score import SOURCE
-from highrise.walls import THICK, floor_walls
+from highrise.plan import room_area
+from highrise.walls import THICK, floor_walls, diagonal_walls, diagonal_wall_ring
 
 KIND = {"LR": "living", "DR": "dining", "KT": "kitchen", "KW": "kitchen", "BRM": "bedroom", "BR": "bedroom",
         "ST": "study", "NA": "bedroom", "BAM": "bathroom", "BA": "bathroom", "EN": "foyer", "HL": "hall",
         "CL": "storage", "SR": "storage", "BL": "porch", "BLN": "porch", "AC": "utility"}
-CORE_KIND = {"stair": "stair", "lobby": "lobby", "lift": "lift", "fire lift": "lift", "shaft": "utility"}
+CORE_KIND = {"stair": "stair", "lobby": "lobby", "lift": "lift", "fire lift": "lift", "shaft": "utility", "corridor": "hall"}
 R3 = lambda v: round(v / 1000, 3)
 
 
 def _ring(q):
     x0, y0, x1, y1 = q
     return [[R3(x0), R3(-y0)], [R3(x1), R3(-y0)], [R3(x1), R3(-y1)], [R3(x0), R3(-y1)]]
+
+
+def _rings(rm):
+    """A room's outline rings; with a diagonal corner cut (walk.py) the true polygon, else its rectangles."""
+    if not rm.get("add") and not rm.get("sub"):
+        return [_ring(q) for q in rm["rects"]]
+    from highrise.walk import room_geom
+    g = room_geom(rm)
+    return [[[R3(x), R3(-y)] for x, y in list(p.exterior.coords)[:-1]] for p in getattr(g, "geoms", [g])]
 
 
 def _seg(o, at, a, b):
@@ -40,7 +50,7 @@ def _door(d):
 def _walls(rooms, openings=()):
     """Wall outlines (plan2d rings), with every door, passage and lift door cut out of its wall, so a doorway reads as
     a gap in the drawing as it is in the model. openings: [(orient, at, lo, hi)]."""
-    from shapely.geometry import box as sbox
+    from shapely.geometry import Polygon, box as sbox
     ext, intr = [], []
     for o, c, lo, hi, kind, _ in floor_walls(rooms):
         t = THICK[kind] / 2
@@ -54,6 +64,21 @@ def _walls(rooms, openings=()):
                 continue
             x0, y0, x1, y1 = part.bounds
             (ext if kind in ("exterior", "core", "party") else intr).append(_ring([x0, y0, x1, y1]))
+    diag = [Polygon(diagonal_wall_ring(x0, y0, x1, y1, THICK[kind])) for x0, y0, x1, y1, kind in diagonal_walls(rooms)]
+    if diag:
+        # 45-degree walls of diagonal corner cuts, merged with the interior walls they meet (the drawing fills with
+        # the even-odd rule, so overlapping outlines would read as holes)
+        from shapely.ops import unary_union
+        ops_ = [sbox(oc - 101, olo, oc + 101, ohi) if oo == "v" else sbox(olo, oc - 101, ohi, oc + 101) for oo, oc, olo, ohi in openings]
+        g = unary_union([Polygon([(p[0] * 1000, -p[1] * 1000) for p in r]) for r in intr] + diag)
+        if ops_:
+            g = g.difference(unary_union(ops_))
+        intr = []
+        for part in getattr(g, "geoms", [g]):
+            if part.is_empty or part.area < 1:
+                continue
+            intr.append([[R3(x), R3(-y)] for x, y in list(part.exterior.coords)[:-1]])
+            intr += [[[R3(x), R3(-y)] for x, y in list(h.coords)[:-1]] for h in part.interiors]
     return ext, intr
 
 
@@ -66,9 +91,9 @@ def _sheet(rooms, doors=(), windows=(), extra_rooms=(), steps=(), openings=(), l
         xs = [q[0] for q in rm["rects"]] + [q[2] for q in rm["rects"]]
         ys = [q[1] for q in rm["rects"]] + [q[3] for q in rm["rects"]]
         S["rooms"].append({"id": i + 1, "kind": kind, "tier": 1, "open_air": t in ("BL", "BLN", "AC") or rm.get("open_air", False),
-                           "area": round(sum((q[2] - q[0]) * (q[3] - q[1]) for q in rm["rects"]) / 1e6, 1),
+                           "area": round(room_area(rm), 1),
                            "w": round((max(xs) - min(xs)) / 1000, 1), "d": round((max(ys) - min(ys)) / 1000, 1),
-                           "rings": [_ring(q) for q in rm["rects"]]})
+                           "rings": _rings(rm)})
     cut = [(d["orient"], d["at"], d["from"], d["to"]) for d in list(doors) + list(lift_doors)] + list(openings)
     S["ext"], S["int"] = _walls({k: v for k, v in rooms.items()}, cut)
     for w in windows:
@@ -103,10 +128,16 @@ def plan2d(b, furniture=()):
     steps = _stair_steps(core, H, b["requirements"]["risers_per_storey"])
     stair_doors = [{"orient": "h", "at": sy, "from": sx - 500, "to": sx + 500, "kind": "door", "swing": -1} for sx, sy in core["stair_doors"]]
     acs = [("ac%d" % i, {"type": "AC", "rects": [a["rect"]]}) for i, a in enumerate(fp["ac"])]
-    lift_doors = [{"orient": "h", "at": core["lobby_y"][1], "from": (lr[0] + lr[2]) / 2 - 550, "to": (lr[0] + lr[2]) / 2 + 550}
-                  for lr in core["lift_rects"]]
-    ly0, ly1 = core["lobby_y"]
-    lobby_ends = [("v", x, ly0 + 300, ly1 - 300) for x in (-core["width"] / 2, core["width"] / 2)]
+    if core.get("lift_doors"):                  # whole-floor search core (floorplan.py)
+        lift_doors = [{k: d[k] for k in ("orient", "at", "from", "to")} for d in core["lift_doors"]]
+        lobby_ends = []
+        if core.get("lobby_door"):
+            stair_doors = stair_doors + [dict(core["lobby_door"], kind="door", swing=1)]
+    else:
+        lift_doors = [{"orient": "h", "at": core["lobby_y"][1], "from": (lr[0] + lr[2]) / 2 - 550, "to": (lr[0] + lr[2]) / 2 + 550}
+                      for lr in core["lift_rects"]]
+        ly0, ly1 = core["lobby_y"]
+        lobby_ends = [("v", x, ly0 + 300, ly1 - 300) for x in (-core["width"] / 2, core["width"] / 2)]
     typical = _sheet(fp["rooms"], fp["doors"], fp["windows"], acs, steps, lift_doors=lift_doors)
     rid_of = {rid: i + 1 for i, rid in enumerate(fp["rooms"])}
     typical["furniture"] = [{"b": [R3(f["b"][0]), R3(f["b"][1]), R3(f["b"][2]), R3(f["b"][3])], "room": rid_of[f["room"]],
@@ -116,7 +147,7 @@ def plan2d(b, furniture=()):
     if b.get("ground"):
         g = b["ground"]
         rooms = dict(core_rooms)
-        rooms["hall"] = {"type": "HL", "kind": "lobby", "rects": [g["hall"]]}
+        rooms["hall"] = {"type": "HL", "kind": "lobby", "rects": [g["hall"]] + list(g.get("hall_extra", []))}
         extra = [("pilotis", {"type": "BL", "kind": "porch", "open_air": True, "rects": [g["pilotis_extent"]]}),
                  ("mail", {"type": "SR", "rects": [g["mail"]]}), ("ramp", {"type": "BL", "kind": "porch", "rects": [g["ramp"]]})]
         doors = stair_doors + [dict(g["entrance"], swing=-1), dict(g["stair_exit"], swing=-1)]
@@ -124,7 +155,7 @@ def plan2d(b, furniture=()):
         S["int"] += [_ring([cx - 200, cy - 200, cx + 200, cy + 200]) for cx, cy in g["columns"]]
         sheets["pilotis"] = S
     if any(f["kind"] == "refuge" for f in b["floors"]):
-        body = [q for rm in fp["rooms"].values() if rm["type"] not in ("CORE", "BL", "AC") for q in rm["rects"]]
+        body = [q for rm in fp["rooms"].values() if rm["type"] not in ("CORE", "BL", "AC") for q in rm["rects"]] + fp.get("corridor", [])
         extra = [("refuge", {"type": "HL", "kind": "hall", "open_air": True, "rects": body})]
         sheets["refuge"] = _sheet(core_rooms, stair_doors, [], extra, steps, openings=lobby_ends, lift_doors=lift_doors)
     allr = [q for rm in fp["rooms"].values() for q in rm["rects"]] + [a["rect"] for a in fp["ac"]]
@@ -138,7 +169,9 @@ def plan2d(b, furniture=()):
     return {"bounds": [R3(x0), R3(-y1), R3(x1), R3(-y0)], "front": "bottom",
             "storeys": [sheets[f["kind"]] for f in b["floors"]], "overall": [round(bw, 2), round(bd, 2)],
             "roofs": ["flat roof, 1.20 m parapet, stair head room and lift machine room"],
-            "door_note": "fire doors (Class B) on the stair, the dwelling doors onto the fire lobby and the refuge room",
+            "door_note": ("fire doors (Class B) on the stair, its fire lobby and the refuge room; the lifts and the flat "
+                          "doors open onto the public corridor" if core.get("lift_doors") else
+                          "fire doors (Class B) on the stair, the dwelling doors onto the fire lobby and the refuge room"),
             "stairs": [{"from": 1, "form": core["stair_kind"], "N": b["requirements"]["risers_per_storey"],
                         "R": b["requirements"]["riser_mm"], "T": 260, "W": 1100}]}
 
@@ -167,14 +200,23 @@ def meta(b, report=None):
                "source": "GB 50180-2018 Table 4.0.9; GB 55038 6.2.1"})
     ev.append({"says": "Programme and room sizes calibrated on 12 traced Chinese apartment plans", "source": "zuobang.net reference set"})
     rooms = []
-    for rid, rm in plan["rooms"].items():
-        if rm["type"] in ("BL",):
-            continue
-        for f in b["floors"]:
-            if f["kind"] == "typical":
-                rooms += [{"storey": f["storey"] - 1, "kind": NAMES[rm["type"]].lower(), "area": round(net_area(plan, rid), 1)}] * 2
+    others = b.get("other_flats") or []
+    # every flat type on the floor, twice (east and west of the core); 2 flats a floor: the one plan twice
+    flats = [plan] + [o["plan"] for o in others]
+    per = 2 if others else b.get("dwellings_per_floor", 2)
+    for fl in flats:
+        for rid, rm in fl["rooms"].items():
+            if rm["type"] in ("BL",):
+                continue
+            for f in b["floors"]:
+                if f["kind"] == "typical":
+                    rooms += [{"storey": f["storey"] - 1, "kind": NAMES[rm["type"]].lower(), "area": round(net_area(fl, rid), 1)}] * per
     checks = [{"check": f"{k} ({SOURCE.get(k.split(' ')[0], 'typology')})",
                "ok": v >= 0.999, "detail": "; ".join(sc["why"].get(k, [])) or f"{v:.2f}"} for k, v in sc["checks"].items()]
+    for o in b.get("other_flats") or []:          # 4 or 6 flats a floor: the other flat types are checked as well
+        oc = o["score"]
+        checks += [{"check": f"{o['name']}: {k} ({SOURCE.get(k.split(' ')[0], 'typology')})",
+                    "ok": v >= 0.999, "detail": "; ".join(oc["why"].get(k, [])) or f"{v:.2f}"} for k, v in oc["checks"].items()]
     return {
         "id": "none (generated building, not an OSM footprint)", "key": b["id"], "name": b["name"],
         "context": {"street": None, "district": None, "hood": f"{s['site']} (sunlight check)"},

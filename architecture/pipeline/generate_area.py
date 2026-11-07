@@ -12,7 +12,7 @@ Each house: plan (test_br.py, the competition planner, one seed) → gate (spec_
 spec (make_designs) → game export (export_game.py). Writes architecture/areas/<id>/area.json, the manifest the viewer reads.
 """
 import os as _os_p0; _HERE = _os_p0.path.dirname(_os_p0.path.abspath(__file__)); _ARCH_OUT = _os_p0.environ.get("ARCH_OUT", _os_p0.path.join(_HERE, "..", "out"))
-import argparse, json, math, os, shutil, subprocess, sys, time, glob
+import argparse, json, math, os, re, shutil, subprocess, sys, time, glob
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 rel = lambda p: os.path.relpath(p, ROOT) if p and os.path.isabs(p) else p          # area.json keeps repo-relative paths
 absd = lambda p: (p if os.path.isabs(p) else os.path.join(ROOT, p)) if p else p
@@ -133,6 +133,43 @@ def restyle(area_dir, key, style):
     json.dump(p, open(os.path.join(area_dir, "plans", f"plan-{nk}.json"), "w"))
     h0 = next(h for h in A["houses"] if h.get("key") == key)
     h = dict(h0, key=nk, style_chosen=style, restyled_from=key)
+    A["houses"] = [x for x in A["houses"] if x.get("key") != nk] + [h]
+    build(area_dir, A["houses"], A.get("skipped", []), {k: v for k, v in A.items() if k not in ("houses", "skipped")}, only={nk})
+    return nk
+
+
+def regenerate(area_dir, key, seed=None, storeys=None, rooms=None, style=None, tries=3):
+    """Plan a house again from its map footprint, with the storeys and the room counts per storey set in the viewer
+    (ROOMS_OVERRIDE, see programs.apply_counts) and a new seed, then gate, model and export it. The result is a new
+    key <name>.r<n>-s<seed> next to the original, so a regenerated house can itself be regenerated again."""
+    A = json.load(open(os.path.join(area_dir, "area.json")))
+    h0 = next(h for h in A["houses"] if h.get("key") == key)
+    name = key.split("~")[0].rsplit("-s", 1)[0].split(".r")[0]
+    n = 1 + sum(1 for h in A["houses"] if str(h.get("key", "")).startswith(name + ".r"))
+    seed = int(seed) if seed else 10 * n + 1
+    style = PAPER_STYLES.get(style, style) if style and style != "auto" else (h0.get("style_chosen") or "auto")
+    env = dict(os.environ, GEO_DATA=absd(A.get("data")) or DATA_DIRS[0], PAPER="1", MERGE="1", MOVES="v2", STYLE_OVERRIDE=style)
+    if storeys: env["STOREYS_OVERRIDE"] = str(int(storeys))
+    if rooms: env["ROOMS_OVERRIDE"] = rooms if isinstance(rooms, str) else json.dumps(rooms)
+    m = re.search(r"-s(\d+)$", key.split("~")[0])
+    env["PROGRAM_SEED"] = str(h0.get("program_seed") or (m.group(1) if m else h0.get("seed") or 1))
+    karg = f"{name}.r{n}"
+    plans = os.path.join(area_dir, "plans"); os.makedirs(plans, exist_ok=True)
+    best = None
+    for s_ in range(seed, seed + tries):                       # the first layout that passes the gate, else the fewest fails
+        r = subprocess.run([PY, "test_br.py", str(h0["osm_id"]), karg, str(s_), plans], cwd=HERE, env=env,
+                           stdout=open(os.path.join(area_dir, "plan.log"), "a"), stderr=subprocess.STDOUT)
+        rec = os.path.join(plans, f"rec-{karg}-s{s_}.json")
+        if r.returncode != 0 or not os.path.exists(rec): continue
+        fails = json.load(open(rec)).get("fails") or []
+        if best is None or len(fails) < best[1]: best = (s_, len(fails))
+        if not fails: break
+    if best is None:
+        raise RuntimeError(f"planning {karg} failed; see {os.path.join(area_dir, 'plan.log')}")
+    seed = best[0]; nk = f"{karg}-s{seed}"
+    h = dict(h0, key=nk, regenerated_from=key, style_chosen=style, seed=seed, program_seed=int(env["PROGRAM_SEED"]),
+             counts=json.loads(env["ROOMS_OVERRIDE"]) if rooms else None, storeys_set=int(storeys) if storeys else None)
+    h.pop("restyled_from", None)
     A["houses"] = [x for x in A["houses"] if x.get("key") != nk] + [h]
     build(area_dir, A["houses"], A.get("skipped", []), {k: v for k, v in A.items() if k not in ("houses", "skipped")}, only={nk})
     return nk

@@ -90,15 +90,65 @@ A browser alone can view and export the buildings that are already generated; ge
 [docs/INTEGRATE.md](docs/INTEGRATE.md) explains how to use each output in your own project: coordinate frames,
 building a navigation graph, engine axes, IFC conversion, forking the generator, and the licences.
 
+### Build your own with an AI agent (FreeCAD or Blender MCP)
+
+An MCP server lets an AI agent (Claude Code, Claude Desktop, Codex, Cursor and others) drive FreeCAD or Blender while it
+runs this repository's generator on your computer. The generator itself never asks a model anything: the agent runs
+the same `run_request.py` commands the viewer shows, then opens the result in FreeCAD or Blender so you can look at it
+and change it together.
+
+**FreeCAD** ([neka-nat/freecad-mcp](https://github.com/neka-nat/freecad-mcp), MIT):
+
+1. Install the requirements above (FreeCAD 1.0 comes with `architecture/environment.yml`; the desktop FreeCAD app is
+   needed too, because the MCP add-on runs inside its window) and [uv](https://docs.astral.sh/uv/).
+2. Install the add-on into FreeCAD's `Mod` folder and restart FreeCAD:
+   ```sh
+   git clone https://github.com/neka-nat/freecad-mcp.git
+   cp -r freecad-mcp/addon/FreeCADMCP ~/.FreeCAD/Mod/      # the Mod folder moves by OS and FreeCAD version; see that README
+   ```
+3. In FreeCAD pick the **MCP Addon** workbench and press **Start RPC Server** (or tick **Auto-Start Server** in its menu).
+4. Register the server with your agent, from this repository's folder:
+   ```sh
+   claude mcp add freecad -- uvx freecad-mcp                # Claude Code
+   ```
+   For Claude Desktop add `"freecad": {"command": "uvx", "args": ["freecad-mcp"]}` under `mcpServers` in
+   `claude_desktop_config.json` (Settings → Developer → Edit Config) and restart it.
+
+**Blender** ([ahujasid/blender-mcp](https://github.com/ahujasid/blender-mcp), MIT):
+
+1. Install Blender 4.2 or newer and [uv](https://docs.astral.sh/uv/).
+2. Install the add-on: `uvx blender-mcp install-addon`, then in Blender enable **Interface: Blender MCP**
+   (Edit → Preferences → Add-ons) and press **Start MCP Server** in its sidebar tab (N in the 3D view).
+3. Register the server: `claude mcp add blender uvx blender-mcp` (Claude Code), or
+   `"blender": {"command": "uvx", "args": ["blender-mcp"]}` in `claude_desktop_config.json`.
+4. For the generated models, enable the [Bonsai](https://bonsaibim.org) add-on (IFC for Blender): the agent loads a
+   building's `.ifc` with it. `blender/blender_geo_import.py` brings in the terrain and the OpenStreetMap context.
+
+**Then ask the agent**, in this repository's folder, for example:
+
+- "Generate the houses within 1.5 blocks of 30.4425, −91.1659 and open the first one in FreeCAD." The agent runs
+  `python architecture/pipeline/run_request.py --lat 30.4425 --lon -91.1659 --blocks 1.5` and opens
+  `architecture/areas/<area>/deliver/bim/<key>.FCStd`.
+- "Regenerate Stanford Avenue with four bedrooms upstairs and a study downstairs." The agent copies or builds the
+  command from the viewer's **Regenerate** panel (`--regenerate examples stanford-s3 --rooms '{"1": {"bedroom": 4}, "0": {"study": 1}}'`).
+- "Make the 24-storey tower six flats per floor and show me a typical floor in Blender." (`--highrise hr24-140 --dwellings 6`,
+  then the `.ifc` from `architecture/highrise/buildings/<id>/`.)
+
+Edits you make by hand in FreeCAD or Blender stay in those files. To keep a change in the generator's own output, regenerate
+with different counts or a different style, or move furniture with the furniture editor MCP
+([architecture/pipeline/furnmcp](architecture/pipeline/furnmcp/README.md)), which the build replays with `FURN_EDIT=1`.
+
 ## How to use it
 
-Everything below happens in the house viewer, in a browser. No install, no account, no command line (except to send
-a generation request, which needs a GitHub sign-in).
+Browsing, the blueprints and the exports work in any browser. Generating, regenerating and restyling run on your own
+computer with FreeCAD (see [Requirements](#requirements)): the viewer shows the command to run, or your AI agent runs it
+for you ([Build your own with an AI agent](#build-your-own-with-an-ai-agent-freecad-or-blender-mcp)).
 
 ### 1. Pick a building
 
-The list on the left holds every generated building: the example houses, each generated area and the high-rise
-apartments. Click one to load its 3D model. The panel on the right says what the map told us about it (OSM way, the
+Press **☰ Buildings list** (top left) to open the list of every generated building: the example houses, each
+generated area, your regenerated buildings and the high-rise apartments. Click one to load its 3D model; the list
+closes again. The panel on the right says what the map told us about it (OSM way, the
 street it faces, the public record), what was planned (storeys, bedrooms, style), a one-line result of the design
 checks (**Show the checks** opens the full list; it opens by itself when a check fails) and a table of every room
 with its area and size. Drag to orbit, right-drag to pan, scroll to zoom.
@@ -127,7 +177,8 @@ sheet. Point at a room to see its name and size. Consecutive floors with the sam
 
 ### 4. Generate a new area
 
-1. Press **World map · generate an area**.
+1. Open the **Map generator** tab (top right; **Buildings** brings you back). Drag to move around the map, scroll
+   or pinch to zoom.
 2. Go to a place: one of the bundled areas, or type an address, a place name or a latitude and longitude and press
    **Go**. Bundled areas draw at once; anywhere else loads OpenStreetMap live.
 3. Click the map to centre the area, and set the radius (1–2 blocks; one block is about 110 m). The houses inside
@@ -139,21 +190,47 @@ sheet. Point at a room to see its name and size. Consecutive floors with the sam
 
 ![World map, South Baton Rouge: a 1.5-block area around Government Street and Oleander Street (30.4425, −91.1659) holds 34 houses; the nearest 12 will be generated](docs/img/viewer-worldmap.jpg)
 
-### 5. Restyle a building, or take it with you
+### 5. Regenerate a building, then save it
 
-- **Restyle:** pick a style in the drop-down above the model and press **Regenerate**. The plan stays the same; only
-  the style template changes (Cottage, Italianate, Tudor, Craftsman and 16 more). The viewer shows the restyle
-  command to run on your computer.
-- **Game export:** downloads the building's `building-export@1` JSON: rooms, every door with the two rooms it joins
-  and the bearing it faces, windows, stairs, furniture and the garage. See
+**Regenerate…** (in the toolbar above the model) works on every building on the list, the example houses and the
+high-rises included, and on buildings you have already regenerated:
+
+- **Houses:** set the storeys (1 or 2), the bedrooms, bathrooms, study and WC on each floor, the garage (none, 1 or 2
+  cars) and the style. **Regenerate** plans the house again from its map footprint with those counts (the same
+  planner, checks and FreeCAD build) and adds it to the list next to the original as "regenerated, N bed".
+  **Restyle only** keeps the rooms and changes the style template (Merrell 2010 Fig. 9: Cottage, Italianate, Tudor,
+  Craftsman and 16 more).
+- **High-rises:** set the storeys (7–40), the flats per floor (2, 4 or 6, all on one core), the flat size, bedrooms,
+  bathrooms and the facade. With 4 or 6 flats a floor the size sets the footprint (that of the 2-flat slab) and the
+  floor is split into compact flats.
+
+The panel shows the `run_request.py` command with a **Copy command** button: run it in the repository folder, or
+let your AI agent run it, and reload the viewer. A regenerated house keeps the original's other programme choices
+(porch, dining room, laundry); the layout search tries 3 seeds and keeps the first that passes every check, or the one
+with the fewest failures, which the viewer then lists as "checks fail". Add `--tries 6` to search longer.
+
+The **Save / export** bar along the bottom of the model saves the building:
+
+- **Game export:** the `building-export@1` JSON (houses): rooms, every door with the two rooms it joins and the
+  bearing it faces, windows, stairs, furniture and the garage. See
   [docs/INTEGRATE.md](docs/INTEGRATE.md#1-games-and-simulations-the-building-export).
-- **IFC4 models** for BIM tools are in `architecture/areas/<area>/deliver/bim/`.
+- **Blueprint data:** every storey's rooms, walls, doors, windows and furniture outlines, in metres.
+- **3D model mesh:** the coloured triangles the viewer draws.
+- **IFC4 and FreeCAD models** for BIM tools are written on your computer when you generate: in
+  `architecture/areas/<area>/deliver/bim/` (houses) and `architecture/highrise/buildings/<id>/` (high-rises).
 
 ### 6. High-rise apartments
 
 The high-rise section of the list holds Chinese residential slabs from 10 to 34 storeys, planned dwelling by dwelling
 against the Chinese codes. The same plan can wear four facades; the storey count decides the core, the exits and the
-refuge floors.
+refuge floors. A floor has 2, 4 or 6 flats around one lift-and-stair core, inside the same length and depth as the
+2-flat slab of that flat size: with 4 or 6 the floor is split into compact flats instead of growing longer. The whole
+floor is planned in one search, as the houses are: the core (stair, fire lobby, lifts) moves along the north facade
+and the corridor and flats grow around it. The lifts and every flat door open onto one public corridor; only the
+stair's fire lobby has a fire door. Every flat keeps a south-facing room and daylit living room, bedrooms and kitchen, so 6 flats need the
+footprint of the 2-flat slab of about 185 m² flats (the example uses 190 m²). Every room is checked on its
+real shape for a person to walk through (0.9 m clear, the entry 1.1 m, halls 1.0 m); where a neighbouring room's corner
+pinches the way, the planner cuts that corner off at 45°, as Chinese plans often do at entries and hall turns.
 
 Pick a floor with **▾ Floor N of 24 ▴** in the toolbar (or **[** and **]**): the view cuts the tower at that floor and
 zooms to it, so you see the two furnished dwellings and the core. **Exterior** returns to the whole building.
@@ -170,8 +247,8 @@ bathrooms, and a washer on each balcony.
 
 ### On a phone
 
-The same page works on a phone: the building list comes first, then the toolbar in its own row, then the model, then
-the details. Nothing covers the model.
+The same page works on a phone: the toolbar sits in its own row above the model, the details follow it, and the
+building list opens from **☰** as on a computer. Nothing covers the model.
 
 <img src="docs/img/viewer-phone.jpg" alt="The viewer on a 390-pixel-wide phone screen: list, toolbar, model" width="260">
 
@@ -228,7 +305,7 @@ $\beta$ rises from 0.03 to 6. [architecture/README.md](architecture/README.md) d
 ### Voxel maps (`src/`, `engine/`, `app/`)
 
 1. **Frame**: rotate by the length-weighted $4\theta$ mean of street and wall directions,
-   $\theta = \tfrac14\operatorname{atan2}\!\big(\sum w L \sin 4\alpha,\ \sum w L \cos 4\alpha\big)$, which treats
+   $\theta = \tfrac14\,\mathrm{atan2}\big(\sum w L \sin 4\alpha,\ \sum w L \cos 4\alpha\big)$, which treats
    directions 90° apart as one.
 2. **Straighten**: simplify centrelines (junctions pinned), snap segments to axes, tie shared coordinates by
    union-find and solve each as a weighted least-squares mean, then rubber-sheet buildings and land use along.

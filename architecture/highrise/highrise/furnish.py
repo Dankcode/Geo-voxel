@@ -15,7 +15,7 @@ import os
 import random
 import sys
 
-from shapely.geometry import Point, box as sbox
+from shapely.geometry import Point, Polygon, box as sbox
 from shapely.ops import unary_union
 
 PIPE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "pipeline")
@@ -25,7 +25,7 @@ import furnish2 as F2  # noqa: E402
 import layout as LAY  # noqa: E402
 
 from highrise.viewer_export import KIND  # noqa: E402
-from highrise.walls import THICK, floor_walls  # noqa: E402
+from highrise.walls import THICK, floor_walls, diagonal_walls, diagonal_wall_ring  # noqa: E402
 
 DOOR_DEPTH = 915          # 36 in landing on both sides of a door (as furnish2 does for the houses)
 BLOCKED = 1e6             # furnish2.cost marks an unusable layout with 1e9
@@ -50,6 +50,8 @@ def _walls(rooms):
         t = THICK[kind]
         e = t / 2
         out.append(_fc([c - t / 2, lo - e, c + t / 2, hi + e] if o == "v" else [lo - e, c - t / 2, hi + e, c + t / 2]))
+    for x0, y0, x1, y1, kind in diagonal_walls(rooms):
+        out.append(Polygon([(x, -y) for x, y in diagonal_wall_ring(x0, y0, x1, y1, THICK[kind])]))
     return unary_union(out)
 
 
@@ -61,6 +63,10 @@ def _opening_zone(o, at, lo, hi, depth, pad):
 def room_context(rid, rm, kind, walls, doors, windows):
     """The room as furnish2 sees it: free outline, door clearance zones, door probe points, window zones."""
     rp = unary_union([_fc(q) for q in rm["rects"]])
+    for t in rm.get("sub", ()):                 # a corner given away by a diagonal cut (walk.py)
+        rp = rp.difference(Polygon([(x, -y) for x, y in t]))
+    for t in rm.get("add", ()):
+        rp = rp.union(Polygon([(x, -y) for x, y in t]))
     side, short = rid.split(".", 1) if "." in rid else ("", rid)
     holes, door_pts, wins = [], [], []
     for d in doors:

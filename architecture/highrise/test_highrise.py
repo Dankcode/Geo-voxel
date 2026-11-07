@@ -1,4 +1,5 @@
 """Checks for the high-rise module.   python test_highrise.py   (from architecture/highrise)"""
+import os
 import random
 
 from highrise import codes, facade, sun
@@ -13,6 +14,7 @@ from highrise.walls import floor_walls
 
 S = stats()
 P = S["rooms"]
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_reference_tracing_is_consistent():
@@ -98,6 +100,77 @@ def test_lattice_search_is_deterministic_and_tiles_the_dwelling():
         assert all(not (q[0] < wn and q[1] < dc) for q in rs)
 
 
+def test_six_flats_on_one_lobby_corridor():
+    """2026-11-06: 6 flats a floor planned with the core in one whole-floor search (floorplan.py). Every flat door and
+    every passenger lift opens straight onto the public corridor (no door between the lifts and the flats); the stair
+    has its own fire lobby, whose Class B door is the only one on the corridor; the walk to the stair is measured."""
+    from highrise.walls import floor_walls
+    cfg = {"id": "t-x6", "name": "t", "storeys": 12, "gfa": 90, "depth": 11400, "seed": 17, "dwellings": 6,
+           "floor_restarts": 2, "floor_iters": 6000}
+    b = assemble(cfg, P, restarts=4, iters=5000, log=lambda *a: None)
+    assert b["envelope"]["widened"]                 # 90 m2 is too small a footprint for 6 flats with a south room each
+    fp, core = b["floor_plate"], b["core"]
+    assert b["dwellings_per_floor"] == 6 and len(b["other_flats"]) == 5 and core["layout"] == "floor search"
+    corr = fp["rooms"]["core.corridor"]["rects"]
+    unit_doors = [d for d in fp["doors"] if d.get("role") == "unit"]
+    assert len(unit_doors) == 6
+
+    def on_edge(d, rects):                       # the door lies on an edge of the corridor
+        for x0, y0, x1, y1 in rects:
+            if d["orient"] == "v" and d["at"] in (x0, x1) and y0 - 1 <= d["from"] and d["to"] <= y1 + 1: return True
+            if d["orient"] == "h" and d["at"] in (y0, y1) and x0 - 1 <= d["from"] and d["to"] <= x1 + 1: return True
+        return False
+    assert all(on_edge(d, corr) for d in unit_doors), [d for d in unit_doors if not on_edge(d, corr)]
+    assert not [d for d in fp["doors"] if d.get("role") == "corridor"]          # no fire door between lifts and flats
+    assert core["lobby_door"] and on_edge(core["lobby_door"], corr)           # the stair's fire lobby opens onto it
+    passenger = [d for d in core["lift_doors"] if d["side"] in ("S",)]
+    assert passenger and all(on_edge(d, corr) for d in passenger)
+    # no flat room overlaps the corridor or the core
+    from shapely.geometry import box as sbox
+    from shapely.ops import unary_union
+    core_area = unary_union([sbox(*q) for rid, rm in fp["rooms"].items() if rid.startswith("core.") for q in rm["rects"]])
+    for rid, rm in fp["rooms"].items():
+        if rid.startswith("core.") or rm["type"] in ("BL", "AC"): continue
+        for q in rm["rects"]:
+            assert core_area.intersection(sbox(*q)).area < 1, rid
+    assert 0 < core["max_travel_m"] and "C4 Travel to stair" in b["score"]["checks"]
+    assert floor_walls(fp["rooms"])
+    env = b["envelope"]
+    xs = [v for rid, rm in fp["rooms"].items() if rm["type"] not in ("BL", "AC") for q in rm["rects"] for v in (q[0], q[2])]
+    assert max(xs) <= env["half_length_mm"] and min(xs) >= -env["half_length_mm"]
+
+
+def test_core_template_forms():
+    """The core block the floor search moves: both forms meet the fire-lobby rules (GB 50016 5.5.28)."""
+    from highrise import floorplan
+    req = codes.core_requirements(26, 3.0, 6, pilotis=True)
+    for form in ("wide", "stacked"):
+        T = floorplan.core_template(req, form)
+        lob = T["parts"]["lobby"][1]
+        area = (lob[2] - lob[0] - 200) * (lob[3] - lob[1] - 200) / 1e6
+        assert area >= req["lobby_min_m2"] and min(lob[2] - lob[0], lob[3] - lob[1]) - 200 >= 2400
+        assert T["lobby_door"] and len(T["stair_doors"]) == 2 and T["W"] % 300 == 0 and T["D"] % 300 == 0
+
+
+def test_four_flats_keep_the_two_flat_footprint():
+    """2026-11-06: 4 flats a floor fit the 2-flat slab of the same flat size and depth, and every flat has a south room."""
+    cfg = {"id": "t-x4", "name": "t", "storeys": 12, "gfa": 120, "depth": 11400, "seed": 13, "dwellings": 4,
+           "floor_restarts": 1, "floor_iters": 4000}
+    b = assemble(cfg, P, restarts=2, iters=1500, log=lambda *a: None)
+    two = assemble(dict(cfg, id="t-x2", dwellings=2), P, restarts=1, iters=500, log=lambda *a: None)
+    xs = lambda fp: [v for rm in fp["rooms"].values() if rm["type"] not in ("BL", "AC") for q in rm["rects"] for v in (q[0], q[2])]
+    assert not b["envelope"]["widened"] and max(xs(b["floor_plate"])) <= max(xs(two["floor_plate"]))
+    for sc in [b["score"]] + [o["score"] for o in b["other_flats"]]:
+        assert sc["measure"]["south_rooms"] >= 1
+
+
+def test_bedroom_count_override():
+    import random as _r
+    from highrise.planner import sample_programme as sp
+    prog = sp(140, _r.Random(1), P, beds=2, baths=1)
+    assert sum(t in ("BRM", "BR") for _, t in prog) == 2 and sum(t in ("BA", "BAM") for _, t in prog) == 1
+
+
 def test_building_passes_gate():
     b = assemble({"id": "t10", "name": "t", "storeys": 10, "gfa": 120, "depth": 11300, "seed": 3}, P, restarts=4, iters=4000, log=lambda *a: None)
     sc = b["score"]
@@ -153,3 +226,71 @@ if __name__ == "__main__":
     for k, f in list(globals().items()):
         if k.startswith("test_"):
             f(); print("ok", k)
+
+
+def test_walkability_and_diagonal_cut():
+    """2026-11-06: a room joined by a 0.3 m neck fails; a hall that turns around a bathroom's corner too narrow to
+    pass is fixed by a 45-degree cut off the bathroom, which keeps its own minimum area."""
+    from highrise import walk
+    # living room in two pieces joined by 300 mm
+    assert not walk.room_ok(walk.geom([[0, 0, 1500, 3000], [1200, 3000, 4800, 7000]]), "LR")
+    assert walk.room_ok(walk.geom([[0, 0, 3600, 4000]]), "LR")
+    # an L-shaped hall 1.2 m wide (1.08 m clear) round the corner of a bathroom; the corner pinches the turn
+    R = {"hl": [[0, 0, 1200, 3600], [1200, 2400, 3600, 3600]], "ba": [[1200, 0, 3600, 2400]]}
+    T = {"hl": "HL", "ba": "BA"}
+    g = walk.geom(R["hl"])
+    assert walk.room_ok(g, "HL")             # an L of two 1.2 m legs is walkable as it is: no cut needed
+    R2 = {"hl": [[0, 0, 1000, 3600], [1000, 2600, 3600, 3600]], "ba": [[1000, 0, 3600, 2600]]}
+    assert not walk.room_ok(walk.geom(R2["hl"]), "HL")        # 0.88 m clear: too narrow, and no corner to cut helps
+    cuts, still = walk.repair(R2, T)
+    assert still == ["hl"]
+    # a living room whose two parts overlap by only 0.3 m where a kitchen corner juts in: a 1.2 m cut off the
+    # kitchen's corner opens the throat to over 0.9 m, and the kitchen keeps its 4 m2 and 1.8 m clear square
+    R3 = {"lr": [[0, 0, 1400, 2600], [1100, 2600, 4000, 4000]], "kt": [[1400, 0, 4000, 2600]]}
+    T3 = {"lr": "LR", "kt": "KT"}
+    assert not walk.room_ok(walk.geom(R3["lr"]), "LR")
+    cuts, still = walk.repair(R3, T3)
+    assert not still and cuts[0]["from"] == "kt" and cuts[0]["to"] == "lr" and cuts[0]["leg"] == 1200
+    rooms = {r: {"type": T3[r], "rects": R3[r]} for r in R3}
+    walk.apply_cuts(rooms, cuts)
+    from highrise.walls import diagonal_walls
+    assert len(diagonal_walls(rooms)) == 1 and abs(walk.room_area(rooms["kt"]) - (2.6 * 2.6 - 0.72)) < 0.01
+
+
+def test_built_designs_are_walkable():
+    """Every flat of the built examples passes the door-to-door walk check after its cuts."""
+    import json, glob
+    from highrise import walk
+    for f in glob.glob(os.path.join(HERE, "samples", "hr*", "building.json")):
+        B = json.load(open(f))
+        for p in [B["plan"]] + [o["plan"] for o in B.get("other_flats") or []]:
+            assert not walk.door_routes(p), (B["id"], walk.door_routes(p))
+
+
+def test_flat_rooms_by_the_houses_planner():
+    """2026-11-06: a 4/6-flat floor's flat is planned by the houses' planner (houseplan.py): rooms keep sensible
+    proportions and a person can walk through them; the public corridor is 1.5 m clear (floorplan.CORR_CLEAR)."""
+    import random as _r
+    from highrise import houseplan, walk, floorplan
+    from highrise.planner import Unit, area_targets, sample_programme
+    from highrise.compile import compile_unit
+    assert floorplan.CORR_CLEAR >= 1500
+    # a 6.6 x 6.0 m studio south of a corridor (door on its north side), south facade
+    U = Unit(6600, 11400, 0, 0, (0, 11400), end_unit=False, lifts=[], x0=0, cuts=[(0, 0, 6600, 5400)],
+             door=("h", 5400, 600, 2400), north=False)
+    U.compact = True
+    prog = sample_programme(40, _r.Random(1), P, 0, None, compact=U.area() / 1e6)
+    targets, _ = area_targets(prog, U.area(), P)
+    ok = 0
+    for k in range(3):
+        st, c, terms = houseplan.plan(prog, U, targets, f"test:{k}", iters=6000)
+        T = dict(prog)
+        for rid, rs in st["R"].items():
+            g = walk.geom(rs)
+            x0, y0, x1, y1 = g.bounds
+            if T[rid] in ("LR", "BRM", "BR", "KT"):
+                assert max(x1 - x0, y1 - y0) / min(x1 - x0, y1 - y0) <= 3.0, (rid, g.bounds)
+        req = codes.core_requirements(18, 3.0, 4, pilotis=True)
+        plan = compile_unit(st, U, prog, targets, 1, {"area_m2": 60}, "t", 40, req)
+        ok += plan["planner"]["Ca"] == 0
+    assert ok >= 1

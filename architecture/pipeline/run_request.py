@@ -2,6 +2,8 @@
 
     python run_request.py --lat 30.4425 --lon -91.1659 [--blocks 1.5] [--style auto] [--styles '{"<osm id>": "<style>"}']
     python run_request.py --restyle <area> <building key> <style>
+    python run_request.py --regenerate <area> <building key> [--storeys 1|2] [--rooms '{"1": {"bedroom": 4}}'] [--style S] [--seed N] [--tries 3]
+    python run_request.py --highrise <design id> [--storeys N] [--dwellings 2|4|6] [--gfa m2] [--bedrooms N] [--style S] [--seed N]
     python run_request.py --issue-body body.md [--issue N] --summary summary.md      (.github/workflows/generate-houses.yml)
 
 The house viewer's World map shows the first two commands, filled in, for the area or building picked on it.
@@ -88,8 +90,32 @@ def main():
     ap.add_argument("--lat", type=float); ap.add_argument("--lon", type=float)
     ap.add_argument("--blocks", type=float, default=1.5); ap.add_argument("--style", default="auto"); ap.add_argument("--styles", default="")
     ap.add_argument("--restyle", nargs=3, metavar=("AREA", "KEY", "STYLE"))
+    ap.add_argument("--regenerate", nargs=2, metavar=("AREA", "KEY"))
+    ap.add_argument("--storeys", type=int); ap.add_argument("--rooms", default=""); ap.add_argument("--seed", type=int)
+    ap.add_argument("--tries", type=int, default=3, help="layout seeds to try until one passes the gate (houses)")
+    ap.add_argument("--highrise", metavar="ID"); ap.add_argument("--dwellings", type=int)
+    ap.add_argument("--gfa", type=int); ap.add_argument("--bedrooms", type=int); ap.add_argument("--bathrooms", type=int)
     ap.add_argument("--summary")
     a = ap.parse_args()
+    if a.regenerate or a.highrise:
+        require()
+        import generate_area as GA
+        if a.regenerate:
+            area = re.sub(r"[^A-Za-z0-9_\-]", "", a.regenerate[0]); key = re.sub(r"[^A-Za-z0-9_\-~.]", "", a.regenerate[1])
+            d = os.path.join(ROOT, "areas", area)
+            nk = GA.regenerate(d, key, seed=a.seed, storeys=a.storeys, rooms=a.rooms or None, style=a.style, tries=max(1, a.tries))
+            A = json.load(open(os.path.join(d, "area.json"))); h = next(x for x in A["houses"] if x.get("key") == nk)
+            line = f"Regenerated **{key}** in **{area}** → `{nk}` (gate: {h.get('gate')})."
+        else:
+            sys.path.insert(0, os.path.join(ROOT, "highrise"))
+            from highrise import generate as HG
+            nid = HG.one(a.highrise, storeys=a.storeys, dwellings=a.dwellings, gfa=a.gfa, bedrooms=a.bedrooms,
+                         bathrooms=a.bathrooms, seed=a.seed, style=None if a.style in (None, "", "auto") else a.style)
+            line = f"Generated high-rise **{nid}** from {a.highrise}."
+        import subprocess as sp                 # FreeCAD's start-up scripts clear names from __main__
+        sp.run([PY, os.path.join(ROOT, "build_viewer.py")], check=True, cwd=ROOT)
+        if a.summary: open(a.summary, "w").write(line + "\n")
+        print(line); return
     if a.issue_body: F = fields(open(a.issue_body).read())
     elif a.restyle: F = {"area": a.restyle[0], "building key": a.restyle[1], "new style": a.restyle[2]}
     elif a.lat is not None and a.lon is not None:

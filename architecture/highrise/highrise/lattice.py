@@ -47,8 +47,8 @@ SITE = {"carve": False}         # the dwelling fills its domain: walls on the do
 
 def grid_lines(U):
     """Grid lines through every edge the plan must respect, filled in at about MOD (multiples of 100 mm)."""
-    def fill(req, hi):
-        req = sorted({int(v) for v in req if 0 <= v <= hi})
+    def fill(req, hi, lo=0):
+        req = sorted({int(v) for v in req if lo <= v <= hi})
         out = [req[0]]
         for a, b in zip(req, req[1:]):
             n = max(1, int(round((b - a) / MOD)))
@@ -58,19 +58,104 @@ def grid_lines(U):
                     out.append(v)
             out.append(b)
         return out
-    xs = fill({0, U.wn, U.X} | {v for l in U.lifts for v in (l[0], l[2])}, U.X)
-    ys = fill({0, U.dc, U.D} | set(U.lobby_y) | {v for l in U.lifts for v in (l[1], l[3])}, U.D)
+    o, at, lo, hi = U.door
+    xr = {U.x0, U.wn, U.X} | {v for l in U.lifts for v in (l[0], l[2])} | {v for c in U.cuts for v in (c[0], c[2])}
+    yr = {0, U.dc, U.D} | set(U.lobby_y) | {v for l in U.lifts for v in (l[1], l[3])} | {v for c in U.cuts for v in (c[1], c[3])}
+    (xr if o == "v" else yr).add(at)
+    (yr if o == "v" else xr).update((lo, hi))
+    xs = fill({v for v in xr if U.x0 <= v <= U.X}, U.X, U.x0)
+    ys = fill(yr, U.D)
     return np.array(xs), np.array(ys)
+
+
+def outside(U, xs, ys):
+    """Cells outside the dwelling: west of x0 and inside any cut (the core, the lobby corridor, a neighbour)."""
+    cx, cy = (xs[:-1] + xs[1:]) / 2, (ys[:-1] + ys[1:]) / 2
+    out = np.zeros((len(cy), len(cx)), bool)
+    out[:, cx < U.x0] = True
+    for x0, y0, x1, y1 in U.cuts:
+        out[np.ix_((cy > y0) & (cy < y1), (cx > x0) & (cx < x1))] = True
+    return out
+
+
+def native_start(prog, U, xs, ys, targets):
+    """Start layout for a dwelling of any shape (the houses start from rows the same way): a south row for the rooms
+    the references put on the south face (and, in a flat with no north facade, every room that needs daylight), a
+    north row for the rest with the entry first, nearest the door; each row filled west to east in proportion to the
+    rooms' target areas."""
+    T = dict(prog)
+    rooms = [rid for rid, _ in prog]
+    out = outside(U, xs, ys)
+    cx, cy = (xs[:-1] + xs[1:]) / 2, (ys[:-1] + ys[1:]) / 2
+    cw = np.diff(xs)[None, :] * np.diff(ys)[:, None]
+    lit = {"LR", "BRM", "BR", "ST"} | (set() if U.north else {"KT"})
+    south = [r for r in rooms if T[r] in lit]
+    north = [r for r in rooms if r not in south]
+    if U.lifts:
+        # the row starts against the core: a room nobody sleeps in goes next to the lift shafts (GB 55038 4.2.3; in a
+        # studio the living room is the bedroom)
+        sleep = {"BR", "BRM", "ST"} if any(T[r] in ("BR", "BRM", "ST") for r in rooms) else {"BR", "BRM", "ST", "LR"}
+        south.sort(key=lambda r: T[r] in sleep)
+    en = next(r for r in rooms if T[r] == "EN")
+    north.sort(key=lambda r: r != en)
+    if U.door[0] == "v" and U.door[1] > (U.x0 + U.X) / 2:
+        north.reverse()                                        # the door is on the east side: the entry goes east
+    a_s = sum(targets[r][0] for r in south); a_n = sum(targets[r][0] for r in north)
+    free = ~out
+    rows = np.where(free.any(axis=1))[0]
+    tot = (cw * free).sum()
+    acc, split = 0.0, len(cy)
+    for j in reversed(rows):                                   # the south row takes its share of the area
+        acc += (cw[j] * free[j]).sum()
+        if acc >= tot * a_s / max(1e-9, a_s + a_n):
+            split = j; break
+    L = np.where(out, -1, 0).astype(np.int32)
+    for band, names in ((np.arange(len(cy)) >= split, south), (np.arange(len(cy)) < split, north)):
+        cells = [(i, j) for i in range(len(cx)) for j in range(len(cy)) if band[j] and free[j, i]]
+        if not names or not cells:
+            continue
+        area = sum(cw[j, i] for i, j in cells)
+        want = [targets[r][0] for r in names]; wsum = sum(want)
+        k, acc, lim = 0, 0.0, area * want[0] / wsum
+        for i, j in cells:
+            if acc >= lim and k < len(names) - 1:
+                k += 1; lim += area * want[k] / wsum
+            L[j, i] = rooms.index(names[k]) + 1
+            acc += cw[j, i]
+    # the entry starts at the flat's door: the cells along the door's span, 1.5 m deep into the flat
+    o, at, lo, hi = U.door
+    ke = rooms.index(en) + 1
+    for i in range(len(cx)):
+        for j in range(len(cy)):
+            if out[j, i]:
+                continue
+            if o == "v":
+                along, depth = cy[j], (cx[i] - at) if cx[i] > at else (at - cx[i])
+            else:
+                along, depth = cx[i], (cy[j] - at) if cy[j] > at else (at - cy[j])
+            if lo < along < hi and depth < 1500:
+                L[j, i] = ke
+    for k in range(1, len(rooms) + 1):                         # a room the rows left out: a 2 x 2 seed in the biggest
+        if (L == k).any():                                     # room (as the houses' optimiser plants a lost room)
+            continue
+        vals, cnt = np.unique(L[L > 0], return_counts=True)
+        big = vals[np.argmax(cnt)]
+        ys_, xs_ = np.nonzero(L == big)
+        y, x = ys_[len(ys_) // 2], xs_[len(xs_) // 2]
+        blk = L[y:y + 2, x:x + 2]
+        blk[blk == big] = k
+    return L
 
 
 def rasterise(R, rooms, xs, ys, U):
     """Labels from rectangles: -1 outside the dwelling (the core notch), k = 1 + index of the room at the cell centre."""
     cx, cy = (xs[:-1] + xs[1:]) / 2, (ys[:-1] + ys[1:]) / 2
     L = np.zeros((len(cy), len(cx)), np.int32)
-    L[np.ix_(cy < U.dc, cx < U.wn)] = -1
+    out = outside(U, xs, ys)
     for k, rid in enumerate(rooms, 1):
         for x0, y0, x1, y1 in R[rid]:
             L[np.ix_((cy > y0) & (cy < y1), (cx > x0) & (cx < x1))] = k
+    L[out] = -1
     for _ in range(100):                                  # cells no rectangle covered take a neighbour's room
         hole = L == 0
         if not hole.any():
@@ -111,8 +196,10 @@ def zoning(R, T, U):
     for rid, t in T.items():
         ok = BAND_OK.get(t, "NMS")
         if ok == "S" and ext[rid]["S"] < 2000:
-            z += 1.0
-        elif "S" not in ok and ext[rid]["S"] > 0:
+            # a compact end flat's south front only holds its living room: its master bedroom faces east or north
+            if not (getattr(U, "compact", False) and t != "LR"):
+                z += 1.0
+        elif "S" not in ok and ext[rid]["S"] > 0 and U.north:   # a flat with no north facade: anything may face south
             z += 0.5 + ext[rid]["S"] / 1000.0
     return z
 
@@ -134,8 +221,7 @@ class State:
             return
         rs = room_rects(m, self.xs, self.ys)
         if self.T[rid] == "EN":                           # the rectangle on the lobby first (the unit door goes there)
-            ly = self.U.lobby_y
-            rs.sort(key=lambda q: not (q[0] == self.U.wn and min(q[3], ly[1]) - max(q[1], ly[0]) > 0))
+            rs.sort(key=lambda q: -self.U.door_overlap(q))
         self.R[rid] = rs
         yy, xx = np.nonzero(m)
         crop = m[yy.min():yy.max() + 1, xx.min():xx.max() + 1]
@@ -162,8 +248,11 @@ def optimise(prog, U, targets, want_south, seed, iters=6000, beta0=0.05, beta1=4
     T = dict(prog)
     rooms = [rid for rid, _ in prog]
     xs, ys = grid_lines(U)
-    st0 = initial(prog, U, rng, targets)
-    L = rasterise(rects_of(st0, U), rooms, xs, ys, U)
+    if U.standard:
+        st0 = initial(prog, U, rng, targets)
+        L = rasterise(rects_of(st0, U), rooms, xs, ys, U)
+    else:
+        L = native_start(prog, U, xs, ys, targets)
     S = State(L, rooms, T, U, xs, ys)
     R = HP.Rng(HP.stable_seed(f"hr:{seed}"))
     ids = list(range(len(rooms)))

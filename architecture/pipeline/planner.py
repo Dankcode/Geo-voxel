@@ -403,6 +403,19 @@ def evaluate(labels, prog, sites, want_detail=False):
                 if n_narrow: T["d"] += 4.0 * n_narrow
             if R["kind"] not in ("hall", "stair", "corridor"):
                 asp = max(I["bw"], I["bh"]) / min(I["bw"], I["bh"])
+                # 2026-11-06 (high-rise flats): hard proportions where the programme asks for them
+                if R.get("hard_aspect") and asp > R["hard_aspect"] + 1e-9: T["a"] += 1
+                if R.get("hard_min_side") and min(I["bw"], I["bh"]) * site["cell"] < R["hard_min_side"] - 1e-9: T["a"] += 1
+                if R.get("hard_fill") and I["n"] < R["hard_fill"] * I["bw"] * I["bh"]: T["a"] += 1     # mostly a rectangle
+                if R.get("hard_area") and I["area"] < R["hard_area"] - 1e-9: T["a"] += 1             # a minimum area (m²)
+                if R.get("hard_square"):
+                    # 2026-11-07: most of the room swept by a square of its minimum side (not a 2.4 m strip with a bump);
+                    # the shortfall also costs in C_d so the search has a slope towards it
+                    k_ = max(1, int(round(R["hard_min_side"] / site["cell"])))
+                    m_ = L == rid + 1
+                    sq = int(ndimage.binary_opening(m_, np.ones((k_, k_), bool)).sum())
+                    if sq < R["hard_square"] * I["n"]:
+                        T["a"] += 1; T["d"] += 4.0 * (R["hard_square"] * I["n"] - sq) / max(1, I["n"])
                 # −ℓ_as: aspect ratio log-normal around μ_r = 1.35 (σ_r = 0.25 in log space), plus the hard limit
                 T["d"] += 0.5 * ((math.log(asp) - math.log(R.get("aspect_mu", 1.35))) / 0.25) ** 2 * 0.25
                 T["d"] += 0.5 * (max(0.0, asp - R.get("max_aspect", 2.0)) / 0.5) ** 2
@@ -417,8 +430,12 @@ def evaluate(labels, prog, sites, want_detail=False):
                 T["d"] += 6.0 * max(0.0, R["span"] - I["bw"] / site["W"])
             if R.get("band"):
                 T["d"] += 4.0 * max(0.0, (I["y1"] + 1) * site["cell"] - R["band"]) / R["band"]
+            if R.get("avoid") is not None and site.get(R["avoid"]) is not None and \
+                    edge_counts(L, rid + 1, site, site[R["avoid"]]) > 0:
+                T["a"] += 1                     # 2026-11-06 (high-rise flats): a bedroom off the lift shafts (GB 55038 4.2.3)
             if R.get("daylight"):
-                need = math.ceil(1.2 / site["cell"])
+                # 2026-11-06 (high-rise flats): light_min, the facade a room needs for its window and its AC platform
+                need = math.ceil(R.get("light_min", 1.2) / site["cell"] - 1e-9)
                 have = edge_counts(L, rid + 1, site, site["light"])
                 # IRC R303.2: a room open to an adjoining room (Merrell's open-wall group) may take its light
                 for grp in open_groups(prog, s):
@@ -440,6 +457,13 @@ def evaluate(labels, prog, sites, want_detail=False):
                 else: T["l"] += max(0, need - have) / need
             if not PAPER and R.get("private") and s == 0 and edge_counts(L, rid + 1, site, site["entry"]) > 0 and prog.get("privacy", True):
                 T["p"] += 1
+        if prog.get("sun_rooms") and site.get("sun") is not None:
+            # 2026-11-06 (high-rise flats): one habitable room on the sunny facade (GB 50096 7.1.1 / GB 55038 6.2.1)
+            sun = max((edge_counts(L, r_ + 1, site, site["sun"]) for r_ in prog["sun_rooms"] if info.get(r_) is not None), default=0)
+            need_ = math.ceil(2.4 / site["cell"] - 1e-9)
+            if sun < need_:
+                T["a"] += 1
+                T["l"] = T.get("l", 0) + 2.0 * (need_ - sun) / need_      # a slope towards the sunny wall
         for grp in open_groups(prog, s):
             gm = np.isin(L, [g + 1 for g in grp])
             if gm.any():
@@ -515,6 +539,9 @@ def evaluate(labels, prog, sites, want_detail=False):
         # C_f = Σ A(F_i − F_{i−1}) / Σ A(F_i) (§5.2); the ground floor is inside its lot by construction
         tot_area = CF[1] + float(sum((labels[0] > 0).sum() for _ in [0]))
         T["f"] += CF[0] / max(1.0, tot_area)
+    hook = prog.get("hard_hook")              # 2026-11-07: a caller's own hard checks (high-rise flats), once these pass
+    if hook is not None and T["a"] == 0:
+        T["a"] += hook(labels)
     total = sum((W8P if PAPER else W8)[k] * v for k, v in T.items())
     return (total, T, detail) if want_detail else (total, T)
 
@@ -894,6 +921,7 @@ def optimize(prog, sites, seed, iterations=None, beta=(0.03, 6.0)):
         cands = front                       # the street stair stays on the street front: stair moves slide it along
         rect = min(front, key=lambda r_: (min(r_[0] - xs0.min(), xs0.max() + 1 - (r_[0] + r_[2])), R.next()))
     labels = initial(prog, sites, R, rect)
+    if prog.get("initial_hook") is not None: prog["initial_hook"](labels)     # 2026-11-07: a caller's start (high-rise flats)
     if cands and vest and rect is not None:
         x0, y0, w, h = rect; c_ = sites[0]["cell"]; m0 = sites[0]["mask"]
         k = max(2, int(math.ceil(1.6 / c_))); dep = max(2, min(h, int(math.ceil(vest[0].get("mu", 4.5) / 1.6 / c_))))

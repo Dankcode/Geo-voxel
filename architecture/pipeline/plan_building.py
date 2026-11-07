@@ -46,6 +46,12 @@ def plan_building(city, b, seed=1, restarts=int(__import__("os").environ.get("RE
         except Exception: _st = _ov
         if _st and _st != "auto":
             th = dict(th, style=_st, evidence=list(th.get("evidence", [])) + [{"source": "map tool", "says": f"style chosen: {_st}"}])
+    # 2026-11-06: storeys set in the viewer's Regenerate panel (houses: 1 or 2)
+    _so = __import__("os").environ.get("STOREYS_OVERRIDE")
+    if _so and th["archetype"] in ("shotgun", "cottage", "bungalow", "two_storey_house", "ranch", "townhouse"):
+        _n = max(1, min(2, int(_so)))
+        if _n != th["storeys"]:
+            th = dict(th, storeys=_n, evidence=list(th.get("evidence", [])) + [{"source": "regenerate", "says": f"storeys set: {_n}"}])
     cell = cell_for(m["area"])
     from shapely.affinity import affine_transform
     # neighbours in the local frame → party edges
@@ -77,7 +83,9 @@ def plan_building(city, b, seed=1, restarts=int(__import__("os").environ.get("RE
     # porches tagged on the house itself (porch=yes / building:porch)
     if not brief.get("porch_mapped") and (b["tags"].get("porch") in ("yes", "front") or b["tags"].get("building:porch")):
         brief["porch_mapped"] = {"id": b["id"], "tag": "porch=" + str(b["tags"].get("porch") or b["tags"].get("building:porch")), "area": 0.0}
-    R = Rng(stable_seed(f"program:{b['id']}:{seed}"))
+    # 2026-11-06: a regenerated house keeps the programme choices of the house it came from (PROGRAM_SEED: that
+    # house's seed), so only the counts set in the viewer change; the layout search still uses the new seed
+    R = Rng(stable_seed(f"program:{b['id']}:{__import__('os').environ.get('PROGRAM_SEED') or seed}"))
     prog = program_for(th, brief, R)
     import mapctx as _MC
     out = {"geo_origin": [_MC.LAT0, _MC.LON0], "id": b["id"], "name": b["tags"].get("name"), "tags": b["tags"], "theme": th, "metrics": m, "front": front, "frame": T, "cell": cell,

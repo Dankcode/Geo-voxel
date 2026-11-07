@@ -521,7 +521,8 @@ def sun_study(b, st, site, spacing=None):
     req = b["requirements"]
     X0, Y0, X1, Y1 = env["bbox"]
     L = (X1 - X0) / 1000
-    lr = next(rm for rid, rm in b["floor_plate"]["rooms"].items() if rm["type"] == "LR" and rid.startswith("E"))
+    lrs = [(rid, rm) for rid, rm in b["floor_plate"]["rooms"].items() if rm["type"] == "LR"]
+    lr = next((rm for rid, rm in lrs if rid.startswith("E.")), None) or lrs[0][1]
     q = lr["rects"][0]
     first = next(f for f in b["floors"] if f["kind"] == "typical")
     win = ((q[0] + q[2]) / 2000, first["level_m"] + 0.9)

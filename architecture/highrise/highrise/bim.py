@@ -24,7 +24,7 @@ import Part
 from FreeCAD import Vector as V
 
 from highrise import facade as FA
-from highrise.walls import THICK, floor_walls
+from highrise.walls import THICK, floor_walls, diagonal_walls, diagonal_wall_ring
 
 SLAB = 200
 SHAFTS = ("stair", "lift", "fire lift", "shaft")         # core rooms with no floor slab on the storeys above ground
@@ -92,6 +92,11 @@ def wall_shapes(F, rooms, H, openings, core_role=True, role_fn=None):
         if role_fn:
             role = role_fn(kind, _sides, role)
         F.add(role, sh)
+        n += 1
+    for x0, y0, x1, y1, kind in diagonal_walls(rooms):     # 45-degree walls of diagonal corner cuts (walk.py)
+        ring = [V(x, -y, 0) for x, y in diagonal_wall_ring(x0, y0, x1, y1, THICK[kind])]
+        face = Part.Face(Part.makePolygon(ring + [ring[0]]))
+        F.add("int_wall", face.extrude(V(0, 0, H - SLAB)))
         n += 1
     return n
 
@@ -168,12 +173,30 @@ def core_openings(core):
     for sx, sy in core["stair_doors"]:
         ops.append(("h", sy, sx - 500, sx + 500, 0, 2100))
         leaves.append({"orient": "h", "at": sy, "from": sx - 500, "to": sx + 500, "kind": "door", "fire": "B"})
+    if core.get("lift_doors"):
+        # whole-floor search core (floorplan.py): each lift's door where the template puts it (the fire lift into the
+        # fire lobby, the others onto the corridor), and the fire lobby's own door onto the corridor
+        for d in core["lift_doors"]:
+            ops.append((d["orient"], d["at"], d["from"], d["to"], 0, 2100))
+            leaves.append(dict(d, kind="door", lift=True))
+        if core.get("lobby_door"):
+            d = core["lobby_door"]
+            ops.append((d["orient"], d["at"], d["from"], d["to"], 0, 2100))
+            leaves.append(dict(d, kind="door", fire="B"))
+        return ops, leaves
     ly1 = core["lobby_y"][1]
     for lr in core["lift_rects"]:
         cx = (lr[0] + lr[2]) / 2
         ops.append(("h", ly1, cx - 550, cx + 550, 0, 2100))
         leaves.append({"orient": "h", "at": ly1, "from": cx - 550, "to": cx + 550, "kind": "door", "lift": True})
     return ops, leaves
+
+
+def lift_door(F, d):
+    if d["orient"] == "v":
+        F.add("lift_door", box(d["at"] - 30, d["from"], d["at"] + 30, d["to"], 0, 2100))
+    else:
+        F.add("lift_door", box(d["from"], d["at"] - 30, d["to"], d["at"] + 30, 0, 2100))
 
 
 def typical_floor(b):
@@ -209,7 +232,7 @@ def typical_floor(b):
             leaf(F, d)
     for d in cleaves:
         if d.get("lift"):
-            F.add("lift_door", box(d["from"], d["at"] - 30, d["to"], d["at"] + 30, 0, 2100))
+            lift_door(F, d)
         else:
             leaf(F, d)
     for rid, rm in rooms.items():
@@ -270,19 +293,32 @@ def core_only(b, F, H, pit=False):
 
 
 def lift_cars(F, core):
-    """A lift car parked at the ground floor in every lift shaft, its open side on the lobby (door side, north)."""
+    """A lift car parked at the ground floor in every lift shaft, its open side on the door side of the shaft."""
     cw, cd = 1600, 1500                                     # 1.6 x 1.5 m car (GB 55038 4.2.4(3))
-    for x0, y0, x1, y1 in core["lift_rects"]:
-        cx = (x0 + x1) / 2
-        a, c = cx - cw / 2, y0 + 250
-        F.add("lift_car", box(a, c + cd - 60, a + cw, c + cd, 0, 2400))                  # back wall
-        for q in ([a, c, a + 250, c + 60], [a + cw - 250, c, a + cw, c + 60]):          # front jambs (door 1.1 m)
-            F.add("lift_car", box(*q, 0, 2400))
-        F.add("lift_car", box(a, c, a + cw, c + 60, 2100, 2400))                         # front head
-        F.add("lift_car", box(a, c, a + 60, c + cd, 0, 2400))
-        F.add("lift_car", box(a + cw - 60, c, a + cw, c + cd, 0, 2400))
-        F.add("lift_car", box(a, c, a + cw, c + cd, -120, 0))                           # car floor
-        F.add("lift_car", box(a, c, a + cw, c + cd, 2400, 2520))                         # car roof
+    sides = [d.get("side", "N") for d in core.get("lift_doors", [])] or ["N"] * len(core["lift_rects"])
+    for (x0, y0, x1, y1), side in zip(core["lift_rects"], sides):
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+
+        def put(u0, v0, u1, v1, z0, z1):
+            # (u across the door, v inwards from the door side) -> plan rectangle
+            if side == "N":
+                q = (cx + u0, y0 + v0, cx + u1, y0 + v1)
+            elif side == "S":
+                q = (cx + u0, y1 - v1, cx + u1, y1 - v0)
+            elif side == "W":
+                q = (x0 + v0, cy + u0, x0 + v1, cy + u1)
+            else:
+                q = (x1 - v1, cy + u0, x1 - v0, cy + u1)
+            F.add("lift_car", box(*q, z0, z1))
+        h, c = cw / 2, 250
+        put(-h, c + cd - 60, h, c + cd, 0, 2400)                                          # back wall
+        put(-h, c, -h + 250, c + 60, 0, 2400)                                             # front jambs (door 1.1 m)
+        put(h - 250, c, h, c + 60, 0, 2400)
+        put(-h, c, h, c + 60, 2100, 2400)                                                 # front head
+        put(-h, c, -h + 60, c + cd, 0, 2400)
+        put(h - 60, c, h, c + cd, 0, 2400)
+        put(-h, c, h, c + cd, -120, 0)                                                    # car floor
+        put(-h, c, h, c + cd, 2400, 2520)                                                 # car roof
 
 
 def ground_floor(b):
@@ -295,15 +331,16 @@ def ground_floor(b):
     hall = g["hall"]
     rooms = core_only(b, F, H, pit=True)
     lift_cars(F, core)
-    rooms["hall"] = {"type": "HL", "rects": [hall]}
-    F.add("slab", box(*hall, -SLAB, 0))
+    rooms["hall"] = {"type": "HL", "rects": [hall] + list(g.get("hall_extra", []))}
+    for q in rooms["hall"]["rects"]:
+        F.add("slab", box(*q, -SLAB, 0))
     cops, cleaves = core_openings(core)
     e = g["entrance"]
     se = g["stair_exit"]
     ops = cops + [("h", e["at"], e["from"], e["to"], 0, 2400), ("h", se["at"], se["from"], se["to"], 0, 2100)]
     # the lobby opens to the hall at both ends (no dwelling doors on the ground floor)
     ly0, ly1 = core["lobby_y"]
-    for x in (-core["width"] / 2, core["width"] / 2):
+    for x in ((-core["width"] / 2, core["width"] / 2) if not core.get("lift_doors") else ()):
         ops.append(("v", x, ly0 + 300, ly1 - 300, 0, 2400))
     # the hall's outside walls are glass: model them as walls (with openings), then swap in glazing
     hall_glass = lambda kind, sides, role: "hall_glass" if (kind == "exterior" and "hall" in sides) else role
@@ -314,7 +351,7 @@ def ground_floor(b):
         F.add("window", sh.common(Part.makeBox(bb.XLength, bb.YLength, H - SLAB - 300, V(bb.XMin, bb.YMin, 300))))
     for d in cleaves:
         if d.get("lift"):
-            F.add("lift_door", box(d["from"], d["at"] - 30, d["to"], d["at"] + 30, 0, 2100))
+            lift_door(F, d)
         else:
             leaf(F, d)
     leaf(F, dict(se, fire="B"))
@@ -341,19 +378,21 @@ def refuge_floor(b):
     core = b["core"]
     rooms = core_only(b, F, H)
     body = [q for rm in b["floor_plate"]["rooms"].values() if rm["type"] not in ("CORE", "BL", "AC") for q in rm["rects"]]
+    body += b["floor_plate"].get("corridor", [])                 # 4 or 6 flats a floor: the lobby corridor is refuge area too
     for q in body:
         F.add("slab", box(*q, -SLAB, 0))
     x0 = min(q[0] for q in body); x1 = max(q[2] for q in body); y0 = min(q[1] for q in body); y1 = max(q[3] for q in body)
     cops, cleaves = core_openings(core)
     ly0, ly1 = core["lobby_y"]
-    ops = cops + [("v", x, ly0 + 300, ly1 - 300, 0, 2400) for x in (-core["width"] / 2, core["width"] / 2)]
+    ops = cops + [("v", x, ly0 + 300, ly1 - 300, 0, 2400)
+                  for x in ((-core["width"] / 2, core["width"] / 2) if not core.get("lift_doors") else ())]
     wall_shapes(F, rooms, H, ops)
     railing_edges(F, [x0, y0, x1, y1], "NSEW", 1200, role="parapet", t=200)       # open refuge area, 1.2 m parapet
     for cx, cy in (b["ground"] or {}).get("columns", []):
         F.add("column", box(cx - 200, cy - 200, cx + 200, cy + 200, 0, H - SLAB))
     for d in cleaves:
         if d.get("lift"):
-            F.add("lift_door", box(d["from"], d["at"] - 30, d["to"], d["at"] + 30, 0, 2100))
+            lift_door(F, d)
         else:
             leaf(F, d)
     stairs(F, core, H, b["requirements"]["risers_per_storey"])
@@ -411,8 +450,9 @@ def roof_level(b):
     railing_edges(F, [x0, y0, x1, y1], "NSEW", r["parapet_h"] * 1000, role="parapet", t=200)
     hh = r["head_h"]
     ex, md = roof_exit(b), r["roof_door"]
-    tower_walls(F, r["stair_head"], hh, [("E", ex["from"], ex["to"]), ("S", md["from"], md["to"])])
-    tower_walls(F, r["machine_room"], hh, [("N", md["from"], md["to"])])
+    sd = r.get("sides", {"exit": "E", "head_door": "S", "machine_door": "N"})     # floorplan.py records its own
+    tower_walls(F, r["stair_head"], hh, [(sd["exit"], ex["from"], ex["to"]), (sd["head_door"], md["from"], md["to"])])
+    tower_walls(F, r["machine_room"], hh, [(sd["machine_door"], md["from"], md["to"])])
     for rect in (r["stair_head"], r["machine_room"]):
         F.add("roof", box(*rect, hh, hh + SLAB))
     leaf(F, dict(ex, at=ex["at"] - 100, kind="door", fire="B"))
@@ -548,9 +588,8 @@ def styled(F, b, env, st, zone, kind):
     return G
 
 
-def build(b, out_dir, meta_extra=None, ifc=True, style="plain"):
-    os.makedirs(out_dir, exist_ok=True)
-    st = FA.STYLES[style]
+def _unit_parts(b, st):
+    """All floor kinds of the building, styled, plus its roof."""
     env = FA.envelope(b)
     typ = typical_floor(b)
     kinds = {"typical": typ}
@@ -558,16 +597,23 @@ def build(b, out_dir, meta_extra=None, ifc=True, style="plain"):
         kinds["pilotis"] = ground_floor(b)
     if any(f["kind"] == "refuge" for f in b["floors"]):
         kinds["refuge"] = refuge_floor(b)
-    zoned, floors = {}, []
+    zoned = {}
     for f in b["floors"]:
         key = (f["kind"], FA.zone_of(b, f["storey"], st))
         if key not in zoned:
             zoned[key] = styled(kinds[f["kind"]], b, env, st, key[1], f["kind"])
-        floors.append((f["kind"], zoned[key]))
     roof = roof_level(b)
     roof.prims = FA.crown(b, env, st, b["requirements"]["storey_h"] * 1000) if st.get("palette") else []
     for p in roof.prims:
         roof.add(p["role"], prim_shape(p))
+    return kinds, zoned, roof, typ
+
+
+def build(b, out_dir, meta_extra=None, ifc=True, style="plain"):
+    os.makedirs(out_dir, exist_ok=True)
+    st = FA.STYLES[style]
+    kinds, zoned, roof, typ = _unit_parts(b, st)
+    floors = [(f["kind"], zoned[(f["kind"], FA.zone_of(b, f["storey"], st))]) for f in b["floors"]]
     floors.append(("roof", roof))
     rep = {"storeys": len(b["floors"]), "floor_kinds": ["/".join(k) for k in zoned], "style": style}
     from highrise import viewer_export as VE
@@ -595,15 +641,22 @@ def build(b, out_dir, meta_extra=None, ifc=True, style="plain"):
     return rep
 
 
-if __name__ == "__main__":
-    b = json.load(open(sys.argv[1]))
-    style = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--style=")), "plain")
+def main(argv):
+    b = json.load(open(argv[1]))
+    style = next((a.split("=", 1)[1] for a in argv if a.startswith("--style=")), "plain")
     if style != "plain":
         b = dict(b, id=f"{b['id']}-{style.replace('_', '-')}", name=f"{b['name']} · {FA.STYLES[style]['name']} facade",
                  style=style, style_of=b["id"])
-    rep = build(b, sys.argv[2], ifc="--no-ifc" not in sys.argv, style=style)
+    rep = build(b, argv[2], ifc="--no-ifc" not in argv, style=style)
     if style != "plain":                     # the variant's building.json: the plan's, plus the style and its checks
         b["facade_checks"] = rep["facade_checks"]
-        with open(os.path.join(sys.argv[2], "building.json"), "w") as fo:
+        with open(os.path.join(argv[2], "building.json"), "w") as fo:
             json.dump(b, fo, separators=(",", ":"))
     print(json.dumps(rep, default=str))
+
+
+if __name__ == "__main__":
+    # FreeCAD's start-up scripts clear names from __main__ (json, base64, ...): run from a clean import of this module
+    import importlib
+    import sys as _sys
+    importlib.import_module("highrise.bim").main(_sys.argv)

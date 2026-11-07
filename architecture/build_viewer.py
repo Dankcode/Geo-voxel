@@ -48,7 +48,8 @@ def main():
             k = h.get("key"); r = designs.get(k); vk = vkey(aid, k)
             rec = dict(key=k, vk=vk, osm_id=h["osm_id"], address=h.get("address"), street=h.get("street"), archetype=h.get("archetype"),
                        style=h.get("style"), storeys=h.get("storeys"), gate=h.get("gate"), distance_m=h.get("distance_m"),
-                       restyled_from=h.get("restyled_from"), built=False, export_url=None, footprint=None)
+                       restyled_from=h.get("restyled_from"), regenerated_from=h.get("regenerated_from"), counts=h.get("counts"),
+                       storeys_set=h.get("storeys_set"), seed=h.get("seed"), built=False, export_url=None, footprint=None)
             pf = os.path.join(A_DIR, "plans", f"plan-{k}.json")
             mesh = os.path.join(D, "bim", f"{k}.mesh.json")
             have_mesh = os.path.exists(mesh) or f"{vk}.mesh.json" in keep_models
@@ -79,7 +80,8 @@ def main():
                 fp = [rm["polygon_latlon"] for rm in EX.get("rooms", []) if rm.get("storey") == 0 and rm.get("polygon_latlon")]
                 rec["footprint"] = [[[round(a, 6), round(b, 6)] for a, b in poly] for poly in fp]
             rec.update(built=True, style=m["meta"]["theme"]["style"], archetype=m["meta"]["theme"]["archetype"], storeys=storeys)
-            idx.append(dict(key=vk, name=name + (f" · {sty(rec['style'])}" if h.get("restyled_from") else ""), archetype=rec["archetype"], style=rec["style"],
+            tag = f" · regenerated, {beds} bed" if h.get("regenerated_from") else (f" · {sty(rec['style'])}" if h.get("restyled_from") else "")
+            idx.append(dict(key=vk, name=name + tag, archetype=rec["archetype"], style=rec["style"],
                             storeys=storeys, group=group, sub=f"{sty(rec['style'])} · {beds} bed · " + ("all checks pass ✓" if h.get("gate") == "pass" else "checks fail ✗")))
             ah.append(rec); print(aid, vk, rec["style"], h.get("gate"), flush=True)
         areas.append(dict(id=aid, title=("Example houses" if aid == "examples" else title), center=A.get("center"), radius_m=A.get("radius_m"),
@@ -110,9 +112,14 @@ def add_highrise(tmp, idx):
         sname = m["meta"].get("style", {}).get("name") if sty else None
         ok = all(c.get("pass") for c in B.get("facade_checks", []))
         m2 = re.search(r"(\d+) m²", B["name"])
-        short = f"{len(B['floors'])} storeys" + (f" · {m2.group(1)} m²" if m2 else "") + (f" · {sname.split(' (')[0]}" if sname else "")
+        cfg = B.get("config", {}); nd = int(B.get("dwellings_per_floor") or cfg.get("dwellings", 2))
+        beds = sum(t in ("BRM", "BR") for _, t in B.get("programme", []))
+        short = (f"{len(B['floors'])} storeys" + (f" · {m2.group(1)} m²" if m2 else "") + f" · {nd} flats a floor"
+                 + (f" · {sname.split(' (')[0]}" if sname else ""))
+        hr = dict(design=B.get("style_of") or B["id"], storeys=len(B["floors"]), gfa=cfg.get("gfa"), dwellings=nd, bedrooms=beds,
+                  style=sty or "plain", seed=cfg.get("seed"))
         idx.append(dict(key=vk, name=short, archetype="apartments", style=f"chinese_highrise_{sty}" if sty else "chinese_highrise_slab",
-                        storeys=len(B["floors"]), group="High-rise apartments (China)",
+                        storeys=len(B["floors"]), group="High-rise apartments (China)", hr=hr,
                         sub=f"{B['score']['measure']['layout']} · score {B['score']['score']}"
                             + (" · facade checks ✓" if sty and ok else (" · facade checks ✗" if sty else ""))))
         print("highrise", vk, B["score"]["score"], flush=True)

@@ -22,6 +22,7 @@ import math
 import random
 
 from highrise.codes import MIN_NET_AREA as MIN_NET, DOOR_CLEAR, DOOR_FRAME
+from highrise import walk
 
 
 def door_open(t):
@@ -30,6 +31,8 @@ def door_open(t):
 GRID = 100
 EPS = 300                 # 3M modulus (GB/T 50002): walls snap to 300 mm, moves in 100 mm
 SIGMA = 2 * EPS
+PROPORTION = {"LR": (2.2, 3000), "DR": (2.0, 2400), "KT": (3.0, 1800), "BRM": (2.0, 2900), "BR": (2.2, 2400),
+              "ST": (2.2, 2100)}           # (max aspect of the bounding box, min side mm) for compact flats' rooms
 BAND_OK = {               # which band each room type may sit in (from the references)
     "LR": "S", "BRM": "S", "BR": "NS", "ST": "NS", "KT": "N", "NA": "N",
     "BA": "NM", "BAM": "M", "CL": "M", "DR": "M", "EN": "M", "HL": "M", "SR": "M",
@@ -48,9 +51,25 @@ K = {"a": 100.0, "d": 1.0, "s": 1.0, "sun": 6.0, "through": 8.0, "mingwei": 1.5,
 
 
 # ----------------------------------------------------------------------------- stage 1
-def sample_programme(gfa, rng, priors):
-    """Room list for a dwelling of the given gross floor area, conditioned like a small Bayes net."""
-    if gfa < 95:
+def sample_programme(gfa, rng, priors, beds=None, baths=None, compact=None):
+    """Room list for a dwelling of the given gross floor area, conditioned like a small Bayes net. beds / baths: counts
+    set in the viewer's Regenerate panel (2026-11-06), which replace the sampled ones. compact: the axis area (m2) of a
+    flat on a 4- or 6-flat floor; beds 0 = a studio (living room that is also the bedroom, GB 50096 5.1.1 smallest
+    dwelling type, >= 22 m2 usable), else 1 bedroom under 55 m2, 2 above; no dining room or second bathroom."""
+    if compact is not None:
+        nb = (0 if compact < 34 else 1 if compact < 55 else 2) if beds is None else max(0, min(3, int(beds)))
+        # 2026-11-07: a one-bedroom flat under 40 m2 has a single bedroom (BR: 2.4 m wide, 5 m2 net), as in Chinese
+        # 一室一厅 of that size; a double bedroom (BRM, 2.9 m) and a 13 m2 living room do not both fit squarely
+        first = "BR" if nb == 1 and compact < 40 else "BRM"
+        rooms = ["EN", "LR", "KT"] + (["HL"] if nb >= 2 else []) + ([first] + ["BR"] * (nb - 1) if nb else []) + ["BA"]
+        ids, cnt = [], {}
+        for t in rooms:
+            cnt[t] = cnt.get(t, 0) + 1
+            ids.append((f"{t.lower()}{cnt[t]}" if rooms.count(t) > 1 else t.lower(), t))
+        return ids
+    if beds:
+        beds = max(1, min(5, int(beds)))
+    elif gfa < 95:
         beds = 2
     elif gfa < 125:
         beds = 3
@@ -59,7 +78,7 @@ def sample_programme(gfa, rng, priors):
     else:
         beds = 4
     study = beds == 3 and gfa >= 125 and rng.random() < 0.5
-    baths = 1 if gfa < 100 else (2 if gfa < 165 else 3)
+    baths = max(1, min(3, int(baths))) if baths else (1 if gfa < 100 else (2 if gfa < 165 else 3))
     rooms = ["EN", "DR", "LR", "KT", "HL", "BRM"] + ["BR"] * (beds - 1)
     if study:
         rooms.append("ST")
@@ -99,11 +118,33 @@ def area_targets(prog, area_axis, priors):
 
 # ----------------------------------------------------------------------------- geometry
 class Unit:
-    """Domain [0, X] x [0, D] minus the core notch [0, wn] x [0, dc]."""
+    """Domain [x0, X] x [0, D] minus the cut rectangles (default: the core notch [0, wn] x [0, dc]).
 
-    def __init__(self, X, D, wn, dc, lobby_y, end_unit=True, lifts=()):
+    door: where the dwelling door opens onto the lobby: ("v", x, y_lo, y_hi) on a wall at x, or ("h", y, x_lo, x_hi)
+    on a wall at y (default: the lobby end, ("v", wn, *lobby_y)). north: the dwelling has a north facade (a flat behind
+    the floor's lobby corridor has none). 2026-11-06: floors of 4 and 6 flats around one lobby corridor."""
+
+    def __init__(self, X, D, wn, dc, lobby_y, end_unit=True, lifts=(), x0=0, cuts=None, door=None, north=True):
         self.X, self.D, self.wn, self.dc, self.lobby_y, self.end = X, D, wn, dc, lobby_y, end_unit
         self.lifts = [tuple(l) for l in lifts]
+        self.x0, self.north = x0, north
+        self.cuts = [tuple(c) for c in (cuts if cuts is not None else [(0, 0, wn, dc)])]
+        self.door = tuple(door) if door else ("v", wn, lobby_y[0], lobby_y[1])
+        self.standard = cuts is None and x0 == 0 and door is None
+
+    def area(self):
+        return (self.X - self.x0) * self.D - sum((c[2] - c[0]) * (c[3] - c[1]) for c in self.cuts)
+
+    def door_overlap(self, q):
+        """Length of rectangle q's side that lies on the door line, within the door's span (either side of it)."""
+        o, at, lo, hi = self.door
+        if o == "v":
+            return min(q[3], hi) - max(q[1], lo) if at in (q[0], q[2]) else 0
+        return min(q[2], hi) - max(q[0], lo) if at in (q[1], q[3]) else 0
+
+    def door_depth(self, q):
+        """How far rectangle q reaches into the flat from the door line."""
+        return (q[2] - q[0]) if self.door[0] == "v" else (q[3] - q[1])
 
 
 def rects_of(st, U):
@@ -221,29 +262,77 @@ def realise(R, T, U):
     return links, unreached, pen, sh
 
 
+def _square_share(rs, side):
+    """Share of a room's area that a side x side square can sweep (morphological opening of the plan shape)."""
+    from shapely.geometry import box
+    from shapely.ops import unary_union
+    g = unary_union([box(*q) for q in rs])
+    if g.area <= 0:
+        return 0.0
+    h = side / 2 - 1
+    return g.buffer(-h, join_style=2, mitre_limit=10).buffer(h, join_style=2, mitre_limit=10).area / g.area
+
+
+def _net_area(rs):
+    """Net floor area (m2) of a room made of rectangles: the union less half a 200 mm wall all round."""
+    from shapely.geometry import box
+    from shapely.ops import unary_union
+    return unary_union([box(*q) for q in rs]).buffer(-100, join_style=2).area / 1e6
+
+
 def cost(st, U, T, targets, want_south, detail=False):
     R = st["R"] if "R" in st else rects_of(st, U)        # lattice.optimise hands over the rooms' rectangles
     links, unreached, pen, sh = realise(R, T, U)
     ext = exterior(R, U)
     Ca = len(unreached)
+    why = [f"unreached {r}" for r in unreached]
+    Ca += walk.defects(R, T)
+    if walk.defects(R, T): why.append("walk")                                      # a room nobody can walk through, after diagonal cuts
+    # rooms people sleep in: in a studio the living room is the bedroom (GB 50096 5.1.1 "兼起居的卧室")
+    SLEEP = ("BR", "BRM", "ST") if any(t in ("BR", "BRM", "ST") for t in T.values()) else ("BR", "BRM", "ST", "LR")
     en = next(r for r in R if T[r] == "EN")
-    ex0 = R[en][0]
-    ov = min(ex0[3], U.lobby_y[1]) - max(ex0[1], U.lobby_y[0]) if ex0[0] == U.wn else 0
+    ex0 = max(R[en], key=U.door_overlap) if R[en] else (0, 0, 0, 0)   # the entry's rectangle on the flat door
+    ov = U.door_overlap(ex0)
     Ca += 0 if ov >= 1200 else 1                                  # unit door onto the lobby
+    if ov < 1200: why.append("door overlap")
+    if U.door_depth(ex0) < 1200: why.append("door depth")
+    Ca += 0 if U.door_depth(ex0) >= 1200 else 1                   # and 1.2 m of entry in front of it to step into
     for r, t in T.items():                                       # GB 55038 6.2.2 daylight
         if t in ("LR", "BRM", "BR", "ST", "KT") and max(ext[r].values()) < 1200:
-            Ca += 1
+            Ca += 1; why.append(f"daylight {t}")
+        # (2026-11-06: the living room no longer has to face south: a balcony only where it does, compile.py)
+    if not any(ext[r]["S"] >= 2400 for r, t in T.items() if t in ("LR", "BRM", "BR", "ST")):
+        Ca += 1; why.append("sun")                                 # GB 50096 7.1.1: one habitable room in the sun
+    if getattr(U, "compact", False):
+        # 2026-11-06 (Leon: rooms were elongated): proportions of a 4/6-flat floor's rooms, as houseplan.KIND asks
+        for r, rs in R.items():
+            lim = PROPORTION.get(T[r])
+            if not lim or not rs:
+                continue
+            bw = max(q[2] for q in rs) - min(q[0] for q in rs); bh = max(q[3] for q in rs) - min(q[1] for q in rs)
+            area = sum((q[2] - q[0]) * (q[3] - q[1]) for q in rs)
+            if max(bw, bh) / max(1, min(bw, bh)) > lim[0] + 1e-6 or min(bw, bh) < lim[1] - 1e-6:
+                Ca += 1; why.append(f"proportion {T[r]} {bw}x{bh}")
+            elif T[r] in ("LR", "BRM", "BR", "ST") and area < 0.8 * bw * bh:
+                Ca += 1; why.append(f"fill {T[r]}")
+            elif T[r] in ("LR", "BRM", "BR", "ST") and _square_share(rs, lim[1]) < (0.7 if T[r] == "LR" else 0.8):
+                # 2026-11-07: most of the room is reached by a square of its minimum side (a 2.4 m x 6 m living room
+                # with a 0.6 m bump passed the bounding-box tests above); a living room may keep a 30 % alcove
+                Ca += 1; why.append(f"square {T[r]}")                                            # mostly a rectangle, not an L with a long arm
     for r, rs in R.items():                                       # GB 50096 5.2-5.4 / GB 55038 4.1 areas
         mn = MIN_NET.get(T[r])
-        if mn and sum((q[2] - q[0] - 200) * (q[3] - q[1] - 200) for q in rs) / 1e6 < mn:
-            Ca += 1
+        # compact flats: the union less half a wall (the gate's G1 measure); else each rectangle less a wall, which
+        # also keeps the lattice's rooms from growing thin arms
+        net = _net_area(rs) if getattr(U, "compact", False) else sum((q[2] - q[0] - 200) * (q[3] - q[1] - 200) for q in rs) / 1e6
+        if mn and net < mn:
+            Ca += 1; why.append(f"area {T[r]}")
     for r, rs in R.items():                                       # GB 55038 4.2.3 no bedroom on a lift shaft
-        if T[r] in ("BR", "BRM", "ST") and any(_touch(q, l) for q in rs for l in U.lifts):
-            Ca += 1
+        if T[r] in SLEEP and any(_touch(q, l) for q in rs for l in U.lifts):
+            Ca += 1; why.append(f"lift {T[r]}")
     bam = [r for r in R if T[r] == "BAM"]
     for b in bam:                                                 # master suite
         if not any((T[p] in ("BRM", "CL")) and q == b for p, q, _ in links):
-            Ca += 1
+            Ca += 1; why.append("suite")
     # C_d: Gaussian log-likelihood of axis area and aspect against the priors
     Cd, shapes = 0.0, 0.0
     for r, rs in R.items():
@@ -286,7 +375,7 @@ def cost(st, U, T, targets, want_south, detail=False):
     C = (K["kdl"] * Cdl + K["a"] * Ca + K["d"] * Cd + K["s"] * shapes + K["sun"] * Csun + K["through"] * Cthrough +
          K["mingwei"] * Cmw + K["dongjing"] * Cdj + K["circ"] * Ccirc + K["pref"] * pen)
     if detail:
-        return C, {"Ca": Ca, "dining_living": Cdl == 0, "bed_on_lift": [r for r, rs in R.items() if T[r] in ("BR", "BRM", "ST") and any(_touch(q, l) for q in rs for l in U.lifts)], "Cd": round(Cd, 3), "Cs": round(shapes, 3), "south": south,
+        return C, {"Ca": Ca, "Ca_why": why, "dining_living": Cdl == 0, "bed_on_lift": [r for r, rs in R.items() if T[r] in SLEEP and any(_touch(q, l) for q in rs for l in U.lifts)], "Cd": round(Cd, 3), "Cs": round(shapes, 3), "south": south,
                    "through": not Cthrough, "dark_baths": Cmw, "bed_off_entry": Cdj,
                    "circ_share": round(circ / tot, 3), "unreached": unreached,
                    "links": links, "R": R, "ext": ext}

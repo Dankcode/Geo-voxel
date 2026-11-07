@@ -1,13 +1,13 @@
 """SVG drawings: typical floor (both dwellings + core), ground floor, roof, and single reference plans."""
 from highrise.plan import NAMES, net_area
-from highrise.walls import floor_walls, THICK
+from highrise.walls import floor_walls, diagonal_walls, THICK
 
 FILL = {"LR": "#f6e3c8", "DR": "#f8ecd4", "KT": "#f3d3cf", "KW": "#f3d3cf", "BRM": "#d5e1f2",
         "BR": "#e0eaf6", "ST": "#e6def2", "BAM": "#d3ecea", "BA": "#ddf1ef", "EN": "#e3efd8",
         "HL": "#edf4e6", "CL": "#eadfd2", "SR": "#e8e8e8", "NA": "#efdcea", "BL": "#dcefd6",
         "BLN": "#dcefd6", "CORE": "#e4e4e4"}
 FONT = "Helvetica, Arial, sans-serif"
-CORE_LABEL = {"stair": "Stair", "lobby": "Lift lobby", "fire lift": "Fire lift", "lift": "Lift", "shaft": "Shaft"}
+CORE_LABEL = {"corridor": "Corridor", "stair": "Stair", "lobby": "Lift lobby", "fire lift": "Fire lift", "lift": "Lift", "shaft": "Shaft"}
 
 
 class Sheet:
@@ -30,6 +30,10 @@ class Sheet:
     def rect(self, q, fill, stroke="none", sw=0, extra=""):
         self.out.append(f'<rect x="{self.X(q[0]):.1f}" y="{self.Y(q[1]):.1f}" width="{(q[2]-q[0])*self.s:.1f}" '
                         f'height="{(q[3]-q[1])*self.s:.1f}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" {extra}/>')
+
+    def poly(self, pts, fill, stroke="none", sw=0):
+        d = " ".join(f"{self.X(x):.1f},{self.Y(y):.1f}" for x, y in pts)
+        self.out.append(f'<polygon points="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>')
 
     def text(self, x, y, t, size=11, anchor="middle", fill="#222", weight="normal"):
         self.out.append(f'<text x="{x:.1f}" y="{y:.1f}" font-size="{size}" text-anchor="{anchor}" fill="{fill}" font-weight="{weight}">{t}</text>')
@@ -57,6 +61,9 @@ def _rooms(sh, rooms, core_info=None):
     for rid, rm in rooms.items():
         for q in rm["rects"]:
             sh.rect(q, FILL.get(rm["type"], "#eee"))
+    for rid, rm in rooms.items():                     # diagonal corner cuts: the triangle takes the receiving room's fill
+        for t in rm.get("add", ()):
+            sh.poly(t, FILL.get(rm["type"], "#eee"), FILL.get(rm["type"], "#eee"), 0.5)
     for rid, rm in rooms.items():                     # balcony edges: railings
         if rm["type"] in ("BL", "BLN"):
             for q in rm["rects"]:
@@ -66,6 +73,8 @@ def _rooms(sh, rooms, core_info=None):
         col = "#2b2b2b" if kind != "interior" else "#555"
         a, b = ((sh.X(c), sh.Y(lo)), (sh.X(c), sh.Y(hi))) if o == "v" else ((sh.X(lo), sh.Y(c)), (sh.X(hi), sh.Y(c)))
         sh.line(a, b, col, w, 'stroke-linecap="square"')
+    for x0, y0, x1, y1, kind in diagonal_walls(rooms):
+        sh.line((sh.X(x0), sh.Y(y0)), (sh.X(x1), sh.Y(y1)), "#555", max(3.0, THICK[kind] * sh.s), 'stroke-linecap="square"')
     for rid, rm in rooms.items():
         role = rm.get("role")
         if not role:
@@ -164,14 +173,28 @@ def floor_svg(plan, core, fp, title, lines):
     _ac(sh, fp["ac"])
     _windows(sh, fp["windows"])
     _doors(sh, fp["doors"])
-    labels = {}
-    for rid in plan["rooms"]:
-        if plan["rooms"][rid]["type"] == "BL":
-            continue
-        a = f"{net_area(plan, rid):.1f} m²"
-        labels["E." + rid] = labels["W." + rid] = a
-    rr = plan.get("refuge_room")
-    _labels(sh, fp["rooms"], labels, {"E." + rr, "W." + rr} if rr else ())
+    labels, refuge = {}, set()
+    groups = {}
+    for key, rm in fp["rooms"].items():
+        pre, rid = key.split(".", 1)
+        if pre != "core":
+            groups.setdefault(pre, {})[rid] = rm
+    if set(groups) <= {"E", "W"}:                     # two mirrored dwellings: the planned one's areas on both
+        for rid in plan["rooms"]:
+            if plan["rooms"][rid]["type"] == "BL":
+                continue
+            a = f"{net_area(plan, rid):.1f} m²"
+            labels["E." + rid] = labels["W." + rid] = a
+        rr = plan.get("refuge_room")
+        refuge = {"E." + rr, "W." + rr} if rr else set()
+    else:                                             # flats of their own (floorplan.py): each flat's areas
+        for pre, rms in groups.items():
+            pseudo = {"rooms": rms}
+            for rid, rm in rms.items():
+                if rm["type"] != "BL":
+                    labels[f"{pre}.{rid}"] = f"{net_area(pseudo, rid):.1f} m²"
+        refuge = set(fp.get("refuge_rooms", []))
+    _labels(sh, fp["rooms"], labels, refuge)
     sh.frame(title, lines)
     return sh.svg()
 
@@ -184,6 +207,8 @@ def ground_svg(b, title, lines):
     sh.rect(ext, "#f1efe8", "#9a958a", 1.5, 'stroke-dasharray="8 5"')
     sh.text(sh.X(ext[0] + 1500), sh.Y(ext[1] + 1500), "Open pilotis (communal space under the building)", 11, "start", "#6b665c")
     sh.rect(g["hall"], "#efe9dc", "#3b3b3b", 4)
+    for q in g.get("hall_extra", []):
+        sh.rect(q, "#efe9dc", "#3b3b3b", 4)
     sh.rect(g["mail"], "#dcd5c6", "#777", 1)
     sh.text(sh.X((g["mail"][0] + g["mail"][2]) / 2), sh.Y((g["mail"][1] + g["mail"][3]) / 2) + 3, "Mailboxes", 8)
     sh.text(sh.X(g["hall"][0] + 1500), sh.Y(g["hall"][3] - 800), "Entrance hall", 11, "start")

@@ -8,7 +8,7 @@ Room flags: tier (porch/public/semi/circulation/service/private), mu/sigma targe
 exterior_access (needs its own outside wall: garages, loading), open_air (porch: roofed, no walls), stair (pinned on
 every storey), max_aspect, min_side (m).
 """
-import math
+import json, math
 
 BASE = dict(living=20, dining=12, kitchen=12, bedroom=12, master=15, bathroom=5.5, wc=3.0, study=9, utility=4.5, garage=24,
             foyer=6, hall=None, corridor=None, stair=None, sales=None, storage=14, office=11, meeting=16, open_office=None,
@@ -392,10 +392,84 @@ def garage(P, A, frontage):
     for b in bays: b["detached"] = 1
 
 
+# ------------------------------------------------------------------------------------------------ user room counts
+# 2026-11-06: the viewer's Regenerate panel sets room counts per storey (ROOMS_OVERRIDE, JSON):
+#   {"0": {"bedroom": 1, "study": 1}, "1": {"bedroom": 4, "bathroom": 2}, "garage": 0 | 1 | 2}
+# The programme is sampled as usual, then each storey gets exactly the counts asked for: extra rooms open off that
+# storey's circulation (hall, landing, foyer, else the living room), surplus rooms are taken off the end of the list
+# (the master bedroom and the entry stay). The planner, gate and build then run unchanged.
+COUNT_KINDS = {"bedroom": "private", "bathroom": "private", "wc": "service", "study": "semi", "utility": "service",
+               "dining": "public", "living": "semi", "kitchen": "semi"}
+
+
+def _circulation(P, s):
+    for kinds in (("hall", "landing", "corridor"), ("foyer",), ("living",)):
+        r = next((r for r in P.rooms if r["storey"] == s and r["kind"] in kinds), None)
+        if r: return r
+    return next((r for r in P.rooms if r["storey"] == s and not r.get("stair")), None)
+
+
+def _fresh(P, r):
+    """An id no other room has (removals leave gaps, so len(rooms) may already be taken)."""
+    return 1 + max((x["id"] for x in P.rooms if x is not r), default=-1)
+
+
+def apply_counts(P, counts, A):
+    if not counts: return
+    S = 1 + max((r["storey"] for r in P.rooms), default=0)
+    for sk, want in counts.items():
+        if sk == "garage" or not isinstance(want, dict): continue
+        s = int(sk)
+        if s >= S:
+            P.log.append(f"user counts | storey {s + 1} does not exist ({S} storeys) → ignored"); continue
+        for kind, n in want.items():
+            if kind not in COUNT_KINDS: continue
+            n = max(0, min(8, int(n)))
+            have = [r for r in P.rooms if r["storey"] == s and r["kind"] == kind]
+            if len(have) < n:
+                hub = _circulation(P, s)
+                for _ in range(n - len(have)):
+                    r = P.room(kind, s, COUNT_KINDS[kind]); r["id"] = _fresh(P, r)
+                    if hub is not None: P.link(hub, r, "open" if kind in ("dining", "living") else "door")
+            else:
+                keep = [r for r in have if r is P.entry or r.get("mu") == BASE.get("master")][:1] if kind == "bedroom" else []
+                drop = [r for r in reversed(have) if r not in keep and r is not P.entry][:len(have) - n]
+                for r in drop: P.rooms.remove(r)
+                gone = {r["id"] for r in drop}
+                P.edges = [e for e in P.edges if e["a"] not in gone and e["b"] not in gone]
+            P.log.append(f"user counts | storey {s + 1}: {kind} {len(have)} → {n}")
+    if "garage" in counts:
+        g = [r for r in P.rooms if r["kind"] == "garage"]
+        cars = max(0, min(3, int(counts["garage"])))
+        if cars == 0 and g:
+            P.rooms = [r for r in P.rooms if r["kind"] != "garage"]
+            gone = {r["id"] for r in g}; P.edges = [e for e in P.edges if e["a"] not in gone and e["b"] not in gone]
+        elif cars and not g:
+            k = next((r for r in P.rooms if r["kind"] == "kitchen"), None) or _circulation(P, 0)
+            gr = garage_room(P, A, cars=cars); gr["id"] = _fresh(P, gr)
+            if k is not None: P.link(k, gr)
+        elif cars and g:
+            g[0].update(cars=cars, mu=22.0 * cars, sigma=6.6 * cars, min_side=3.4 if cars == 1 else 6.0)
+        P.log.append(f"user counts | garage → {cars} car(s)")
+    # renumber, and give any room the removals left unconnected a door onto its storey's circulation
+    old = {id(r): r["id"] for r in P.rooms}
+    for i, r in enumerate(P.rooms): r["id"] = i
+    newid = {old[id(r)]: r["id"] for r in P.rooms}
+    P.edges = [dict(e, a=newid[e["a"]], b=newid[e["b"]]) for e in P.edges if e["a"] in newid and e["b"] in newid]
+    linked = {e["a"] for e in P.edges} | {e["b"] for e in P.edges}
+    for r in P.rooms:
+        if r["id"] not in linked and r is not P.entry and not r.get("stair"):
+            hub = _circulation(P, r["storey"])
+            if hub is not None and hub is not r: P.link(hub, r); P.log.append(f"user counts | {r['kind']} reconnected to the {hub['kind']}")
+
+
 def program_for(theme, brief, R):
     P = Prog(R, brief)
     a, S, A, st = theme["archetype"], theme["storeys"], brief["usable"], theme["style"]
-    if a in ("shotgun", "cottage", "bungalow", "two_storey_house", "ranch", "townhouse"): dwelling(P, A, S, a, st)
+    if a in ("shotgun", "cottage", "bungalow", "two_storey_house", "ranch", "townhouse"):
+        dwelling(P, A, S, a, st)
+        ov = _os_p.environ.get("ROOMS_OVERRIDE")
+        if ov: apply_counts(P, json.loads(ov), A)
     elif a == "apartments": apartments(P, A, S)
     elif a == "storefront": storefront(P, A, S, st, brief.get("use"))
     elif a == "office": office(P, A, S)

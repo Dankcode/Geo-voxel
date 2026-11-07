@@ -13,11 +13,24 @@ THICK = {"exterior": 250, "core": 200, "party": 200, "interior": 120}
 OUTSIDE = {"BL", "BLN", "AC"}
 
 
+def _in_tri(t, x, y):
+    (ax, ay), (bx, by), (cx, cy) = t
+    d1 = (x - bx) * (ay - by) - (ax - bx) * (y - by)
+    d2 = (x - cx) * (by - cy) - (bx - cx) * (y - cy)
+    d3 = (x - ax) * (cy - ay) - (cx - ax) * (y - ay)
+    return not ((d1 < 0 or d2 < 0 or d3 < 0) and (d1 > 0 or d2 > 0 or d3 > 0))
+
+
 def _owner(rooms):
-    """Point lookup: which room covers a point (None = outside)."""
+    """Point lookup: which room covers a point (None = outside). A diagonal cut's triangle belongs to the room it was
+    given to (walk.py), though it lies in the giving room's rectangle."""
     rs = [(rid, rm["type"], q) for rid, rm in rooms.items() for q in rm["rects"]]
+    tris = [(rid, t) for rid, rm in rooms.items() for t in rm.get("add", ())]
 
     def at(x, y):
+        for rid, t in tris:
+            if _in_tri(t, x, y):
+                return rid
         for rid, t, q in rs:
             if q[0] < x < q[2] and q[1] < y < q[3]:
                 return None if t in OUTSIDE else rid
@@ -76,3 +89,23 @@ def floor_walls(rooms):
             if cur:
                 out.append((orient, c, cur[1], cur[2], cur[0][0], (cur[0][1], cur[0][2])))
     return out
+
+
+def diagonal_walls(rooms):
+    """[(x0, y0, x1, y1, kind)]: the 45-degree interior walls of diagonal corner cuts (walk.py)."""
+    out = []
+    for rid, rm in rooms.items():
+        for t in rm.get("add", ()):
+            (_, _), (x1, y1), (x2, y2) = t
+            out.append((x1, y1, x2, y2, "interior"))
+    return out
+
+
+def diagonal_wall_ring(x0, y0, x1, y1, t):
+    """The wall's outline, t thick, run t/2 past both ends so it closes against the orthogonal walls it meets."""
+    import math
+    L = math.hypot(x1 - x0, y1 - y0)
+    ux, uy = (x1 - x0) / L, (y1 - y0) / L
+    nx, ny = -uy * t / 2, ux * t / 2
+    ax, ay, bx, by = x0 - ux * t / 2, y0 - uy * t / 2, x1 + ux * t / 2, y1 + uy * t / 2
+    return [(ax + nx, ay + ny), (bx + nx, by + ny), (bx - nx, by - ny), (ax - nx, ay - ny)]

@@ -90,9 +90,14 @@ def core_requirements(storeys, storey_h=3.0, units_per_floor=2, ground=GROUND_OF
     req["fire_lift"] = H > 33                              # GB 50016 7.3.1
     # stairs (GB 50016 5.5.27, 5.5.25, 5.5.26, 5.5.28)
     req["stair_type"] = "open" if H <= 21 else ("enclosed" if H <= 33 else "smoke-proof")
-    req["exits_per_floor"] = 2 if H > 54 else 1
+    # 27-54 m: one stair only while every flat door is within 10 m of it (5.5.26); 4 or 6 flats a floor put the end
+    # flats' doors past that on the far side of the core, so they get the scissor stair's 2 exits (5.5.28: smoke-proof)
+    req["exits_per_floor"] = 2 if (H > 54 or (H > 27 and units_per_floor > 2)) else 1
+    if req["exits_per_floor"] == 2:
+        req["stair_type"] = "smoke-proof"
     req["stair_to_roof"] = H > 27                          # 5.5.26 (single stair 27-54 m); usual practice above
-    req["scissor_ok"] = H > 54
+    req["scissor_ok"] = req["exits_per_floor"] == 2
+    req["max_travel_m"] = 15 if H <= 27 else 10           # flat door to the nearest stair (5.5.25 / 5.5.26 / 5.5.28)
     if req["stair_type"] == "smoke-proof":
         req["unit_doors_on_lobby_max"] = 3                 # 5.5.27-3, Class B fire doors
     req["lobby_min_m2"] = (COMBINED_LOBBY_MIN if req["fire_lift"] and req["stair_type"] == "smoke-proof"

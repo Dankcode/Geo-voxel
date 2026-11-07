@@ -87,3 +87,103 @@ checks (`facade.check`, stored in the variant's `building.json` and the viewer's
 
 Two dwellings per floor only (slab blocks); rectangular rooms; IFC elements grouped per storey and role;
 sunlight against equal neighbouring blocks; 12 reference plans from north China. See `AUDIT.md` § 4.
+
+## Walking through the plan, and diagonal corner cuts (2026-11-06)
+
+`walk.py` checks every room on its real shape (walls taken off: 60 mm each side of an interior wall): a person 0.90 m
+wide must be able to get through every room and from each of its doors to the others; the entry needs 1.10 m clear and
+halls 1.00 m (GB 55038 4.1.13 / GB 50096 5.7). The test erodes the clear floor by half the width with a round body and
+asks that what is left is one piece, and that almost nothing narrower than the width is left over (no slivers). Closets
+and stores are exempt.
+
+Where a room fails at a convex corner of a neighbour that juts into it, `walk.repair` cuts a right-isosceles triangle
+(0.6, 0.9 or 1.2 m legs) off the neighbour's corner and gives it to the room, so the wall between them runs at 45°.
+A cut is kept only if it fixes the room and the neighbour still passes on its own: walkable, its minimum net area, its
+clear square (a bedroom 2.1 m, a kitchen 1.8 m), and 1.3 m of straight wall left between the two for a door. Rooms
+stay rectangles in `rects`; a cut is stored as triangles in `add` (the room that gains) and `sub` (the room that gives).
+
+The planner counts a room nobody can walk through, after cuts, as a hard failure (`planner.cost`, C_a); `compile`
+applies the cuts and keeps doors off the cut wall; the gate's G5 runs the door-to-door check on the finished plan.
+Walls (`walls.diagonal_walls`), the SVG drawings, the viewer's blueprints, furniture and the FreeCAD model all draw the
+45° walls.
+
+## Flats per floor and regenerating (2026-11-06)
+
+A floor has 2, 4 or 6 flats (`dwellings` in a design) around **one** core, and the slab keeps the footprint of the
+2-flats-a-floor slab of the same flat size and depth (`building.two_flat_width`): more flats a floor means smaller
+flats, not a longer building. 6 flats need at least the footprint of the ~185 m² 2-flat slab, so every flat can have a
+south-facing room; a smaller size is widened to that minimum and the building notes it (`envelope.widened`).
+
+**The whole floor in one search (`floorplan.py`), as the houses are planned.** With 4 or 6 flats the houses' optimiser
+(`pipeline/planner.py`: Merrell 2010 label lattice, wall slides, the stair move) plans the typical floor. The labels
+are the public corridor, each flat and the core. The core is one block that the search moves among candidate spots
+along the north facade, mirrored or not, and in one of two forms:
+
+| Core form | Layout | Size (scissor stair, 2 lifts) |
+|---|---|---|
+| wide | stair over its fire lobby, the lifts beside them; the lobby's door and the passenger lifts face the corridor | 12.0 × 5.4 m |
+| stacked | stair, fire lobby and lift row in rows; the lobby's door on its end; the fire lift opens into the lobby | 7.2 × 8.1 m |
+
+The lifts open straight onto the corridor, which is the lift lobby (1.5 m clear in front of the doors, GB 55038
+4.2.4), so no door stands between the lifts and the flat doors. Only the stair has a door: its fire lobby (combined
+with the fire lift's, ≥ 12 m², short side ≥ 2.4 m, GB 50016 5.5.28) opens onto the corridor through a Class B fire
+door. At 33 m and below (no smoke-proof stair) the stair opens straight onto the corridor.
+
+The floor's costs: the corridor and every flat in one piece; the corridor touches the fire lobby's door and every lift
+door, is 1.2 m clear everywhere and as small as it can be; every flat is on the corridor for 1.5 m (its door), has
+enough south facade for its daylit rooms (5.4 m with no north facade, 3.6 m with one), is near an even share of the
+floor and compact (Merrell M_c, no strip under 1.2 m); and the walk from each flat door to the stair's lobby stays
+within the code (10 m above 27 m, 15 m below). The best of several restarts is kept; each flat's rooms are then planned
+on the domain it got by the lattice search (`planner.Unit` with the flat's cut-outs and door; a flat on the west end is
+planned mirrored), and every flat is scored ("Flat B: …" in the viewer).
+
+**Rooms by the houses' planner (`houseplan.py`).** Each flat of a 4- or 6-flat floor gets its rooms from the houses'
+planner (`pipeline/planner.py`, as the houses' apartment units are planned): the flat's cells on a 300 mm lattice, its
+corridor door as the entry edge, its facades as the only light edges, and a programme of rooms with Merrell access
+edges (entry–living open, living–kitchen door, bedrooms and bathroom off the hall or living room). Its cost keeps rooms
+near a 1.35 : 1 aspect ratio and under 2 : 1, each room's minimum side and a clear square in the living room and
+bedrooms, a door-wide shared wall for every access edge and halls sized by the doors they serve (≤ 2 m clear). For the
+Chinese codes it also asks: target areas no smaller than the minimum net areas, one habitable room on the south facade
+(GB 50096 7.1.1), no bedroom (nor a studio's living room) against a lift shaft (GB 55038 4.2.3), and facade enough for
+each daylit room's window and AC platform. Proportions are hard for these flats, in the houses' planner and in the
+gate: living room ≤ 2.2 : 1 and ≥ 3.0 m across, master bedroom ≤ 2 : 1 and ≥ 2.9 m, other bedrooms ≥ 2.4 m, the study
+≥ 2.1 m, kitchen ≤ 3 : 1 and ≥ 1.8 m, bathroom ≤ 2.4 : 1 and ≥ 1.5 m, the entry ≥ 1.2 m. A square of the room's
+minimum side has to sweep most of a living room (70 %, so an alcove may stay) and of a bedroom or study (80 %): a
+2.4 m x 6 m living room with a small bump passed the bounding-box tests and now fails. Net areas count the union of a
+room's rectangles less half a wall all round. A one-bedroom flat under 40 m² gets a single bedroom (2.4 m), as a
+Chinese 一室一厅 of that size does; a studio or one-bedroom flat opens its bedroom and bath off the entry or the living
+room, whichever they touch.
+
+How the flats are searched (`houseplan.py`): the houses' annealer runs colder (β 0.3 → 6, `HR_HOUSE_BETA`) from a
+start that already reads as a flat: in a flat through the block the bedrooms on the north, the living room on the
+sunny south end (a bedroom there if the south end is narrower than a living room), the entry or hall on the door side
+between them and the bath and kitchen on the far side; in a studio on the south face the living room across the full
+depth at one end, the entry on the door with the bath past it, the kitchen behind them on the south face. Once the
+houses' own hard checks pass, the high-rise gate's hard checks (walkability after diagonal cuts, the entry in front
+of the door, net areas, proportions, sun, no bedroom on the lifts) are added to the search's hard term, so the search
+ends on a plan that also passes the gate.
+
+The floor search shapes the flats for this: a studio has at least ~26 m² of plan, no part of a flat is under 1.2 m
+(hard) or 2.4 m (costly) across, 65 % of a flat is at least 3.6 m across, a flat through the block has 3.6 m of south
+face for its living room, and steps in the walls between flats cost more. The public corridor is 1.5 m clear
+(wheelchair turning circle) as a hard rule. A flat's door goes on its corridor edge nearest the stair's lobby, and a
+floor whose measured walk to the stair exceeds the limit gives way to the next-best floor layout. A balcony only
+where the living room has 2.4 m of south wall; elsewhere the living room gets a window and AC platform like a bedroom.
+`HR_ROOMS=lattice` brings back the lattice planner for these flats.
+
+The public corridor is at least 1.5 m clear (a wheelchair's turning circle, GB 55019 2.2.1; GB 50096's 1.2 m is the
+floor) and 1.8 m deep in front of the lifts; the floor search also keeps each flat no longer than twice its width and
+without strips under 2.1 m. A living room gets a balcony only where it has the south front for one; otherwise it takes
+windows and an AC platform like a bedroom.
+
+`HR_FLOOR=fixed` brings back the earlier fixed layout (centred core, lobby corridor behind a fire door).
+
+Any building can be generated again with other counts, from the viewer's **Regenerate…** panel or directly:
+
+```sh
+python architecture/pipeline/run_request.py --highrise hr24-140 --storeys 24 --dwellings 4 --gfa 110 --bedrooms 3 --style modern
+```
+
+This writes `samples/<id>/` and `buildings/<id>/` (FreeCAD, IFC4, viewer mesh, blueprint), adds the facade variant
+when `--style` is given, and rebuilds the viewer. `--bedrooms` and `--bathrooms` replace the counts the programme
+would sample from the flat size.

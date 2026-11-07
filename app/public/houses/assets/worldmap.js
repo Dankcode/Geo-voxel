@@ -1,4 +1,4 @@
-// World map tool (2026-11-03): pick any spot on Earth, highlight 1–2 blocks around it, request its houses, restyle any
+// World map tool (2026-11-03; a "Map generator" tab since 2026-11-06): pick any spot on Earth, highlight 1–2 blocks around it, request its houses, restyle any
 // generated building in the paper's styles (Merrell et al. 2010, Fig. 9) and download a building's game export.
 // The bundled Baton Rouge data draws at once; anywhere else the map fetches OpenStreetMap live (Overpass, keyless).
 // A request runs on the user's own computer: the page shows the run_request.py command for the area or building
@@ -21,7 +21,37 @@ const css = `
 .hbtn{margin-left:auto;align-self:center;font:500 12.5px var(--body);color:var(--accent-ink);background:var(--accent);border:0;border-radius:6px;padding:7px 12px;cursor:pointer}
 .hbtn[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
 .hbtn:focus-visible,.wbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.app>nav{grid-row:2;grid-column:1}.app>main{grid-row:2;grid-column:2}.app>aside{grid-row:2;grid-column:3}
+html .app{grid-template-columns:minmax(0,1fr) 340px}
+.app>main{grid-row:2;grid-column:1}.app>aside{grid-row:2;grid-column:2}
+header{align-items:center}
+.menu{font:500 12.5px var(--body);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:6px 10px;cursor:pointer}
+.menu span{font-size:15px;line-height:1;margin-right:4px}
+.menu[aria-expanded="true"]{background:var(--ink);color:var(--sheet)}
+.tabs{margin-left:auto;display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden;background:var(--sheet)}
+.tabs button{font:500 12.5px var(--body);color:var(--ink);background:transparent;border:0;padding:7px 14px;cursor:pointer;min-height:32px}
+.tabs button+button{border-left:1px solid var(--rule)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.menu:focus-visible,.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#drawer{position:fixed;z-index:30;left:0;top:0;bottom:0;width:min(330px,88vw);display:flex;flex-direction:column;background:var(--sheet);border-right:1px solid var(--rule);box-shadow:0 10px 40px rgba(0,0,0,.18);padding-top:env(safe-area-inset-top,0px)}
+#drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 6px 18px;font:600 16px var(--display)}
+#drawer nav{border:0;flex:1;overflow:auto;max-height:none;padding-bottom:max(20px,env(safe-area-inset-bottom,0px))}
+#scrim{position:fixed;inset:0;z-index:29;background:rgba(0,0,0,.25)}
+#rg-open{background:var(--accent)!important;color:var(--accent-ink)!important}
+.rgsheet{position:absolute;right:12px;top:calc(var(--tb-h, 44px) + 20px);bottom:62px;z-index:6;width:min(360px,calc(100% - 24px));overflow:auto;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.15);padding:4px 14px 14px}
+.rgsheet[hidden]{display:none}
+.rgsheet h3{font:600 15px var(--display);margin:10px 0 2px}
+.rgsheet h4{font:500 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.rgsheet .note{font-size:12px;color:var(--muted);margin:4px 0}
+.rgsheet .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.rgsheet label{display:grid;gap:2px;font-size:11.5px;color:var(--muted)}
+.rgsheet input,.rgsheet select{font:13px var(--body);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:5px 6px;width:100%;min-width:0}
+.rgsheet .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.rgsheet .floor{border-top:1px solid var(--rule);padding-top:6px;margin-top:8px}
+.rgsheet .floor b{font-size:12.5px}
+.savebar{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px max(8px,env(safe-area-inset-bottom,0px));background:var(--sheet);border-top:1px solid var(--rule);font-size:12.5px}
+.savebar b{font:500 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.savebar .msg{color:var(--muted);font:11px var(--mono)}
+main .hint,#loading{bottom:58px!important}
 #wm{grid-column:1/-1;grid-row:2;z-index:5;display:grid;grid-template-columns:minmax(0,1fr) 360px;background:var(--paper);min-height:0}
 #wm[hidden]{display:none}
 #wm .map{position:relative;background:var(--scene);min-height:0;min-width:0}
@@ -52,13 +82,33 @@ const css = `
 .toolbar .seg select{border:0;border-radius:0;background:transparent}
 #bx-msg{position:absolute;left:12px;top:calc(var(--tb-h, 44px) + 20px);z-index:3;max-width:min(520px,calc(100% - 24px));font:11px var(--mono);color:var(--muted);background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:4px 8px}
 #bx-msg:empty{display:none}
-@media (max-width:980px){.app>nav{grid-row:2;grid-column:1}.app>.toolbar{grid-row:3;grid-column:1}.app>main{grid-row:4;grid-column:1}.app>aside{grid-row:5;grid-column:1}#wm{grid-row:2/-1;grid-template-columns:minmax(0,1fr);grid-template-rows:62vh auto}#wm .side{border-left:0;border-top:1px solid var(--rule)}}
+@media (max-width:980px){html .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto 66vh auto}.app>.toolbar{grid-row:2;grid-column:1}.app>main{grid-row:3;grid-column:1}.app>aside{grid-row:4;grid-column:1}.tabs{margin-left:0}.rgsheet{left:12px;right:12px;width:auto;top:12px}#wm{grid-row:2/-1;grid-template-columns:minmax(0,1fr);grid-template-rows:62vh auto}#wm .side{border-left:0;border-top:1px solid var(--rule)}}
 `;
 document.head.insertAdjacentHTML("beforeend", `<style>${css}</style>`);
 
 const app = document.querySelector(".app");
 const header = document.querySelector("header");
-header.insertAdjacentHTML("beforeend", `<button class="hbtn" id="wm-open" aria-pressed="false" aria-controls="wm">World map · generate an area</button>`);
+// 2026-11-06 layout: the building list is a drawer behind ☰; "Buildings" and "Map generator" are tabs in the header
+header.insertAdjacentHTML("afterbegin", `<button class="menu" id="nav-open" aria-expanded="false" aria-controls="drawer" title="Buildings list"><span aria-hidden="true">☰</span> Buildings list</button>`);
+header.insertAdjacentHTML("beforeend", `<div class="tabs" role="tablist" aria-label="View">
+  <button role="tab" id="tab-b" aria-selected="true" aria-controls="cv">Buildings</button>
+  <button role="tab" id="tab-map" aria-selected="false" aria-controls="wm">Map generator</button></div>`);
+{
+  const nav = document.getElementById("list");
+  const drawer = document.createElement("div");
+  drawer.id = "drawer"; drawer.setAttribute("role", "dialog"); drawer.setAttribute("aria-label", "Buildings"); drawer.hidden = true;
+  drawer.innerHTML = `<div class="dh"><b>Buildings</b><button class="wbtn" id="nav-close" aria-label="Close the list">✕</button></div>`;
+  nav.before(drawer); drawer.append(nav);
+  const scrim = document.createElement("div"); scrim.id = "scrim"; scrim.hidden = true; drawer.after(scrim);
+  const btn = document.getElementById("nav-open");
+  const show = on => { drawer.hidden = !on; scrim.hidden = !on; btn.setAttribute("aria-expanded", String(on));
+    if (on) (nav.querySelector('button[aria-current="true"]') || nav.querySelector("button"))?.focus(); else btn.focus(); };
+  btn.addEventListener("click", () => show(drawer.hidden));
+  document.getElementById("nav-close").addEventListener("click", () => show(false));
+  scrim.addEventListener("click", () => show(false));
+  nav.addEventListener("click", e => { if (e.target.closest("button[data-key]")) setTimeout(() => show(false), 0); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !drawer.hidden) show(false); });
+}
 app.insertAdjacentHTML("beforeend", `
 <section id="wm" hidden aria-label="World map">
   <div class="map"><canvas id="wm-cv" aria-label="Map of buildings and streets; click to centre the highlighted area"></canvas>
@@ -349,6 +399,22 @@ function command(req) {
     if (req.styles && Object.keys(req.styles).length) c += ` --styles ${shq(JSON.stringify(req.styles))}`;
     return c;
   }
+  if (req.type === "regenerate") {
+    let c = `python architecture/pipeline/run_request.py --regenerate ${shq(req.area)} ${shq(req.key)}`;
+    if (req.storeys) c += ` --storeys ${req.storeys}`;
+    if (req.rooms && Object.keys(req.rooms).length) c += ` --rooms ${shq(JSON.stringify(req.rooms))}`;
+    if (req.style) c += ` --style ${req.style}`;
+    if (req.seed) c += ` --seed ${req.seed}`;
+    return c;
+  }
+  if (req.type === "highrise") {
+    let c = `python architecture/pipeline/run_request.py --highrise ${shq(req.design)} --storeys ${req.storeys} --dwellings ${req.dwellings} --gfa ${req.gfa}`;
+    if (req.bedrooms) c += ` --bedrooms ${req.bedrooms}`;
+    if (req.bathrooms) c += ` --bathrooms ${req.bathrooms}`;
+    if (req.style && req.style !== "plain") c += ` --style ${req.style}`;
+    if (req.seed) c += ` --seed ${req.seed}`;
+    return c;
+  }
   return `python architecture/pipeline/run_request.py --restyle ${shq(req.area)} ${shq(req.key)} ${req.style}`;
 }
 async function queue(req, msgEl) {
@@ -381,7 +447,7 @@ document.getElementById("wm-req").addEventListener("click", async e => {
 // ---------- generated areas, the selected building, exports ----------
 function houseRow(a, h) {
   const g = h.gate === "pass" ? "✓ all checks pass" : h.gate === "fail" ? "✗ checks fail" : esc(h.gate || "");
-  return `<li><span>${esc(h.address || h.street || "OSM " + h.osm_id)}${h.restyled_from ? " (restyle)" : ""}</span>
+  return `<li><span>${esc(h.address || h.street || "OSM " + h.osm_id)}${h.restyled_from ? " (restyle)" : h.regenerated_from ? " (regenerated)" : ""}</span>
     <span class="row" style="gap:4px">${h.built ? `<button class="wbtn" data-open="${h.vk}">3D</button>` : ""}${h.export_url ? `<button class="wbtn" data-export="${h.vk}">Export</button>` : ""}</span>
     <span class="m">${esc(styleName(h.style))} · ${esc(String(h.archetype || "").replace(/_/g, " "))} · ${h.storeys || "?"}F · ${g}</span></li>`;
 }
@@ -432,35 +498,146 @@ document.getElementById("wm-side").addEventListener("click", e => {
   }
 });
 
-// ---------- 3D view bar: restyle and game export for the building on screen ----------
+// ---------- 3D view: Regenerate panel, and the save bar at the bottom ----------
+// Regenerate (2026-11-06): every building on the list can be generated again with the planned algorithm, on this
+// computer (FreeCAD): houses with their storeys, room counts per floor, garage and style; high-rises with their
+// storeys, dwellings per floor (2, 4 or 6 on one core and lobby corridor), flat size, bedrooms, bathrooms and facade. A
+// regenerated building is itself on the list and can be regenerated again.
 const bar = document.querySelector("main .bar");
-bar.insertAdjacentHTML("afterend", `<div class="seg" id="seg-x" role="group" aria-label="Style and export">
-  <select id="bx-style" aria-label="Regenerate in style">${styleOptions()}</select><button id="bx-go">Regenerate</button><button id="bx-exp">Game export</button></div>`);
-document.querySelector("main").insertAdjacentHTML("beforeend", `<div id="bx-msg"></div>`);
+bar.insertAdjacentHTML("afterend", `<div class="seg" id="seg-x" role="group" aria-label="Regenerate"><button id="rg-open" aria-expanded="false" aria-controls="rg">Regenerate…</button></div>`);
+const mainEl = document.querySelector("main");
+mainEl.insertAdjacentHTML("beforeend", `<div id="bx-msg"></div><section id="rg" class="rgsheet" hidden aria-label="Regenerate"></section>
+<div class="savebar" id="savebar" role="group" aria-label="Save and export"><b>Save / export</b>
+  <button class="wbtn" id="sv-exp">Game export (.building.json)</button><button class="wbtn" id="sv-plan">Blueprint data (.json)</button>
+  <button class="wbtn" id="sv-mesh">3D model mesh (.json)</button><span class="msg" id="sv-msg"></span></div>`);
 const curKey = () => document.querySelector('#list button[aria-current="true"]')?.dataset.key;
+let IDX = {};
+const idxReady = (async () => { try { for (const e of await (await fetch("./models/index.json")).json()) IDX[e.key] = e; } catch { } })();
+const HR_STYLES = [["plain", "Plain render"], ["modern", "Modern"], ["neo_chinese", "Neo-Chinese"], ["art_deco", "Art Deco"], ["public", "Public housing"]];
+const ROOM_FIELDS = [["bedroom", "Bedrooms"], ["bathroom", "Bathrooms"], ["study", "Study"], ["wc", "WC"]];
 function updateExportButton() {
-  const z = BY_VK[curKey()];
-  document.getElementById("seg-x").hidden = !z;
-  document.getElementById("bx-exp").hidden = !(z?.house.export_url);
-  if (z) document.getElementById("bx-style").value = STYLE_NAME[z.house.style] ? z.house.style : "cape_cod";
+  const vk = curKey(), z = BY_VK[vk];
+  document.getElementById("sv-exp").hidden = !(z?.house.export_url);
+  document.getElementById("seg-x").hidden = !vk;
+  document.getElementById("savebar").hidden = !vk;
+  const rg = document.getElementById("rg");
+  if (!rg.hidden && rg.dataset.key !== vk) openPanel(false);
 }
 new MutationObserver(updateExportButton).observe(document.getElementById("list"), { subtree: true, attributes: true, attributeFilter: ["aria-current"], childList: true });
-document.getElementById("bx-exp").addEventListener("click", () => saveExport(curKey(), document.getElementById("bx-msg")));
-document.getElementById("bx-go").addEventListener("click", async () => {
-  const z = BY_VK[curKey()]; if (!z) return;
-  const style = document.getElementById("bx-style").value, msg = document.getElementById("bx-msg");
-  if (style === z.house.style) { msg.textContent = `It is already ${styleName(style)}.`; return; }
-  await queue({ type: "restyle", area: z.area.id, key: z.house.key, label: z.house.address || z.house.street || z.house.key, style }, msg);
-});
 
-// ---------- open / close ----------
-const openBtn = document.getElementById("wm-open"), wm = document.getElementById("wm");
-async function setOpen(on) {
-  wm.hidden = !on; openBtn.setAttribute("aria-pressed", String(on)); openBtn.textContent = on ? "Back to the 3D model" : "World map · generate an area";
-  if (on) { await loadMap(); resize(); recompute(); }
+async function saveText(filename, url, msgEl) {
+  await cfgReady;
+  const say = t => { msgEl.textContent = t; if (t) setTimeout(() => { if (msgEl.textContent === t) msgEl.textContent = ""; }, 5000); };
+  try {
+    say("Preparing…");
+    const text = await (await fetch(url)).text();
+    if (!downloads) {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+      a.download = filename; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); say(""); return;
+    }
+    await downloads.save({ filename, data: text }); say("");
+  } catch (e) { say(e?.code === "declined" ? "" : e?.code === "rate_limited" ? "A save prompt is already open." : "Could not save that file."); }
 }
-openBtn.addEventListener("click", () => setOpen(wm.hidden));
-document.addEventListener("keydown", e => { if (e.key === "Escape" && !wm.hidden) setOpen(false); });
+document.getElementById("sv-exp").addEventListener("click", () => { const z = BY_VK[curKey()]; if (z?.house.export_url) saveText(`${curKey()}.building.json`, "./" + z.house.export_url, document.getElementById("sv-msg")); });
+document.getElementById("sv-plan").addEventListener("click", () => saveText(`${curKey()}.blueprint.json`, `./plans/${curKey()}.json`, document.getElementById("sv-msg")));
+document.getElementById("sv-mesh").addEventListener("click", () => saveText(`${curKey()}.mesh.json`, `./models/${curKey()}.mesh.json`, document.getElementById("sv-msg")));
+
+function openPanel(on) {
+  const rg = document.getElementById("rg"), b = document.getElementById("rg-open");
+  rg.hidden = !on; b.setAttribute("aria-expanded", String(on));
+  if (on) fillPanel(); else rg.dataset.key = "";
+}
+document.getElementById("rg-open").addEventListener("click", e => { e.stopPropagation(); openPanel(document.getElementById("rg").hidden); });
+document.getElementById("seg-x").addEventListener("click", e => e.stopPropagation());   // keep the bundle's .bar handler out
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !document.getElementById("rg").hidden) openPanel(false); });
+
+const num = (id, v, lo, hi) => `<input type="number" id="${id}" value="${v ?? ""}" min="${lo}" max="${hi}" step="1" inputmode="numeric">`;
+async function houseCounts(vk) {
+  const out = { storeys: 1, floors: [], garage: 0 };
+  try {
+    const P = await (await fetch(`./plans/${vk}.json`)).json();
+    out.storeys = P.storeys.length;
+    for (const sh of P.storeys) {
+      const c = {}; for (const r of sh.rooms) c[r.kind] = (c[r.kind] || 0) + 1;
+      out.floors.push(c); out.garage += c.garage ? 1 : 0;
+    }
+  } catch { }
+  return out;
+}
+async function fillPanel() {
+  const rg = document.getElementById("rg"), vk = curKey(); rg.dataset.key = vk || "";
+  await idxReady;
+  const z = BY_VK[vk], e = IDX[vk];
+  const close = `<div class="row" style="justify-content:space-between"><h3>Regenerate</h3><button class="wbtn" data-rgclose aria-label="Close">✕</button></div>`;
+  if (z) {
+    const h = z.house, C = await houseCounts(vk);
+    const floorRows = n => Array.from({ length: n }, (_, s) => `<div class="floor"><b>Floor ${s + 1}${s === 0 ? " (ground)" : ""}</b><div class="grid">` +
+      ROOM_FIELDS.map(([k, lab]) => `<label>${lab}${num(`rg-${s}-${k}`, (C.floors[s] || {})[k] || 0, 0, 8)}</label>`).join("") + `</div></div>`).join("");
+    rg.innerHTML = close + `<p class="note">${esc(h.address || h.street || vk)} · ${esc(styleName(h.style))}. The plan is made again from the map footprint with the
+      counts below; the original stays on the list.</p>
+      <h4>Building</h4><div class="grid" style="grid-template-columns:1fr 1fr">
+      <label>Storeys<select id="rg-storeys">${[1, 2].map(n => `<option ${n === C.storeys ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+      <label>Garage<select id="rg-garage"><option value="">As planned</option><option value="0">None</option><option value="1">1 car</option><option value="2">2 cars</option></select></label></div>
+      <label style="margin-top:6px">Style<select id="rg-style">${styleOptions()}</select></label>
+      <h4>Rooms on each floor</h4><div id="rg-floors">${floorRows(C.storeys)}</div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:8px"><label>Seed (blank: next)${num("rg-seed", "", 1, 9999)}</label></div>
+      <div class="row"><button class="wbtn primary" id="rg-go">Regenerate</button><button class="wbtn" id="rg-restyle">Restyle only</button></div>
+      <div class="note" id="rg-msg"></div>`;
+    document.getElementById("rg-style").value = STYLE_NAME[h.style] ? h.style : "cape_cod";
+    document.getElementById("rg-storeys").onchange = ev => { document.getElementById("rg-floors").innerHTML = floorRows(+ev.target.value); };
+    document.getElementById("rg-go").onclick = () => {
+      const n = +document.getElementById("rg-storeys").value, rooms = {};
+      for (let s = 0; s < n; s++) { rooms[s] = {}; for (const [k] of ROOM_FIELDS) rooms[s][k] = Math.max(0, Math.min(8, +document.getElementById(`rg-${s}-${k}`).value || 0)); }
+      const g = document.getElementById("rg-garage").value; if (g !== "") rooms.garage = +g;
+      queue({ type: "regenerate", area: z.area.id, key: h.key, storeys: n !== C.storeys ? n : null, rooms, style: document.getElementById("rg-style").value,
+        seed: +document.getElementById("rg-seed").value || null }, document.getElementById("rg-msg"));
+    };
+    document.getElementById("rg-restyle").onclick = () => {
+      const st = document.getElementById("rg-style").value, msg = document.getElementById("rg-msg");
+      if (st === h.style) { msg.textContent = `It is already ${styleName(st)}: choose another style, or Regenerate.`; return; }
+      queue({ type: "restyle", area: z.area.id, key: h.key, label: h.address || h.street || h.key, style: st }, msg);
+    };
+  } else if (e?.hr) {
+    const H = e.hr;
+    rg.innerHTML = close + `<p class="note">${esc(e.name)}. One core; with 4 or 6 flats a floor the slab keeps the 2-flat footprint for the flat size, split into compact flats with every door on one lobby corridor from the lifts (6 flats need at least 185 m² so each flat has a south room). The flats are planned again with the
+      house search and checked against the Chinese codes.</p>
+      <h4>Building</h4><div class="grid" style="grid-template-columns:1fr 1fr">
+      <label>Storeys (7–40)${num("rg-st", H.storeys, 7, 40)}</label>
+      <label>Flats per floor<select id="rg-dw">${[2, 4, 6].map(n => `<option ${n === H.dwellings ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+      <label>Flat size (4–6 a floor: footprint of the 2-flat slab), m²${num("rg-gfa", H.gfa, 60, 200)}</label>
+      <label>Facade<select id="rg-fa">${HR_STYLES.map(([v, n]) => `<option value="${v}" ${v === H.style ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>
+      <h4>Rooms in each flat</h4><div class="grid" style="grid-template-columns:1fr 1fr">
+      <label>Bedrooms<select id="rg-bd"><option value="">From the size</option>${[1, 2, 3, 4, 5].map(n => `<option>${n}</option>`).join("")}</select></label>
+      <label>Bathrooms<select id="rg-ba"><option value="">From the size</option>${[1, 2, 3].map(n => `<option>${n}</option>`).join("")}</select></label>
+      <label>Seed (blank: as before)${num("rg-seed", "", 1, 9999)}</label></div>
+      <p class="note">Now: ${H.dwellings} flats a floor, ${H.bedrooms} bedrooms, ${H.gfa} m², ${H.storeys} storeys.</p>
+      <div class="row"><button class="wbtn primary" id="rg-go">Regenerate</button></div><div class="note" id="rg-msg"></div>`;
+    document.getElementById("rg-go").onclick = () => {
+      const v = id => document.getElementById(id).value;
+      queue({ type: "highrise", design: H.design, storeys: Math.max(7, Math.min(40, +v("rg-st") || H.storeys)), dwellings: +v("rg-dw"),
+        gfa: Math.max(60, Math.min(200, +v("rg-gfa") || H.gfa)), bedrooms: +v("rg-bd") || null, bathrooms: +v("rg-ba") || null,
+        style: v("rg-fa"), seed: +v("rg-seed") || null }, document.getElementById("rg-msg"));
+    };
+  } else {
+    rg.innerHTML = close + `<p class="note">This building has no generator settings to change here.</p>`;
+  }
+  rg.querySelector("[data-rgclose]").onclick = () => openPanel(false);
+}
+
+// ---------- tabs: Buildings | Map generator ----------
+const wm = document.getElementById("wm"), tabB = document.getElementById("tab-b"), tabM = document.getElementById("tab-map");
+async function setOpen(on) {
+  wm.hidden = !on;
+  tabB.setAttribute("aria-selected", String(!on)); tabM.setAttribute("aria-selected", String(on));
+  try { history.replaceState(null, "", on ? "#map-generator" : location.pathname + location.search); } catch { }
+  if (on) { openPanel(false); await loadMap(); resize(); recompute(); }
+}
+tabB.addEventListener("click", () => setOpen(false));
+tabM.addEventListener("click", () => setOpen(true));
+for (const t of [tabB, tabM]) t.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { (t === tabB ? tabM : tabB).focus(); (t === tabB ? tabM : tabB).click(); } });
+window.addEventListener("hashchange", () => setOpen(location.hash === "#map-generator"));
+if (location.hash === "#map-generator") setOpen(true);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !wm.hidden && document.getElementById("drawer")?.hidden !== false) setOpen(false); });
 loadAreas().then(async () => {
   renderAreas(); updateExportButton(); draw();
   const q = new URLSearchParams(location.search), la = parseFloat(q.get("lat")), lo = parseFloat(q.get("lon"));

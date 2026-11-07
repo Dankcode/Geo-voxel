@@ -6,7 +6,7 @@ frame. Every bedroom and the living room get a dedicated outdoor AC platform (GB
 length the platform leaves, sized to the 1/7 window-to-floor ratio (GB 50096 7.2.2) and the 5 % / 10 % openable
 area of GB 55038 6.3.3. Above 54 m one bedroom per dwelling becomes the refuge room of GB 50016 5.5.32.
 """
-from highrise import codes
+from highrise import codes, walk
 from highrise.planner import cost
 
 BALCONY_D = 1400
@@ -42,8 +42,24 @@ def _corner_dist(rects, p):
     return min(abs(p[0] - x) + abs(p[1] - y) for x, y in cs)
 
 
-def place_door(ra, rb, width, kind):
-    segs = _segments(ra, rb)
+def _minus(seg, forbid):
+    """A shared wall segment less the spans a diagonal cut took (and 120 mm of reveal next to them)."""
+    o, c, lo, hi = seg
+    parts = [(lo, hi)]
+    for fo, fc, flo, fhi in forbid:
+        if fo != o or abs(fc - c) > 1:
+            continue
+        nxt = []
+        for a, b in parts:
+            for x, y in ((a, min(b, flo - 120)), (max(a, fhi + 120), b)):
+                if y - x > 1:
+                    nxt.append((x, y))
+        parts = nxt
+    return [(o, c, a, b) for a, b in parts]
+
+
+def place_door(ra, rb, width, kind, forbid=()):
+    segs = [p for s in _segments(ra, rb) for p in _minus(s, forbid)]
     if not segs:
         return None
     o, c, lo, hi = max(segs, key=lambda s: s[3] - s[2])
@@ -51,6 +67,8 @@ def place_door(ra, rb, width, kind):
         a, b = lo + 150, hi - 150
     else:
         width = min(width, hi - lo - 240)
+        if width < 700:                                     # no room for a leaf (GB 55038 4.1.14: 0.70 m at least)
+            return None
         best = None
         for a in (lo + 120, hi - 120 - width):
             mid = a + width / 2
@@ -80,18 +98,28 @@ def compile_unit(st, U, prog, targets, want_south, core, plan_id, gfa_target, re
     C, d = cost(st, U, T, targets, want_south, detail=True)
     R, ext, links = d["R"], d["ext"], d["links"]
     rooms = {rid: {"type": T[rid], "rects": [list(map(int, q)) for q in rs]} for rid, rs in R.items()}
+    cuts = walk.repair(R, T)[0]                               # diagonal corner cuts where a room pinches
+    walk.apply_cuts(rooms, cuts)
+    forbid = walk.legs(cuts)
     lr = next(r for r in R if T[r] == "LR")
-    lx0 = min(q[0] for q in R[lr]); lx1 = max(q[2] for q in R[lr])
+    # 2026-11-06: a balcony only where the living room has the south front for it (Leon: not every room needs a
+    # balcony); otherwise the living room takes windows and an AC platform like a bedroom
+    has_bal = ext[lr]["S"] >= 2400
+    lrs = [q for q in R[lr] if q[3] == U.D] or R[lr]          # its south front (an L-shaped living room's other arm
+    lx0 = min(q[0] for q in lrs); lx1 = max(q[2] for q in lrs)   # may reach past it inside the flat)
     # balcony across the living room; its far end is the living room's AC platform (keeps neighbours' walls free)
     ac_end = lx1 - AC_W if lx1 < U.X else lx0
     bl_x0, bl_x1 = (lx0, lx1 - AC_W) if ac_end == lx1 - AC_W else (lx0 + AC_W, lx1)
-    rooms["bl"] = {"type": "BL", "rects": [[bl_x0, U.D, bl_x1, U.D + BALCONY_D]]}
-    links = [(p, q, k) for p, q, k in links] + [(lr, "bl", "slide")]
+    if has_bal:
+        rooms["bl"] = {"type": "BL", "rects": [[bl_x0, U.D, bl_x1, U.D + BALCONY_D]]}
+        links = [(p, q, k) for p, q, k in links] + [(lr, "bl", "slide")]
+    else:
+        links = [(p, q, k) for p, q, k in links]
     en = next(r for r in R if T[r] == "EN")
     links.insert(0, (en, "CORE", "door"))
 
     # --- AC platforms first, then windows in what is left of each exterior wall -------------------------------
-    taken = {"N": [], "S": [(lx0, lx1)], "E": []}           # spans along each facade already used
+    taken = {"N": [], "S": [(lx0, lx1)] if has_bal else [], "E": []}   # spans along each facade already used
     ac = []
 
     def free(side, a, b):
@@ -101,7 +129,7 @@ def compile_unit(st, U, prog, targets, want_south, core, plan_id, gfa_target, re
         t = T[rid]
         if t not in ("LR", "BRM", "BR", "ST"):
             continue
-        if t == "LR":                                      # at the balcony's end, inside the living room's frontage
+        if t == "LR" and has_bal:                          # at the balcony's end, inside the living room's frontage
             ac.append({"room": rid, "side": "S", "rect": [ac_end, U.D, ac_end + AC_W, U.D + AC_D]})
             continue
         for side in "SNE":
@@ -134,12 +162,12 @@ def compile_unit(st, U, prog, targets, want_south, core, plan_id, gfa_target, re
         if t in ("EN", "HL", "DR", "CL", "SR"):
             continue
         fac = "".join(s for s in "NSE" if e[s] >= 1200)
-        if t == "LR":
-            fac = "S"
+        if t == "LR" and has_bal:
+            fac = "S"                                      # glazed by the balcony's sliding door
         if not fac:
             continue
         win[rid] = fac
-        if t == "LR":          # its glazing is the full-width sliding door onto the balcony
+        if t == "LR" and fac == "S":   # its glazing is the full-width sliding door onto the balcony
             continue
         area = sum((q[2] - q[0] - 200) * (q[3] - q[1] - 200) for q in R[rid]) / 1e6
         need = _need_window(t, area)
@@ -172,24 +200,26 @@ def compile_unit(st, U, prog, targets, want_south, core, plan_id, gfa_target, re
     # --- refuge room above 54 m (GB 50016 5.5.32): a bedroom on an exterior wall with an openable window ---------
     refuge = None
     if req.get("refuge_room_per_dwelling"):
-        cands = [r for r in R if T[r] in ("BR", "ST") and win.get(r)] or [r for r in R if T[r] == "BRM"]
+        cands = ([r for r in R if T[r] in ("BR", "ST") and win.get(r)] or [r for r in R if T[r] == "BRM"]
+                 or [r for r in R if T[r] == "LR"])                # a studio: its living room is the bedroom
         refuge = min(cands, key=lambda r: (T[r] != "BR", r)) if cands else None
 
-    doors = []
+    doors, missing = [], []
     for p, q, k in links:
         if q == "CORE":
-            r0 = R[p][0]
-            ly = U.lobby_y
-            lo, hi = max(r0[1], ly[0]), min(r0[3], ly[1])
+            r0 = max(R[p], key=U.door_overlap)                # the entry's side on the lobby (or the lobby corridor)
+            o, at, dlo, dhi = U.door
+            lo, hi = (max(r0[1], dlo), min(r0[3], dhi)) if o == "v" else (max(r0[0], dlo), min(r0[2], dhi))
             mid = (lo + hi) / 2
             w = door_width("unit")
-            doors.append({"a": p, "b": "CORE", "orient": "v", "at": U.wn, "from": mid - w / 2, "to": mid + w / 2,
-                          "kind": "door", "role": "unit", "swing": 1, "fire": "B" if req.get("stair_type") == "smoke-proof" else None})
+            doors.append({"a": p, "b": "CORE", "orient": o, "at": at, "from": mid - w / 2, "to": mid + w / 2,
+                          "kind": "door", "role": "unit", "swing": 1,
+                          "fire": "B" if req.get("stair_type") == "smoke-proof" else None})
             continue
         ra = rooms[p]["rects"]; rb = rooms[q]["rects"]
         child = q if q in T else p
         w = 99999 if q == "bl" else (1500 if k == "slide" else door_width(T.get(child, "BR")))
-        dd = place_door(ra, rb, w, k)
+        dd = place_door(ra, rb, w, k, forbid)
         if dd:
             # leaf swings into the room the door serves (the child of the access link)
             cr = rooms[child]["rects"]
@@ -199,16 +229,20 @@ def compile_unit(st, U, prog, targets, want_south, core, plan_id, gfa_target, re
             if refuge and child == refuge:
                 dd["fire"] = "B"                              # Class B fire door on the refuge room
             doors.append(dd)
+        else:
+            missing.append(f"{p}-{q}")                        # no wall left long enough for this door: gate fails
 
     area_dom = sum((q[2] - q[0]) * (q[3] - q[1]) for rid, rm in rooms.items() if rm["type"] != "BL"
                    for q in rm["rects"]) / 1e6
     ext_len = U.X + U.D + (U.X - U.wn) + (U.D if U.end else 0)
-    bal = (bl_x1 - bl_x0) * BALCONY_D / 1e6
+    bal = (bl_x1 - bl_x0) * BALCONY_D / 1e6 if has_bal else 0.0
     gfa = area_dom + ext_len * 0.1 / 1000 + core["area_m2"] / 2 + 0.5 * bal
     return {"id": plan_id, "gfa": round(gfa, 1), "gfa_target": gfa_target, "rooms": rooms, "links": links, "win": win,
-            "doors": doors, "windows": windows, "ac": ac, "refuge_room": refuge,
-            "unit": {"X": U.X, "D": U.D, "wn": U.wn, "dc": U.dc, "lobby_y": list(U.lobby_y), "lifts": [list(l) for l in U.lifts]},
-            "planner": {k: v for k, v in d.items() if k not in ("R", "ext", "links")}, "cost": round(C, 2)}
+            "doors": doors, "windows": windows, "ac": ac, "refuge_room": refuge, "cuts": cuts,
+            "unit": {"X": U.X, "D": U.D, "wn": U.wn, "dc": U.dc, "lobby_y": list(U.lobby_y), "lifts": [list(l) for l in U.lifts],
+                     "x0": U.x0, "cuts": [list(c) for c in U.cuts], "door": list(U.door), "north": U.north, "end": U.end},
+            "planner": dict({k: v for k, v in d.items() if k not in ("R", "ext", "links")}, Ca=d["Ca"] + len(missing),
+                            missing_doors=missing), "cost": round(C, 2)}
 
 
 def mirror_x(r):
@@ -231,16 +265,51 @@ def mirror_item(d):
     return d
 
 
+def copy_room(rm, f):
+    """A dwelling room on the floor plate: rects through f (as is or mirror_x), diagonal cuts with them."""
+    out = {"type": rm["type"], "rects": [f(q) for q in rm["rects"]]}
+    mir = f is mirror_x
+    for k in ("add", "sub"):
+        if rm.get(k):
+            out[k] = [[[-x, y] if mir else [x, y] for x, y in t] for t in rm[k]]
+    return out
+
+
 def floor_plate(plan, core):
     """Both dwellings of the typical floor: east as planned, west mirrored; plus the core."""
+    pw = plan
     rooms = {"core." + rid: rm for rid, rm in core["rooms"].items()}
-    for side, f in (("E", lambda r: r), ("W", mirror_x)):
-        for rid, rm in plan["rooms"].items():
-            rooms[f"{side}.{rid}"] = {"type": rm["type"], "rects": [f(q) for q in rm["rects"]]}
-    doors = [dict(d, side="E") for d in plan["doors"]] + [dict(mirror_item(d), side="W") for d in plan["doors"]]
+    for side, pl, f in (("E", plan, lambda r: r), ("W", pw, mirror_x)):
+        for rid, rm in pl["rooms"].items():
+            rooms[f"{side}.{rid}"] = copy_room(rm, f)
+    doors = [dict(d, side="E") for d in plan["doors"]] + [dict(mirror_item(d), side="W") for d in pw["doors"]]
     for sx, sy in core["stair_doors"]:
         doors.append({"orient": "h", "at": sy, "from": sx - 500, "to": sx + 500, "kind": "door", "role": "stair", "swing": -1,
                       "fire": "B" if core["stair_type"] != "open" else None})
-    windows = [dict(w) for w in plan["windows"]] + [mirror_item(w) for w in plan["windows"]]
-    ac = [dict(a) for a in plan["ac"]] + [mirror_item(a) for a in plan["ac"]]
+    windows = [dict(w) for w in plan["windows"]] + [mirror_item(w) for w in pw["windows"]]
+    ac = [dict(a) for a in plan["ac"]] + [mirror_item(a) for a in pw["ac"]]
     return {"rooms": rooms, "doors": doors, "windows": windows, "ac": ac}
+
+
+def corridor_plate(flats, core, corridor):
+    """The typical floor of 4 or 6 flats around one lobby corridor (2026-11-06): flats = [(tag, plan)] for the east
+    side in the core frame (x >= 0), mirrored for the west; corridor = the east half of the lobby corridor (the west
+    half is its mirror). The corridor ("core.corridor") opens off the lift lobby at both ends through the fire doors
+    building.assemble adds, so it is one hallway from the lift doors to every flat door."""
+    rooms = {"core." + rid: dict(rm) for rid, rm in core["rooms"].items()}
+    rooms["core.corridor"] = {"type": "CORE", "role": "corridor", "rects": [list(q) for q in corridor] + [mirror_x(q) for q in corridor]}
+    doors, windows, ac = [], [], []
+    for tag, plan in flats:
+        for side, f in (("E", lambda r: r), ("W", mirror_x)):
+            key = side + tag
+            for rid, rm in plan["rooms"].items():
+                rooms[f"{key}.{rid}"] = copy_room(rm, f)
+            mi = (lambda d: dict(d)) if side == "E" else mirror_item
+            doors += [dict(mi(d), side=key) for d in plan["doors"]]
+            windows += [mi(w) for w in plan["windows"]]
+            ac += [mi(a) for a in plan["ac"]]
+    for sx, sy in core["stair_doors"]:
+        doors.append({"orient": "h", "at": sy, "from": sx - 500, "to": sx + 500, "kind": "door", "role": "stair", "swing": -1,
+                      "fire": "B" if core["stair_type"] != "open" else None})
+    return {"rooms": rooms, "doors": doors, "windows": windows, "ac": ac,
+            "corridor": [list(q) for q in corridor] + [mirror_x(q) for q in corridor]}

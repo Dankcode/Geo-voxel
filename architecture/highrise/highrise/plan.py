@@ -24,8 +24,15 @@ def rect_area(r):
     return (r[2] - r[0]) * (r[3] - r[1])
 
 
+def _tri_area(t):
+    (ax, ay), (bx, by), (cx, cy) = t
+    return abs((bx - ax) * (cy - ay) - (cx - ax) * (by - ay)) / 2
+
+
 def room_area(room):
-    return sum(rect_area(r) for r in room["rects"]) / 1e6
+    """Axis area, m2, with any diagonal corner cut (walk.py) given or taken."""
+    return (sum(rect_area(r) for r in room["rects"]) + sum(_tri_area(t) for t in room.get("add", ()))
+            - sum(_tri_area(t) for t in room.get("sub", ()))) / 1e6
 
 
 def bbox(rects):
@@ -212,7 +219,8 @@ def measure(plan):
 
     # GB 55038 4.2.3: lift shafts must not adjoin bedrooms
     lifts = [r for r, rm in rooms.items() if rm["type"] == "CORE" and ("lift" in r or "lift" in rm.get("role", ""))]
-    m["bed_next_to_lift"] = sorted({b for b in rooms if T[b] in ("BRM", "BR", "ST") for l in lifts
+    sleep = ("BRM", "BR", "ST") if any(T[r] in ("BRM", "BR", "ST") for r in rooms) else ("BRM", "BR", "ST", "LR")  # studio
+    m["bed_next_to_lift"] = sorted({b for b in rooms if T[b] in sleep for l in lifts
                                     if sh.get((min(b, l), max(b, l)), 0) > 0})
     m["has_core"] = bool(lifts)
     circ = sum(room_area(rooms[r]) for r in rooms if T[r] in ("HL", "EN"))

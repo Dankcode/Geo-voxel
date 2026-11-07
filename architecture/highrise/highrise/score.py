@@ -61,14 +61,12 @@ def score_plan(plan, priors, floor=None):
     q["G3 Direct daylight"] = 1 - len(dark) / max(1, len(dl))
     why["G3 Direct daylight"] = dark
     q["G4 Sunlight room"] = 1.0 if m["south_rooms"] >= 1 else 0.0
-    # passages: halls >= 1.00 m clear, the entry >= 1.10 m clear (clear = axis width - 0.15 m average wall)
-    narrow = []
-    for r in m["rooms"]:
-        need = codes.PASSAGE_CLEAR["rooms"] if r["type"] == "HL" else codes.PASSAGE_CLEAR["entry"] if r["type"] == "EN" else None
-        if need and r["short"] + 0.05 < need - 0.05:
-            narrow.append(f"{r['rid']} {r['type']} {r['short'] + 0.05:.2f} m < {need}")
-    npass = sum(r["type"] in ("HL", "EN") for r in m["rooms"])
-    q["G5 Passage widths"] = 1 - len(narrow) / max(1, npass)
+    # passages (2026-11-06): on the real room shapes, diagonal cuts included (walk.py): a person 0.90 m wide gets
+    # through every room and from each door of a room to its others; the entry 1.10 m clear, halls 1.00 m
+    from highrise import walk
+    narrow = walk.door_routes(plan)
+    nchk = sum(rm["type"] not in walk.EXEMPT for rm in plan["rooms"].values())
+    q["G5 Passage widths"] = 1.0 if not narrow else max(0.0, 1 - len(narrow) / max(1, nchk))
     why["G5 Passage widths"] = narrow
     lifts_known = m["has_core"] or bool(plan.get("unit", {}).get("lifts"))
     if lifts_known:
@@ -125,7 +123,9 @@ def score_plan(plan, priors, floor=None):
         short_ok = core["lobby_short"] >= (codes.COMBINED_LOBBY_SHORT if req["lobby_min_m2"] >= 12 else 0)
         q["C3 Lobby area"] = 1.0 if (core["lobby_m2"] >= req["lobby_min_m2"] and short_ok) else 0.0
         why["C3 Lobby area"] = [f"lobby {core['lobby_m2']} m2, short side {core['lobby_short']} m; need {req['lobby_min_m2']} m2"]
-        q["C4 Travel to stair"] = 1.0 if core["max_travel_m"] <= codes.SCISSOR_MAX_TRAVEL else _clip(1 - (core["max_travel_m"] - 10) / 10)
+        lim = req.get("max_travel_m", codes.SCISSOR_MAX_TRAVEL)
+        q["C4 Travel to stair"] = 1.0 if core["max_travel_m"] <= lim else _clip(1 - (core["max_travel_m"] - lim) / 10)
+        why["C4 Travel to stair"] = [f"longest walk from a flat door {core['max_travel_m']} m, limit {lim} m"]
         q["C5 Storey height"] = 1.0 if req["storey_h"] >= codes.STOREY_H_MIN else 0.0
         if req.get("refuge_floors"):
             built = floor.get("refuge_floors_built", [])
@@ -179,7 +179,7 @@ def score_plan(plan, priors, floor=None):
     q["T5 Bathrooms with windows"] = _clip(m["bath_window_share"] / 0.5)
     q["T6 Master suite"] = 1.0 if (m["master_ensuite"] or m["baths"] < 2) else 0.0
     q["T7 Bedrooms kept off the entry"] = 1.0 if m["bed_off_entry"] == 0 else 0.5 if m["bed_off_entry"] == 1 else 0.0
-    want = 3 if m["bedrooms"] + m["studies"] >= 3 else 2
+    want = 3 if m["bedrooms"] + m["studies"] >= 3 else 2 if m["bedrooms"] + m["studies"] >= 1 else 1
     q["T8 South-facing rooms"] = _clip(m["south_rooms"] / want)
     c = m["circulation_share"]
     q["T9 Circulation share"] = 1.0 if c <= 0.12 else _clip(1 - (c - 0.12) / 0.10)
