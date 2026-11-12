@@ -1,0 +1,1149 @@
+{
+ "schema": "geo-voxel/building-export@1",
+ "key": "h1011129832-s2",
+ "building": {
+  "osm_id": "1011129832",
+  "address": "1107 Park Boulevard",
+  "archetype": "cottage",
+  "style": "creole",
+  "storeys": 1,
+  "storey_height_m": 3.6,
+  "floor_raise_m": 0.9,
+  "footprint_local": [
+   [
+    0.0,
+    0.003978132837419324
+   ],
+   [
+    0.0016669916275118268,
+    12.558859303556416
+   ],
+   [
+    5.523672338088851,
+    12.556567601541383
+   ],
+   [
+    5.528200906840274,
+    8.208359029261768
+   ],
+   [
+    10.326563008896095,
+    8.206832002405816
+   ],
+   [
+    10.331498307301269,
+    0.0
+   ],
+   [
+    0.0,
+    0.003978132837419324
+   ]
+  ]
+ },
+ "frame": {
+  "origin_latlon": [
+   30.4381953,
+   -91.1686235
+  ],
+  "u_axis_bearing_deg": 179.2,
+  "front_bearing_deg": 269.2,
+  "units": "m",
+  "note": "local (u, v): u along the street front, v from the front (v = 0) to the back; plan grid = local metres"
+ },
+ "street": {
+  "name": null,
+  "highway": "tertiary",
+  "front_faces_bearing_deg": 269.2
+ },
+ "rooms": [
+  {
+   "id": 0,
+   "kind": "porch",
+   "storey": 0,
+   "area_m2": 18.11,
+   "open_air": true,
+   "polygon_local": [
+    [
+     4.46,
+     3.14
+    ],
+    [
+     10.34,
+     3.14
+    ],
+    [
+     10.34,
+     0.06
+    ],
+    [
+     4.46,
+     0.06
+    ],
+    [
+     4.46,
+     3.14
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     30.4381556,
+     -91.1685902
+    ],
+    [
+     30.4381028,
+     -91.1685893
+    ],
+    [
+     30.4381024,
+     -91.1686214
+    ],
+    [
+     30.4381552,
+     -91.1686223
+    ],
+    [
+     30.4381556,
+     -91.1685902
+    ]
+   ],
+   "centroid_local": [
+    7.4,
+    1.6
+   ]
+  },
+  {
+   "id": 1,
+   "kind": "living",
+   "storey": 0,
+   "area_m2": 29.02,
+   "open_air": false,
+   "polygon_local": [
+    [
+     2.86,
+     7.14
+    ],
+    [
+     10.34,
+     7.14
+    ],
+    [
+     10.34,
+     3.26
+    ],
+    [
+     2.86,
+     3.26
+    ],
+    [
+     2.86,
+     7.14
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     30.4381705,
+     -91.1685487
+    ],
+    [
+     30.4381033,
+     -91.1685476
+    ],
+    [
+     30.4381028,
+     -91.168588
+    ],
+    [
+     30.43817,
+     -91.1685892
+    ],
+    [
+     30.4381705,
+     -91.1685487
+    ]
+   ],
+   "centroid_local": [
+    6.6,
+    5.2
+   ]
+  },
+  {
+   "id": 2,
+   "kind": "bedroom",
+   "storey": 0,
+   "area_m2": 13.18,
+   "open_air": false,
+   "polygon_local": [
+    [
+     0.06,
+     0.06
+    ],
+    [
+     0.06,
+     3.14
+    ],
+    [
+     4.34,
+     3.14
+    ],
+    [
+     4.34,
+     0.06
+    ],
+    [
+     0.06,
+     0.06
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     30.4381948,
+     -91.1686229
+    ],
+    [
+     30.4381952,
+     -91.1685908
+    ],
+    [
+     30.4381567,
+     -91.1685902
+    ],
+    [
+     30.4381563,
+     -91.1686223
+    ],
+    [
+     30.4381948,
+     -91.1686229
+    ]
+   ],
+   "centroid_local": [
+    2.2,
+    1.6
+   ]
+  },
+  {
+   "id": 3,
+   "kind": "bedroom",
+   "storey": 0,
+   "area_m2": 15.76,
+   "open_air": false,
+   "polygon_local": [
+    [
+     0.06,
+     9.14
+    ],
+    [
+     2.74,
+     9.14
+    ],
+    [
+     2.74,
+     3.26
+    ],
+    [
+     0.06,
+     3.26
+    ],
+    [
+     0.06,
+     9.14
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     30.4381959,
+     -91.1685283
+    ],
+    [
+     30.4381719,
+     -91.1685279
+    ],
+    [
+     30.4381711,
+     -91.1685892
+    ],
+    [
+     30.4381952,
+     -91.1685896
+    ],
+    [
+     30.4381959,
+     -91.1685283
+    ]
+   ],
+   "centroid_local": [
+    1.4,
+    6.2
+   ]
+  },
+  {
+   "id": 4,
+   "kind": "kitchen",
+   "storey": 0,
+   "area_m2": 12.54,
+   "open_air": false,
+   "polygon_local": [
+    [
+     2.86,
+     11.94
+    ],
+    [
+     5.54,
+     11.94
+    ],
+    [
+     5.54,
+     7.26
+    ],
+    [
+     2.86,
+     7.26
+    ],
+    [
+     2.86,
+     11.94
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     30.4381711,
+     -91.1684987
+    ],
+    [
+     30.4381471,
+     -91.1684983
+    ],
+    [
+     30.4381465,
+     -91.1685471
+    ],
+    [
+     30.4381705,
+     -91.1685475
+    ],
+    [
+     30.4381711,
+     -91.1684987
+    ]
+   ],
+   "centroid_local": [
+    4.2,
+    9.6
+   ]
+  },
+  {
+   "id": 5,
+   "kind": "bathroom",
+   "storey": 0,
+   "area_m2": 7.18,
+   "open_air": false,
+   "polygon_local": [
+    [
+     0.06,
+     11.94
+    ],
+    [
+     2.74,
+     11.94
+    ],
+    [
+     2.74,
+     9.26
+    ],
+    [
+     0.06,
+     9.26
+    ],
+    [
+     0.06,
+     11.94
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     30.4381963,
+     -91.1684991
+    ],
+    [
+     30.4381722,
+     -91.1684987
+    ],
+    [
+     30.4381719,
+     -91.1685267
+    ],
+    [
+     30.438196,
+     -91.1685271
+    ],
+    [
+     30.4381963,
+     -91.1684991
+    ]
+   ],
+   "centroid_local": [
+    1.4,
+    10.6
+   ]
+  }
+ ],
+ "doors": [
+  {
+   "storey": 0,
+   "kind": "interior",
+   "rooms": [
+    "bedroom#3",
+    "kitchen#4"
+   ],
+   "exterior": false,
+   "center_local": [
+    2.8,
+    8.366
+   ],
+   "center_latlon": [
+    30.4381712,
+    -91.168536
+   ],
+   "width_m": 0.813,
+   "facing_bearing_deg": 359.2,
+   "faces_street": false,
+   "leaf": "hinged",
+   "swing": {
+    "into": 4,
+    "kind": "single"
+   }
+  },
+  {
+   "storey": 0,
+   "kind": "entry",
+   "rooms": [
+    "bedroom#2",
+    "porch#0"
+   ],
+   "exterior": true,
+   "center_local": [
+    4.3,
+    1.062
+   ],
+   "center_latlon": [
+    30.4381568,
+    -91.1686118
+   ],
+   "width_m": 1.524,
+   "facing_bearing_deg": 179.2,
+   "faces_street": false,
+   "leaf": "french",
+   "swing": {
+    "into": 3,
+    "kind": "french"
+   }
+  },
+  {
+   "storey": 0,
+   "kind": "back",
+   "rooms": [
+    "kitchen#4",
+    "outside"
+   ],
+   "exterior": true,
+   "center_local": [
+    5.5,
+    7.817
+   ],
+   "center_latlon": [
+    30.4381469,
+    -91.1685413
+   ],
+   "width_m": 0.914,
+   "facing_bearing_deg": 179.2,
+   "faces_street": false,
+   "leaf": "hinged",
+   "swing": {
+    "into": 5,
+    "kind": "single"
+   }
+  },
+  {
+   "storey": 0,
+   "kind": "interior",
+   "rooms": [
+    "bedroom#2",
+    "bedroom#3"
+   ],
+   "exterior": false,
+   "center_local": [
+    2.234,
+    3.2
+   ],
+   "center_latlon": [
+    30.4381756,
+    -91.1685899
+   ],
+   "width_m": 0.813,
+   "facing_bearing_deg": 269.2,
+   "faces_street": false,
+   "leaf": "hinged",
+   "swing": {
+    "into": 4,
+    "kind": "single"
+   }
+  },
+  {
+   "storey": 0,
+   "kind": "interior",
+   "rooms": [
+    "bedroom#2",
+    "living#1"
+   ],
+   "exterior": false,
+   "center_local": [
+    3.666,
+    3.2
+   ],
+   "center_latlon": [
+    30.4381628,
+    -91.1685897
+   ],
+   "width_m": 0.813,
+   "facing_bearing_deg": 269.2,
+   "faces_street": false,
+   "leaf": "hinged",
+   "swing": {
+    "into": 3,
+    "kind": "single"
+   }
+  },
+  {
+   "storey": 0,
+   "kind": "entry",
+   "rooms": [
+    "living#1",
+    "porch#0"
+   ],
+   "exterior": true,
+   "center_local": [
+    9.338,
+    3.3
+   ],
+   "center_latlon": [
+    30.4381118,
+    -91.1685878
+   ],
+   "width_m": 1.524,
+   "facing_bearing_deg": 269.2,
+   "faces_street": true,
+   "leaf": "french",
+   "swing": {
+    "into": 2,
+    "kind": "french"
+   }
+  },
+  {
+   "storey": 0,
+   "kind": "cased",
+   "rooms": [
+    "living#1",
+    "kitchen#4"
+   ],
+   "exterior": false,
+   "center_local": [
+    3.57,
+    7.2
+   ],
+   "center_latlon": [
+    30.4381642,
+    -91.168548
+   ],
+   "width_m": 1.219,
+   "facing_bearing_deg": 269.2,
+   "faces_street": false,
+   "leaf": "cased",
+   "swing": null
+  },
+  {
+   "storey": 0,
+   "kind": "interior",
+   "rooms": [
+    "bedroom#3",
+    "bathroom#5"
+   ],
+   "exterior": false,
+   "center_local": [
+    2.234,
+    9.2
+   ],
+   "center_latlon": [
+    30.4381764,
+    -91.1685274
+   ],
+   "width_m": 0.813,
+   "facing_bearing_deg": 269.2,
+   "faces_street": false,
+   "leaf": "hinged",
+   "swing": {
+    "into": 6,
+    "kind": "single"
+   }
+  }
+ ],
+ "windows": [
+  {
+   "storey": 0,
+   "room": "bedroom#2",
+   "kind": "window",
+   "center_local": [
+    0.1,
+    1.6
+   ],
+   "width_m": 0.95,
+   "sill_m": 0.35,
+   "head_m": 2.65,
+   "facing_bearing_deg": 359.2
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#3",
+   "kind": "window",
+   "center_local": [
+    0.1,
+    6.2
+   ],
+   "width_m": 0.95,
+   "sill_m": 0.35,
+   "head_m": 2.65,
+   "facing_bearing_deg": 359.2
+  },
+  {
+   "storey": 0,
+   "room": "bathroom#5",
+   "kind": "window",
+   "center_local": [
+    0.1,
+    10.6
+   ],
+   "width_m": 0.65,
+   "sill_m": 1.45,
+   "head_m": 2.25,
+   "facing_bearing_deg": 359.2
+  },
+  {
+   "storey": 0,
+   "room": "living#1",
+   "kind": "window",
+   "center_local": [
+    10.3,
+    5.2
+   ],
+   "width_m": 0.95,
+   "sill_m": 0.35,
+   "head_m": 2.65,
+   "facing_bearing_deg": 179.2
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#2",
+   "kind": "window",
+   "center_local": [
+    2.2,
+    0.1
+   ],
+   "width_m": 0.95,
+   "sill_m": 0.35,
+   "head_m": 2.65,
+   "facing_bearing_deg": 269.2
+  },
+  {
+   "storey": 0,
+   "room": "living#1",
+   "kind": "window",
+   "center_local": [
+    8.0,
+    7.1
+   ],
+   "width_m": 0.95,
+   "sill_m": 0.35,
+   "head_m": 2.65,
+   "facing_bearing_deg": 89.2
+  },
+  {
+   "storey": 0,
+   "room": "bathroom#5",
+   "kind": "window",
+   "center_local": [
+    1.4,
+    11.9
+   ],
+   "width_m": 0.65,
+   "sill_m": 1.45,
+   "head_m": 2.25,
+   "facing_bearing_deg": 89.2
+  },
+  {
+   "storey": 0,
+   "room": "kitchen#4",
+   "kind": "window",
+   "center_local": [
+    4.2,
+    11.9
+   ],
+   "width_m": 0.95,
+   "sill_m": 1.05,
+   "head_m": 2.25,
+   "facing_bearing_deg": 89.2
+  }
+ ],
+ "garage": null,
+ "entry": {
+  "door_bearing_deg": 179.2,
+  "faces_street": false,
+  "center_latlon": [
+   30.4381568,
+   -91.1686118
+  ]
+ },
+ "stairs": [],
+ "furniture": [
+  {
+   "storey": 0,
+   "room": "porch#0",
+   "name": "porch_chair",
+   "center_local": [
+    6.47,
+    2.77
+   ],
+   "center_latlon": [
+    30.4381375,
+    -91.1685937
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    6.045,
+    2.345,
+    6.895,
+    3.195
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "porch#0",
+   "name": "porch_chair",
+   "center_local": [
+    7.87,
+    2.77
+   ],
+   "center_latlon": [
+    30.438125,
+    -91.1685935
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    7.445,
+    2.345,
+    8.295,
+    3.195
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "porch#0",
+   "name": "plant",
+   "center_local": [
+    4.855,
+    2.865
+   ],
+   "center_latlon": [
+    30.4381521,
+    -91.168593
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    4.525,
+    2.535,
+    5.185,
+    3.195
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "living#1",
+   "name": "sofa",
+   "center_local": [
+    6.45,
+    6.545
+   ],
+   "center_latlon": [
+    30.4381382,
+    -91.1685544
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    5.4,
+    6.095,
+    7.5,
+    6.995
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "living#1",
+   "name": "coffee_table",
+   "center_local": [
+    6.45,
+    5.338
+   ],
+   "center_latlon": [
+    30.4381381,
+    -91.168567
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    5.9,
+    5.038,
+    7.0,
+    5.638
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "living#1",
+   "name": "tv_unit",
+   "center_local": [
+    6.5,
+    3.63
+   ],
+   "center_latlon": [
+    30.4381374,
+    -91.1685848
+   ],
+   "rotation_bearing_deg": 89.2,
+   "footprint_local": [
+    5.7,
+    3.405,
+    7.3,
+    3.855
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "living#1",
+   "name": "armchair",
+   "center_local": [
+    8.17,
+    6.57
+   ],
+   "center_latlon": [
+    30.4381228,
+    -91.1685539
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    7.745,
+    6.145,
+    8.595,
+    6.995
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "living#1",
+   "name": "end_table",
+   "center_local": [
+    4.87,
+    6.77
+   ],
+   "center_latlon": [
+    30.4381524,
+    -91.1685523
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    4.645,
+    6.545,
+    5.095,
+    6.995
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "living#1",
+   "name": "plant",
+   "center_local": [
+    9.865,
+    6.665
+   ],
+   "center_latlon": [
+    30.4381075,
+    -91.1685526
+   ],
+   "rotation_bearing_deg": 359.2,
+   "footprint_local": [
+    9.535,
+    6.335,
+    10.195,
+    6.995
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#2",
+   "name": "bed_double",
+   "center_local": [
+    1.505,
+    1.23
+   ],
+   "center_latlon": [
+    30.4381819,
+    -91.1686105
+   ],
+   "rotation_bearing_deg": 89.2,
+   "footprint_local": [
+    0.705,
+    0.205,
+    2.305,
+    2.255
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#2",
+   "name": "nightstand",
+   "center_local": [
+    2.835,
+    0.405
+   ],
+   "center_latlon": [
+    30.4381699,
+    -91.1686189
+   ],
+   "rotation_bearing_deg": 89.2,
+   "footprint_local": [
+    2.61,
+    0.205,
+    3.06,
+    0.605
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#2",
+   "name": "nightstand",
+   "center_local": [
+    0.48,
+    0.405
+   ],
+   "center_latlon": [
+    30.438191,
+    -91.1686193
+   ],
+   "rotation_bearing_deg": 89.2,
+   "footprint_local": [
+    0.255,
+    0.205,
+    0.705,
+    0.605
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#3",
+   "name": "bed_double",
+   "center_local": [
+    1.23,
+    4.935
+   ],
+   "center_latlon": [
+    30.4381849,
+    -91.1685719
+   ],
+   "rotation_bearing_deg": 179.2,
+   "footprint_local": [
+    0.205,
+    4.135,
+    2.255,
+    5.735
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#3",
+   "name": "nightstand",
+   "center_local": [
+    0.405,
+    6.265
+   ],
+   "center_latlon": [
+    30.4381925,
+    -91.1685582
+   ],
+   "rotation_bearing_deg": 179.2,
+   "footprint_local": [
+    0.205,
+    6.04,
+    0.605,
+    6.49
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#3",
+   "name": "nightstand",
+   "center_local": [
+    0.405,
+    3.91
+   ],
+   "center_latlon": [
+    30.4381922,
+    -91.1685827
+   ],
+   "rotation_bearing_deg": 179.2,
+   "footprint_local": [
+    0.205,
+    3.685,
+    0.605,
+    4.135
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bedroom#3",
+   "name": "wardrobe",
+   "center_local": [
+    1.035,
+    8.834
+   ],
+   "center_latlon": [
+    30.4381871,
+    -91.1685314
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    0.435,
+    8.533,
+    1.635,
+    9.135
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "kitchen#4",
+   "name": "kitchen_run",
+   "center_local": [
+    5.085,
+    9.965
+   ],
+   "center_latlon": [
+    30.4381509,
+    -91.168519
+   ],
+   "rotation_bearing_deg": 359.2,
+   "footprint_local": [
+    4.775,
+    8.465,
+    5.395,
+    11.465
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "kitchen#4",
+   "name": "fridge",
+   "center_local": [
+    3.24,
+    11.445
+   ],
+   "center_latlon": [
+    30.4381677,
+    -91.1685038
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    2.865,
+    11.095,
+    3.615,
+    11.795
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bathroom#5",
+   "name": "vanity",
+   "center_local": [
+    1.005,
+    9.525
+   ],
+   "center_latlon": [
+    30.4381875,
+    -91.1685242
+   ],
+   "rotation_bearing_deg": 89.2,
+   "footprint_local": [
+    0.605,
+    9.265,
+    1.405,
+    9.785
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bathroom#5",
+   "name": "toilet",
+   "center_local": [
+    2.235,
+    11.47
+   ],
+   "center_latlon": [
+    30.4381767,
+    -91.1685037
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    2.035,
+    11.145,
+    2.435,
+    11.795
+   ],
+   "edited": false
+  },
+  {
+   "storey": 0,
+   "room": "bathroom#5",
+   "name": "bathtub",
+   "center_local": [
+    1.055,
+    11.42
+   ],
+   "center_latlon": [
+    30.4381873,
+    -91.1685044
+   ],
+   "rotation_bearing_deg": 269.2,
+   "footprint_local": [
+    0.205,
+    11.045,
+    1.905,
+    11.795
+   ],
+   "edited": false
+  }
+ ],
+ "furniture_pending": []
+}
