@@ -50,17 +50,21 @@ show them.
 ## Quick start
 
 **Browse.** Open the house viewer (`https://dankcode.github.io/Geo-voxel/houses/`, or `npm run app` locally). Browse
-the example houses and high-rises, or open **World map**, go to any place, highlight 1–2 blocks and press **Request
-generation**. The viewer shows the command that generates those houses; generation runs on your own computer, so
-FreeCAD and the other [requirements](#requirements) must be installed. Each building has a 3D view, blueprints, its
-checks and a **Game export** button.
+the example houses and high-rises, each with a 3D view, blueprints, its checks and a **Game export** button.
+
+**Generate.** Generation runs on your own computer, so install the [requirements](#requirements) first. Then start
+the viewer with `npm run app` and open `http://localhost:5180/houses/`: **Regenerate** (any building) and **Request
+generation** (Map generator tab: pick a place, highlight 1–2 blocks) run the generator on your computer straight
+from the button, show its progress, and add the result to the list. With the [FreeCAD add-on](#freecad-add-on)
+running, the finished model also opens in FreeCAD by itself. The online viewer cannot reach your computer, so there
+the buttons show the command to run instead.
 
 **Voxel maps in the browser:**
 
 ```sh
 git clone https://github.com/Dankcode/Geo-voxel && cd Geo-voxel
 npm install
-npm run app            # → http://localhost:5180 (Place Builder) and /houses/ (house viewer)
+npm run app            # → http://localhost:5180 (Place Builder) and /houses/ (house viewer, with one-click generation)
 ```
 
 **Houses on your own machine** (needs the [requirements](#requirements)):
@@ -83,9 +87,51 @@ python architecture/pipeline/run_request.py --restyle <area> <building key> craf
 | numpy, scipy, shapely ≥ 2, ifcopenshell, lark, matplotlib | | as above | `architecture/environment.yml` or `pip install -r architecture/requirements.txt` |
 | Node.js | ≥ 20 | the viewer and Place Builder (`npm run app`), the JS library and its tests | [nodejs.org](https://nodejs.org) |
 | Blender (optional) | ≥ 4.2 | importing the map and models into Blender (`blender/blender_geo_import.py`) | [blender.org](https://www.blender.org/download/) |
+| FreeCAD desktop app + MCP add-on (recommended) | FreeCAD ≥ 1.0, [neka-nat/freecad-mcp](https://github.com/neka-nat/freecad-mcp) | opening each generated model in your FreeCAD window, and letting an AI agent drive FreeCAD | [FreeCAD add-on](#freecad-add-on) below |
 
 `run_request.py` checks for FreeCAD, the roof tools and the Python packages before it starts and says what is missing.
 A browser alone can view and export the buildings that are already generated; generating or restyling needs these.
+
+**Install, step by step** (macOS, Linux or Windows; the same commands in the repository folder):
+
+```sh
+git clone https://github.com/Dankcode/Geo-voxel && cd Geo-voxel
+micromamba create -f architecture/environment.yml      # Python 3.11, FreeCAD 1.0, CGAL, numpy, scipy, shapely …
+bash architecture/pipeline/roofgen/build.sh            # the roof tools
+npm install                                            # the viewer
+npm run app                                            # → http://localhost:5180/houses/
+```
+
+The viewer starts generation with the environment's Python: the one in `$GEO_VOXEL_PYTHON` if you set it, else the
+active conda or micromamba environment's, else `micromamba run -n houses python`. Run `npm run app` from a terminal in
+which `micromamba activate houses` works, or set `GEO_VOXEL_PYTHON=/path/to/envs/houses/bin/python`.
+
+### FreeCAD add-on
+
+The [FreeCAD MCP add-on](https://github.com/neka-nat/freecad-mcp) (MIT) runs a small server inside the FreeCAD window
+on `localhost:9875`. The viewer uses it to open each model it has just generated (the `.FCStd`, else the `.ifc`), so
+**Regenerate** goes from the button to the finished building in FreeCAD with nothing to copy or paste. AI agents use
+the same server ([below](#build-your-own-with-an-ai-agent-freecad-or-blender-mcp)). Generation itself does not need it.
+
+1. Install the desktop FreeCAD app, 1.0 or newer ([freecad.org](https://www.freecad.org/downloads.php)). The add-on runs
+   inside its window; the FreeCAD in `environment.yml` is the one that builds the models.
+2. Find FreeCAD's add-on folder: in FreeCAD open **View → Panels → Python console** and type
+   `App.getUserAppDataDir() + "Mod"`. It is usually `~/Library/Application Support/FreeCAD/Mod` on macOS
+   (`…/FreeCAD/v1-1/Mod` with FreeCAD 1.1), `~/.local/share/FreeCAD/Mod` on Linux and `%APPDATA%\FreeCAD\Mod` on Windows.
+3. Copy the add-on there and restart FreeCAD:
+   ```sh
+   git clone https://github.com/neka-nat/freecad-mcp.git
+   mkdir -p "$HOME/Library/Application Support/FreeCAD/Mod"          # the folder from step 2
+   cp -r freecad-mcp/addon/FreeCADMCP "$HOME/Library/Application Support/FreeCAD/Mod/"
+   ```
+4. In FreeCAD choose the **MCP Addon** workbench (the workbench list in the toolbar) and press **Start RPC Server**.
+   To have it start with FreeCAD, tick **Auto-Start Server** in its **FreeCAD MCP** menu.
+5. Check it from the repository folder: `python architecture/pipeline/freecad_link.py --ping` prints
+   "answering". The viewer's progress box also says whether FreeCAD answered.
+
+Keep FreeCAD open while you generate. If it is closed or the server is off, the building is still generated and
+listed in the viewer; it just isn't opened. `--open-in-freecad` on any `run_request.py` command does the same from a
+terminal. The server accepts code only from this computer; turn it off (**Stop RPC Server**) when you don't need it.
 
 [docs/INTEGRATE.md](docs/INTEGRATE.md) explains how to use each output in your own project: coordinate frames,
 building a navigation graph, engine axes, IFC conversion, forking the generator, and the licences.
@@ -99,15 +145,9 @@ and change it together.
 
 **FreeCAD** ([neka-nat/freecad-mcp](https://github.com/neka-nat/freecad-mcp), MIT):
 
-1. Install the requirements above (FreeCAD 1.0 comes with `architecture/environment.yml`; the desktop FreeCAD app is
-   needed too, because the MCP add-on runs inside its window) and [uv](https://docs.astral.sh/uv/).
-2. Install the add-on into FreeCAD's `Mod` folder and restart FreeCAD:
-   ```sh
-   git clone https://github.com/neka-nat/freecad-mcp.git
-   cp -r freecad-mcp/addon/FreeCADMCP ~/.FreeCAD/Mod/      # the Mod folder moves by OS and FreeCAD version; see that README
-   ```
-3. In FreeCAD pick the **MCP Addon** workbench and press **Start RPC Server** (or tick **Auto-Start Server** in its menu).
-4. Register the server with your agent, from this repository's folder:
+1. Install the requirements above and [uv](https://docs.astral.sh/uv/).
+2. Install the [FreeCAD add-on](#freecad-add-on) and start its RPC server (steps 1–4 there).
+3. Register the server with your agent, from this repository's folder:
    ```sh
    claude mcp add freecad -- uvx freecad-mcp                # Claude Code
    ```
@@ -141,8 +181,9 @@ with different counts or a different style, or move furniture with the furniture
 ## How to use it
 
 Browsing, the blueprints and the exports work in any browser. Generating, regenerating and restyling run on your own
-computer with FreeCAD (see [Requirements](#requirements)): the viewer shows the command to run, or your AI agent runs it
-for you ([Build your own with an AI agent](#build-your-own-with-an-ai-agent-freecad-or-blender-mcp)).
+computer with FreeCAD (see [Requirements](#requirements)). Open the viewer with `npm run app` and its buttons run them
+for you and open the result in FreeCAD ([FreeCAD add-on](#freecad-add-on)); the online viewer shows the command to run
+instead, or your AI agent runs it ([Build your own with an AI agent](#build-your-own-with-an-ai-agent-freecad-or-blender-mcp)).
 
 ### 1. Pick a building
 
@@ -184,9 +225,11 @@ sheet. Point at a room to see its name and size. Consecutive floors with the sam
 3. Click the map to centre the area, and set the radius (1–2 blocks; one block is about 110 m). The houses inside
    turn red and are listed on the right, nearest first; the nearest 12 are generated.
 4. Choose a style for the whole area, or one per house (**Inferred per house** lets the map decide).
-5. Press **Request generation**. The viewer shows the `run_request.py` command for that area, with a **Copy command**
-   button. Run it in the repository folder (or ask your CLI agent to); it plans, models and checks the houses on your
-   computer with FreeCAD and rebuilds the viewer, which then lists the new area. See [Requirements](#requirements).
+5. Press **Request generation**. Under `npm run app` the viewer starts the generator on your computer: a progress box
+   shows the log while it plans, models and checks the houses with FreeCAD, then
+   **Show it here** loads the new area and the first house opens in FreeCAD. In the online viewer you get the
+   `run_request.py` command with a **Copy command** button instead; run it in the repository folder (or ask your CLI
+   agent to) and reload the viewer. See [Requirements](#requirements).
 
 ![World map, South Baton Rouge: a 1.5-block area around Government Street and Oleander Street (30.4425, −91.1659) holds 34 houses; the nearest 12 will be generated](docs/img/viewer-worldmap.jpg)
 
@@ -201,13 +244,16 @@ high-rises included, and on buildings you have already regenerated:
   **Restyle only** keeps the rooms and changes the style template (Merrell 2010 Fig. 9: Cottage, Italianate, Tudor,
   Craftsman and 16 more).
 - **High-rises:** set the storeys (7–40), the flats per floor (2, 4 or 6, all on one core), the flat size, bedrooms,
-  bathrooms and the facade. With 4 or 6 flats a floor the size sets the footprint (that of the 2-flat slab) and the
-  floor is split into compact flats.
+  bathrooms and the facade. With 4 or 6 flats a floor the floor is built from flat modules and the size sets its
+  floor area (see step 6).
 
-The panel shows the `run_request.py` command with a **Copy command** button: run it in the repository folder, or
-let your AI agent run it, and reload the viewer. A regenerated house keeps the original's other programme choices
-(porch, dining room, laundry); the layout search tries 3 seeds and keeps the first that passes every check, or the one
-with the fewest failures, which the viewer then lists as "checks fail". Add `--tries 6` to search longer.
+Press **Regenerate** (or **Restyle only**) and, under `npm run app`, the building is generated on your computer
+there and then: the panel shows the progress, the finished model opens in FreeCAD when the
+[FreeCAD add-on](#freecad-add-on) is running, and **Show it here** loads it in the viewer. One request runs at a time.
+The online viewer shows the `run_request.py` command with a **Copy command** button instead. A regenerated house keeps
+the original's other programme choices (porch, dining room, laundry); the layout search tries 3 seeds and keeps the
+first that passes every check, or the one with the fewest failures, which the viewer then lists as "checks fail".
+Add `--tries 6` to the command to search longer.
 
 The **Save / export** bar along the bottom of the model saves the building:
 
@@ -223,14 +269,18 @@ The **Save / export** bar along the bottom of the model saves the building:
 
 The high-rise section of the list holds Chinese residential slabs from 10 to 34 storeys, planned dwelling by dwelling
 against the Chinese codes. The same plan can wear four facades; the storey count decides the core, the exits and the
-refuge floors. A floor has 2, 4 or 6 flats around one lift-and-stair core, inside the same length and depth as the
-2-flat slab of that flat size: with 4 or 6 the floor is split into compact flats instead of growing longer. The whole
-floor is planned in one search, as the houses are: the core (stair, fire lobby, lifts) moves along the north facade
-and the corridor and flats grow around it. The lifts and every flat door open onto one public corridor; only the
-stair's fire lobby has a fire door. Every flat keeps a south-facing room and daylit living room, bedrooms and kitchen, so 6 flats need the
-footprint of the 2-flat slab of about 185 m² flats (the example uses 190 m²). Every room is checked on its
-real shape for a person to walk through (0.9 m clear, the entry 1.1 m, halls 1.0 m); where a neighbouring room's corner
-pinches the way, the planner cuts that corner off at 45°, as Chinese plans often do at entries and hall turns.
+refuge floors. A floor has 2, 4 or 6 flats around one lift-and-stair core. With 4 or 6 the floor is modular, as Chinese
+slab floors are: the core on the north face with a straight corridor in front of it from gable to gable, a corner flat
+in the pocket each side of the core (lit from the north and the gable) and a row of flats on the south face. Each flat
+is a rectangle from a small catalogue on the 300 mm grid (studio, one or two bedrooms) no longer than 1.8 : 1, the
+proportions of the reference plans; the algorithm picks the assembly nearest the 2-flat slab's floor area that keeps
+the walk to the stair within the code limit, and the slab's length follows the modules. Inside each flat every room
+is one rectangle, cut by a slicing algorithm and kept only within its type's minimum width and the largest proportion
+seen in the reference plans (a living room at most about 1.5 : 1), ranked by Merrell's area and proportion
+likelihood, then checked like every other flat. The lifts and every flat door open onto one public corridor (1.5 m
+clear); only the stair's fire lobby has a fire door. Every flat must get 2 hours of winter sun at its best window,
+south or gable, and the row spacing to the next slab is set by the worst flat. Every room is checked on its real
+shape for a person to walk through (0.9 m clear, the entry 1.1 m, halls 1.0 m).
 
 Pick a floor with **▾ Floor N of 24 ▴** in the toolbar (or **[** and **]**): the view cuts the tower at that floor and
 zooms to it, so you see the two furnished dwellings and the core. **Exterior** returns to the whole building.

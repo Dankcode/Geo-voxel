@@ -35,7 +35,8 @@ from highrise.planner import Unit
 M = 300                                    # floor lattice module, mm
 K = dict(v=1000.0, a=60.0, w=0.8, c=2.5, d=40.0, s=30.0, t=40.0, f=40.0)
 SITE = {"carve": False}
-CORR_CLEAR = 1500                          # public corridor: 1.5 m clear, a wheelchair's turning circle (GB 55019 2.2.1 /
+CORR_CLEAR = 1500
+FLAT_ASPECT = (1.13, 0.15, 1.8)     # reference flats' frontage : depth (mean, log-sd), and the hard limit                          # public corridor: 1.5 m clear, a wheelchair's turning circle (GB 55019 2.2.1 /
                                            # GB 50763 3.5.1) and a stretcher's passage; GB 50096 6.1.1's 1.2 m is the floor
 LIFT_HALL = 1500                           # GB 55038 4.2.4: lift lobby >= 1.5 m deep
 DOOR_SPAN = 1500                           # corridor wall a flat door needs
@@ -224,10 +225,69 @@ class FloorSearch:
         return rows, slice(max(0, i - depth), i)
 
     def start(self):
-        """A double-loaded start: the core on the north facade, the corridor along its fronts, the end flats full depth
-        at both ends (wrapping north beside the core), the other flats in a row south of the corridor."""
+        """Merrell starts from a canonical layout; here the start is the best of the canonical floors over every core
+        position (2026-11-11): corner flats in the pockets beside the core (lit from the north and the gable), the
+        other flats in a row along the south face, the corridor in front of the core. A restart picks among the five
+        cheapest, so the restarts differ."""
+        opts = []
+        for cand in self.cands:
+            for f in (self.corner_start, self.strip_start):
+                st = f(cand)
+                if st is not None:
+                    opts.append((self.cost(*st), len(opts), st))
+        opts.sort(key=lambda t: t[:2])
+        return self.R.pick(opts[:5])[2]
+
+    def corner_start(self, cand):
         L = np.zeros((self.H, self.Wc), np.int32)
-        cand = self.R.pick(self.cands)
+        P = self.put_core(L, cand)
+        T = self.Ts[cand[0]]
+        jD = self.iy(T["D"])
+        jc = min(self.H - 2, jD + int(math.ceil(1800 / M)))
+        i0, i1 = self.ix(P["x0"]), self.ix(P["x1"])
+        # the corridor in front of the core, reaching on to the middle of the first and the last south flat
+        n_mid = len(self.flats) - sum(1 for a, b in ((0, i0), (i1, self.Wc)) if self.xs[b] - self.xs[a] >= 3600)
+        xw0 = self.xs[0]; xw = self.xs[-1] - xw0
+        if n_mid >= 1:
+            cx0 = xw0 + xw / n_mid / 2
+            cx1 = self.xs[-1] - xw / n_mid / 2
+            lo, hi = min(i0, self.ix(cx0)), max(i1, self.ix(cx1) + 1)
+        else:
+            lo, hi = i0, i1
+        L[jD:jc, lo:hi] = self.CORR
+        for kind, side, a, b in P["fronts"]:
+            if side != "S":
+                rs, cs = self.front_cells(P, T, kind, side, a, b)
+                blk = L[slice(rs.start, jD), cs]
+                blk[blk == 0] = self.CORR
+        pockets = [p for p in (("W", 0, i0), ("E", i1, self.Wc)) if (self.xs[p[2]] - self.xs[p[1]]) >= 3600]
+        mids = len(self.flats) - len(pockets)
+        if mids < 1:
+            return None
+        k = 0
+        lab = {}
+        if pockets and pockets[0][0] == "W":
+            lab["W"] = self.flats[0]; k = 1
+        mid_l = self.flats[k:k + mids]
+        if pockets and pockets[-1][0] == "E":
+            lab["E"] = self.flats[k + mids]
+        xw = self.xs[-1] - self.xs[0]
+        for y in range(self.H):
+            for x in range(self.Wc):
+                if L[y, x]:
+                    continue
+                if y < jc and "W" in lab and x < i0:
+                    L[y, x] = lab["W"]
+                elif y < jc and "E" in lab and x >= i1:
+                    L[y, x] = lab["E"]
+                else:
+                    q = int((self.xs[x] + self.xs[x + 1]) / 2 - self.xs[0]) * mids // max(1, int(xw))
+                    L[y, x] = mid_l[min(mids - 1, q)]
+        return L, cand
+
+    def strip_start(self, cand):
+        """The earlier start: the end flats full depth at both ends, the others in a row south of the corridor."""
+        L = np.zeros((self.H, self.Wc), np.int32)
         P = self.put_core(L, cand)
         T = self.Ts[cand[0]]
         jD = self.iy(T["D"])
@@ -319,13 +379,15 @@ class FloorSearch:
             if along * M < DOOR_SPAN:
                 c += K["a"] * (1 + (DOOR_SPAN - along * M) / 1000)
             north = m[0].any()
-            front = float((np.diff(self.xs) * m[-1]).sum())
-            need = 3600 if north else 5400
+            # the sunny face: the south facade, or a gable at either end of the slab (2026-11-11: GB 50180 counts the
+            # hours a window gets; the sun study checks each flat's window). A flat with a north or gable wall needs
+            # 3.6 m of it for the living room; a flat on the south face only, 5.4 m (living room and kitchen)
+            gable = max(float((np.diff(self.ys) * m[:, 0]).sum()), float((np.diff(self.ys) * m[:, -1]).sum()))
+            front = max(float((np.diff(self.xs) * m[-1]).sum()), gable)
+            need = 3600 if (north or gable) else 5400
             if front < need:
                 c += K["f"] * (need - front) / 1000 + (250.0 if front == 0 else 0.0)   # no sunny room at all: GB 50096 7.1.1
-                if north:
-                    # 2026-11-07: a flat through the block has its living room (3.3 m+) on the south face; a 2.7 m south
-                    # end left it a bedroom-width strip and the flat failed every plan
+                if north or gable:
                     c += K["a"] * 10 * (need - front) / 1000
             a = float((self.cw * m).sum())
             c += K["d"] * ((a - self.target) / self.target) ** 2
@@ -347,12 +409,14 @@ class FloorSearch:
             # 2026-11-07: every part of a flat at least 2.4 m across (no necks, arms or appendages the rooms cannot use)
             sl_ = m & ~ndimage.binary_opening(m, np.ones((8, 8), bool))
             c += K["w"] * 75 * float((self.cw * sl_).sum())
-            # not drawn out beyond a 3.8 m x 11.4 m end flat (rooms stacked front to back in a 3.6 m+ strip are square;
-            # 2026-11-07: the earlier 2:1 limit and 4.5 m square pushed the end flats into L shapes with 2.4 m arms)
-            bw, bh = xs_.max() - xs_.min() + 1, ys_.max() - ys_.min() + 1
-            asp = max(bw, bh) / min(bw, bh)
-            if asp > 3.2:
-                c += K["f"] * (asp - 3.2) * 2
+            # the flat's proportion as a Merrell C_d term at floor level (2026-11-11, Leon: do not elongate): log-normal
+            # around the reference flats' frontage : depth (mean 1.13, largest 1.61, refs/), hard past 1.8
+            bw = self.xs[xs_.max() + 1] - self.xs[xs_.min()]
+            bh = self.ys[ys_.max() + 1] - self.ys[ys_.min()]
+            asp = max(bw, bh) / max(1.0, min(bw, bh))
+            c += K["d"] * 0.5 * ((math.log(asp) - math.log(FLAT_ASPECT[0])) / FLAT_ASPECT[1]) ** 2
+            if asp > FLAT_ASPECT[2]:
+                c += K["a"] * 100 * (asp - FLAT_ASPECT[2])
             t = float(dist[adj].min()) if adj.any() else float("inf")
             worst = max(worst, t)
             if t > self.limit:

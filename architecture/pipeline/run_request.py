@@ -5,8 +5,11 @@
     python run_request.py --regenerate <area> <building key> [--storeys 1|2] [--rooms '{"1": {"bedroom": 4}}'] [--style S] [--seed N] [--tries 3]
     python run_request.py --highrise <design id> [--storeys N] [--dwellings 2|4|6] [--gfa m2] [--bedrooms N] [--style S] [--seed N]
     python run_request.py --issue-body body.md [--issue N] --summary summary.md      (.github/workflows/generate-houses.yml)
+    add --open-in-freecad to any of them to open the result in a running FreeCAD (freecad_link.py, the MCP add-on)
 
-The house viewer's World map shows the first two commands, filled in, for the area or building picked on it.
+The house viewer runs these itself when it is served by `npm run app` (app/run-bridge.js: the Regenerate and Request
+generation buttons start this script on this computer and open the result in FreeCAD); a viewer opened anywhere else
+shows the command to copy.
 Requirements (README → Requirements): FreeCAD 1.0, the CGAL roof tools (roofgen/build.sh), numpy, scipy, shapely.
 
 The issue comes from one of the two issue forms (.github/ISSUE_TEMPLATE/generate-area.yml, restyle-building.yml),
@@ -84,6 +87,30 @@ def require():
     if problems: sys.exit("Missing requirements (see README → Requirements):\n  - " + "\n  - ".join(problems))
 
 
+def vkey(aid, k):
+    """The viewer's key for a building (build_viewer.vkey)."""
+    import re                                    # local: FreeCAD's start-up scripts clear names from __main__
+    return re.sub(r"[^A-Za-z0-9_]", "_", f"{aid}__{k}".replace("~", "__"))
+
+
+def house_files(area, key):
+    import os
+    d = os.path.join(ROOT, "areas", area, "deliver", "bim")
+    return [p for p in (os.path.join(d, f"{key}.FCStd"), os.path.join(d, f"{key}.ifc")) if os.path.exists(p)][:1]
+
+
+def finish(result, open_in_freecad):
+    """Print the result line the viewer reads (RESULT {...}) and, if asked, open the model in a running FreeCAD."""
+    import json, os, sys
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    if open_in_freecad and result.get("files"):
+        import freecad_link
+        ok, msg = freecad_link.open_files(result["files"])
+        result["freecad"] = {"opened": ok, "message": msg}
+        print(("Opened in FreeCAD: " if ok else "Not opened in FreeCAD: ") + msg)
+    print("RESULT " + json.dumps(result), flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--issue-body"); ap.add_argument("--issue", default="")
@@ -96,6 +123,7 @@ def main():
     ap.add_argument("--highrise", metavar="ID"); ap.add_argument("--dwellings", type=int)
     ap.add_argument("--gfa", type=int); ap.add_argument("--bedrooms", type=int); ap.add_argument("--bathrooms", type=int)
     ap.add_argument("--summary")
+    ap.add_argument("--open-in-freecad", action="store_true", help="open the result in a running FreeCAD (MCP add-on RPC server)")
     a = ap.parse_args()
     if a.regenerate or a.highrise:
         require()
@@ -106,16 +134,20 @@ def main():
             nk = GA.regenerate(d, key, seed=a.seed, storeys=a.storeys, rooms=a.rooms or None, style=a.style, tries=max(1, a.tries))
             A = json.load(open(os.path.join(d, "area.json"))); h = next(x for x in A["houses"] if x.get("key") == nk)
             line = f"Regenerated **{key}** in **{area}** → `{nk}` (gate: {h.get('gate')})."
+            result = {"key": vkey(area, nk), "files": house_files(area, nk), "gate": h.get("gate")}
         else:
             sys.path.insert(0, os.path.join(ROOT, "highrise"))
             from highrise import generate as HG
             nid = HG.one(a.highrise, storeys=a.storeys, dwellings=a.dwellings, gfa=a.gfa, bedrooms=a.bedrooms,
                          bathrooms=a.bathrooms, seed=a.seed, style=None if a.style in (None, "", "auto") else a.style)
             line = f"Generated high-rise **{nid}** from {a.highrise}."
+            bd = os.path.join(ROOT, "highrise", "buildings", nid)
+            result = {"key": vkey("highrise", nid),
+                      "files": [p for p in (os.path.join(bd, f"{nid}.FCStd"), os.path.join(bd, f"{nid}.ifc")) if os.path.exists(p)][:1]}
         import subprocess as sp                 # FreeCAD's start-up scripts clear names from __main__
         sp.run([PY, os.path.join(ROOT, "build_viewer.py")], check=True, cwd=ROOT)
         if a.summary: open(a.summary, "w").write(line + "\n")
-        print(line); return
+        print(line); finish(result, a.open_in_freecad); return
     if a.issue_body: F = fields(open(a.issue_body).read())
     elif a.restyle: F = {"area": a.restyle[0], "building key": a.restyle[1], "new style": a.restyle[2]}
     elif a.lat is not None and a.lon is not None:
@@ -134,6 +166,7 @@ def main():
         nk = GA.restyle(d, key, style)
         A = json.load(open(os.path.join(d, "area.json"))); h = next(x for x in A["houses"] if x.get("key") == nk)
         lines.append(f"Restyled **{key}** in **{area}** as **{style.replace('_', ' ')}** → `{nk}` (gate: {h.get('gate')}).")
+        result = {"key": vkey(area, nk), "files": house_files(area, nk), "gate": h.get("gate")}
     else:                                                          # area form
         lat = float(get(F, "latitude")); lon = float(get(F, "longitude"))
         blocks = min(2.0, max(1.0, float(get(F, "radius", "blocks", default="1.5").split()[0])))
@@ -156,11 +189,15 @@ def main():
         ok = [h for h in A["houses"] if h.get("gate") == "pass"]
         lines.append(f"Generated **{len(A['houses'])} houses** within {blocks} blocks ({int(r)} m) of {lat:.5f}, {lon:.5f} — "
                      f"{len(ok)} pass the design gate, {len(A['skipped'])} buildings skipped (not houses).")
+        first = next((h for h in A["houses"] if h.get("gate") == "pass"), A["houses"][0] if A["houses"] else None)
+        result = {"key": vkey(aid, first["key"]) if first else None, "files": house_files(aid, first["key"]) if first else [],
+                  "houses": len(A["houses"]), "passed": len(ok)}
         for h in A["houses"]:
             lines.append(f"- {h.get('address') or 'OSM ' + str(h['osm_id'])}: {h.get('style', '').replace('_', ' ')} {h.get('archetype', '').replace('_', ' ')}, gate {h.get('gate')}")
     subprocess.run([PY, os.path.join(ROOT, "build_viewer.py")], check=True, cwd=ROOT)
     if a.summary: open(a.summary, "w").write("\n".join(lines) + "\n")
     print("\n".join(lines))
+    finish(result, a.open_in_freecad)
 
 
 if __name__ == "__main__":

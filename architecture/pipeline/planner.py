@@ -417,7 +417,7 @@ def evaluate(labels, prog, sites, want_detail=False):
                     if sq < R["hard_square"] * I["n"]:
                         T["a"] += 1; T["d"] += 4.0 * (R["hard_square"] * I["n"] - sq) / max(1, I["n"])
                 # −ℓ_as: aspect ratio log-normal around μ_r = 1.35 (σ_r = 0.25 in log space), plus the hard limit
-                T["d"] += 0.5 * ((math.log(asp) - math.log(R.get("aspect_mu", 1.35))) / 0.25) ** 2 * 0.25
+                T["d"] += 0.5 * ((math.log(asp) - math.log(R.get("aspect_mu", 1.35))) / R.get("aspect_sd", 0.25)) ** 2 * R.get("aspect_w", 0.25)
                 T["d"] += 0.5 * (max(0.0, asp - R.get("max_aspect", 2.0)) / 0.5) ** 2
                 ms = R.get("min_side", 2.4) / site["cell"]
                 T["d"] += 3.0 * max(0.0, ms - min(I["bw"], I["bh"])) / ms * 4

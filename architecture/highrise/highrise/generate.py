@@ -28,9 +28,9 @@ DESIGNS = [
     {"id": "hr34-125", "name": "34-storey slab over 100 m, refuge floors, 125 m²", "storeys": 34, "gfa": 125,
      "depth": 12200, "seed": 11},
     # 2026-11-06: one core with 4 or 6 compact flats a floor in the 2-flat footprint, every door on one lobby corridor
-    {"id": "hr18-120-x4", "name": "18-storey slab, one core, 4 compact dwellings per floor in the 120 m² 2-flat footprint", "storeys": 18,
+    {"id": "hr18-120-x4", "name": "18-storey slab, one core, 4 modular dwellings per floor", "storeys": 18,
      "gfa": 120, "depth": 11400, "seed": 13, "dwellings": 4, "floor_restarts": 6, "floor_iters": 14000},
-    {"id": "hr26-190-x6", "name": "26-storey slab, one core, 6 compact dwellings per floor in the 190 m² 2-flat footprint", "storeys": 26,
+    {"id": "hr26-190-x6", "name": "26-storey slab, one core, 6 modular dwellings per floor", "storeys": 26,
      "gfa": 190, "depth": 11400, "seed": 17, "dwellings": 6, "floor_restarts": 6, "floor_iters": 16000},
 ]
 

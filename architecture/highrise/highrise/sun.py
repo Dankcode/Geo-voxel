@@ -50,13 +50,15 @@ def row_boxes(spacing, block_len, block_depth, block_h, gap=13.0, count=5):
     return out
 
 
-def sun_hours(lat, window_xz, boxes, day="major_cold", start=8.0, end=16.0, step_min=1):
-    """Hours of sun at a window (x, z) on the south facade (y = 0) between `start` and `end` true solar time."""
-    p = (window_xz[0], 0.0, window_xz[1])
+def sun_hours(lat, window_xz, boxes, day="major_cold", start=8.0, end=16.0, step_min=1, normal=(0.0, 1.0), y=0.0):
+    """Hours of sun at a window between `start` and `end` true solar time. The window is at (x, y, z) with
+    window_xz = (x, z); by default on the south facade (y = 0, facing +y). normal = (nx, ny) faces it east (1, 0) or
+    west (-1, 0) for a gable window (2026-11-11); the sun counts while it is in front of the window's plane."""
+    p = (window_xz[0], y, window_xz[1])
     n, t = 0, start
     while t < end - 1e-9:
         v = sun_dir(lat, DAYS[day], t + step_min / 120)
-        if v and v[1] > 0 and not any(_hits(p, v, b) for b in boxes):
+        if v and v[0] * normal[0] + v[1] * normal[1] > 0 and not any(_hits(p, v, b) for b in boxes):
             n += 1
         t += step_min / 60
     return n * step_min / 60

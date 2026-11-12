@@ -56,9 +56,18 @@ def plan_dwelling(cfg, priors, req, core, restarts=12, iters=8000, log=print, U=
         elif compact:
             want_south = 1                                             # the end flat: living room south, the rest east/north
         runs = []
+        packed = None
+        if compact and getattr(U, "rect", None):
+            # 2026-11-11: a flat module's rooms are packed as rectangles by a slicing tree (modular.pack)
+            from highrise import modular
+            packed = modular.pack(prog, U, targets, want_south, keep=restarts)
         for k in range(restarts):
             seed_k = f"{cfg['id']}:{len(repairs)}:{k}{tag}"
-            if compact and ROOMS == "houses":
+            if packed is not None:
+                if k >= len(packed):
+                    break
+                st, c = packed[k]
+            elif compact and ROOMS == "houses":
                 # 2026-11-06: a flat of a 4- or 6-flat floor is planned by the houses' room planner (houseplan.py)
                 st, c, _ = houseplan.plan(prog, U, targets, seed_k, want_south=want_south)
             else:
@@ -234,7 +243,7 @@ def assemble(cfg, priors, restarts=12, iters=8000, log=print):
         plan = dw["pick"]["plan"]
         fp = floor_plate(plan, core)
     else:
-        if os.environ.get("HR_FLOOR", "search") == "search":
+        if os.environ.get("HR_FLOOR", "modular") in ("search", "modular"):
             # 2026-11-06: the whole floor in one search, as the houses are planned (floorplan.py): the core moves along
             # the north facade, the corridor and the flats grow around it; the lifts open onto the corridor and only
             # the stair's fire lobby has a door
@@ -242,8 +251,15 @@ def assemble(cfg, priors, restarts=12, iters=8000, log=print):
             X2 = two_flat_width(cfg, core)
             need = (STUDIO_FRONT_CORE + STUDIO_FRONT if k == 3 else STUDIO_FRONT_CORE_MIN) + END_FRONT
             Xh = max(X2, need)
-            layouts = floorplan.plan_floor(cfg, req, Xh, nd, restarts=cfg.get("floor_restarts", 4),
-                                           iters=cfg.get("floor_iters", 14000), log=log, all_runs=True)
+            if os.environ.get("HR_FLOOR", "modular") == "modular":
+                # 2026-11-11: flat modules assembled round the core; the slab's length and depth follow the modules
+                from highrise import modular
+                fl_, finfo_, Xh, D_ = modular.floor(cfg, req, 2 * X2 * cfg["depth"] / 1e6, log=log)
+                cfg = dict(cfg, depth=D_)
+                layouts = [(fl_, finfo_)]
+            else:
+                layouts = floorplan.plan_floor(cfg, req, Xh, nd, restarts=cfg.get("floor_restarts", 4),
+                                               iters=cfg.get("floor_iters", 14000), log=log, all_runs=True)
             # the best floor whose every flat can be planned to pass the gate (else the one with fewest that cannot)
             tried = []
             for li, (fl, finfo) in enumerate(layouts[:3]):
@@ -305,8 +321,10 @@ def assemble(cfg, priors, restarts=12, iters=8000, log=print):
     hours, spacing, need_L = sk["hours"], sk["row_spacing_m"], sk["min_spacing_m"]
     sunrec = {"site": site["name"], "lat": site["lat"], "day": "Major Cold day (Jan 20)" if site["day"] == "major_cold" else "winter solstice",
               "required": site["required_h"], "hours": round(hours, 2), "row_spacing_m": spacing, "min_spacing_m": need_L,
-              "spacing_ratio": round(spacing / req["height_m"], 2), "window": "lowest dwelling, living room",
-              "obstruction": "next row of equal slabs incl. parapet and roof towers, 13 m gaps"}
+              "spacing_ratio": round(spacing / req["height_m"], 2),
+              "window": "lowest dwelling, each flat's best sunny window (south face or gable)",
+              "per_flat": sk.get("per_flat"), "faces": sk.get("faces"),
+              "obstruction": "next row of equal slabs incl. parapet and roof towers, 13 m gaps; the same row's slabs 13 m off each end"}
     floor_info = {"requirements": req, "core": core, "refuge_floors_built": [f["storey"] for f in floors if f["kind"] == "refuge"], "sun": sunrec}
     sc = score_plan(plan, priors, floor_info)
     other_scores = [{"name": nm, "score": score_plan(r["pick"]["plan"], priors, floor_info), "gate_pass": r["gate_pass"],

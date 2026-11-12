@@ -177,6 +177,8 @@ def measure(plan):
     south = [r for r in rooms if T[r] in HABITABLE and "S" in win.get(r, "")]
     m["south_rooms"] = len(south)                          # habitable rooms on the south front
     m["south_habitable"] = sorted(T[r] for r in south)
+    # 2026-11-11: rooms that can take the sun: the south face or a gable (the hours are checked per flat, C7)
+    m["sunny_rooms"] = len([r for r in rooms if T[r] in HABITABLE and any(f in win.get(r, "") for f in "SEW")])
     m["living_south"] = any(T[r] == "LR" for r in south)
     m["master_south"] = any(T[r] == "BRM" for r in south)
 

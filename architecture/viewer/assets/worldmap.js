@@ -417,15 +417,20 @@ function command(req) {
   }
   return `python architecture/pipeline/run_request.py --restyle ${shq(req.area)} ${shq(req.key)} ${req.style}`;
 }
-async function queue(req, msgEl) {
-  await cfgReady;
-  const cmd = command(req);
-  msgEl.innerHTML = `Runs on your computer with FreeCAD (<a href="https://github.com/${esc(CFG.repo)}#requirements" target="_blank" rel="noopener">requirements</a>).
-    In the repository folder, run this, or ask your CLI agent to run it, then reload the viewer:
+// The run bridge (2026-11-12, app/run-bridge.js): under `npm run app` the buttons run the request on this computer and
+// open the result in FreeCAD (its MCP add-on's RPC server); a viewer served anywhere else shows the command to copy.
+let BRIDGE = null;
+const bridgeReady = (async () => {
+  if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return;
+  try { const r = await fetch("/api/run/status", { cache: "no-store" }); if (r.ok) BRIDGE = await r.json(); } catch { }
+})();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function showCommand(cmd, msgEl, lead) {
+  msgEl.innerHTML = `${lead || `Runs on your computer with FreeCAD (<a href="https://github.com/${esc(CFG.repo)}#requirements" target="_blank" rel="noopener">requirements</a>).
+    Open the viewer with <code>npm run app</code> to run it with one click, or run this in the repository folder (or ask your CLI agent to), then reload the viewer:`}
     <code class="cmd" style="display:block;margin:6px 0;padding:6px 8px;font:12px/1.4 var(--mono);white-space:pre-wrap;word-break:break-all;background:rgba(127,127,127,.12);border-radius:4px;user-select:all">${esc(cmd)}</code>
     <button class="wbtn" type="button" data-copy>Copy command</button> <button class="wbtn" type="button" data-close>Close</button>`;
   msgEl.querySelector("[data-close]").onclick = () => { msgEl.innerHTML = ""; };
-  try { msgEl.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch { }
   const b = msgEl.querySelector("[data-copy]");
   b.onclick = async () => {
     try { await navigator.clipboard.writeText(cmd); b.textContent = "Copied"; }
@@ -434,6 +439,55 @@ async function queue(req, msgEl) {
       const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = "Selected — copy it";
     }
   };
+}
+async function runHere(req, cmd, msgEl) {
+  const st = await (await fetch("/api/run/status", { cache: "no-store" })).json().catch(() => BRIDGE);
+  const fc = st?.freecad?.rpc;
+  msgEl.innerHTML = `<b>Running on this computer</b> with FreeCAD (${esc(st?.python || "python")}).
+    ${fc ? "The result opens in FreeCAD when it is done." : `FreeCAD's MCP add-on is not answering, so the model is built and listed here but not opened in FreeCAD
+    (<a href="https://github.com/${esc(CFG.repo)}#freecad-add-on" target="_blank" rel="noopener">set it up</a>).`}
+    <div class="note" data-state style="margin-top:6px">Starting…</div>
+    <pre data-log style="max-height:160px;overflow:auto;margin:6px 0;padding:6px 8px;font:11px/1.35 var(--mono);white-space:pre-wrap;background:rgba(127,127,127,.12);border-radius:4px"></pre>
+    <button class="wbtn" type="button" data-close>Hide</button>`;
+  msgEl.querySelector("[data-close]").onclick = () => { msgEl.innerHTML = ""; };
+  const stateEl = msgEl.querySelector("[data-state]"), logEl = msgEl.querySelector("[data-log]");
+  const r = await fetch("/api/run", { method: "POST", headers: { "Content-Type": "application/json", "X-Run-Token": st?.token || BRIDGE.token },
+    body: JSON.stringify({ request: req, openInFreecad: true }) });
+  const started = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    if (r.status === 409) { stateEl.textContent = "Another request is still running on this computer; wait for it, then press the button again."; return true; }
+    showCommand(cmd, msgEl, `The viewer could not start it (${esc(started.error || r.status)}). Run it yourself in the repository folder:`);
+    return true;
+  }
+  const t0 = Date.now();
+  for (;;) {
+    await sleep(1500);
+    let j; try { j = await (await fetch("/api/run/job", { cache: "no-store" })).json(); } catch { continue; }
+    if (j.id !== started.id) continue;
+    logEl.textContent = j.log.split("\n").slice(-40).join("\n"); logEl.scrollTop = logEl.scrollHeight;
+    const secs = Math.round((Date.now() - t0) / 1000);
+    if (j.state === "running") { stateEl.textContent = `Planning, checking and modelling… ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`; continue; }
+    if (j.state === "done") {
+      const R = j.result || {}, f = R.freecad;
+      stateEl.innerHTML = `<b>Done</b> in ${Math.floor(secs / 60)} min ${secs % 60} s.` +
+        (f ? (f.opened ? " Opened in FreeCAD." : ` Not opened in FreeCAD: ${esc(f.message)}.`) : "") +
+        (R.key ? ` <button class="wbtn primary" type="button" data-show>Show it here</button>` : ` <button class="wbtn" type="button" data-show>Reload the viewer</button>`);
+      msgEl.querySelector("[data-show]").onclick = () => {
+        if (R.key) location.hash = R.key.replace(/_/g, "-");
+        location.reload();
+      };
+    } else {
+      stateEl.innerHTML = `<b>It stopped with an error</b> (the log above has the reason; README → Requirements lists what must be installed).`;
+    }
+    return true;
+  }
+}
+async function queue(req, msgEl) {
+  await cfgReady; await bridgeReady;
+  const cmd = command(req);
+  try { msgEl.scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch { }
+  if (BRIDGE?.ok) return runHere(req, cmd, msgEl);
+  showCommand(cmd, msgEl);
   return true;
 }
 document.getElementById("wm-req").addEventListener("click", async e => {
@@ -599,12 +653,13 @@ async function fillPanel() {
     };
   } else if (e?.hr) {
     const H = e.hr;
-    rg.innerHTML = close + `<p class="note">${esc(e.name)}. One core; with 4 or 6 flats a floor the slab keeps the 2-flat footprint for the flat size, split into compact flats with every door on one lobby corridor from the lifts (6 flats need at least 185 m² so each flat has a south room). The flats are planned again with the
-      house search and checked against the Chinese codes.</p>
+    rg.innerHTML = close + `<p class="note">${esc(e.name)}. One core. With 4 or 6 flats a floor the floor is built from flat modules: a corner
+      flat each side of the core and a row of flats on the south face, every door on one corridor from the lifts; the slab's length follows
+      the modules. Every room is a rectangle within the proportions of the reference plans, checked against the Chinese codes.</p>
       <h4>Building</h4><div class="grid" style="grid-template-columns:1fr 1fr">
       <label>Storeys (7–40)${num("rg-st", H.storeys, 7, 40)}</label>
       <label>Flats per floor<select id="rg-dw">${[2, 4, 6].map(n => `<option ${n === H.dwellings ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-      <label>Flat size (4–6 a floor: footprint of the 2-flat slab), m²${num("rg-gfa", H.gfa, 60, 200)}</label>
+      <label>Flat size (4–6 a floor: sets the floor area), m²${num("rg-gfa", H.gfa, 60, 200)}</label>
       <label>Facade<select id="rg-fa">${HR_STYLES.map(([v, n]) => `<option value="${v}" ${v === H.style ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>
       <h4>Rooms in each flat</h4><div class="grid" style="grid-template-columns:1fr 1fr">
       <label>Bedrooms<select id="rg-bd"><option value="">From the size</option>${[1, 2, 3, 4, 5].map(n => `<option>${n}</option>`).join("")}</select></label>

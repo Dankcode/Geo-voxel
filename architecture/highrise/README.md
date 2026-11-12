@@ -187,3 +187,29 @@ python architecture/pipeline/run_request.py --highrise hr24-140 --storeys 24 --d
 This writes `samples/<id>/` and `buildings/<id>/` (FreeCAD, IFC4, viewer mesh, blueprint), adds the facade variant
 when `--style` is given, and rebuilds the viewer. `--bedrooms` and `--bathrooms` replace the counts the programme
 would sample from the flat size.
+
+## Modular floors of 4 and 6 flats (2026-11-11, `highrise/modular.py`)
+
+Leon: "do not elongate the designs", "make it modular for a realistic interior design using algorithms"; modules at
+both levels, and the footprint follows the modules. `HR_FLOOR=modular` is the default (`search` is the free floor
+search, `fixed` the first corridor layout).
+
+- **Flat modules.** Rectangles from a small catalogue on the 300 mm grid, assembled as Chinese slab floors are: the
+  core on the north face, a straight 1.5 m-clear corridor in front of it from gable to gable, a row of flats on the
+  south face (6.0-7.2 m studio, 8.4-9.0 m one bedroom, 11.4-12.0 m two bedrooms), and a corner flat in each pocket
+  beside the core (north and gable windows). `modular.floor` enumerates the catalogue and keeps the assembly nearest
+  the 2-flat slab's floor area in which every flat is within 1.8 : 1 (reference flats: mean 1.13, largest 1.61) and
+  the walk to the stair is inside the limit; the core slides off centre only when the walk needs it.
+- **Room modules.** Every room is one rectangle. `modular.pack` cuts the flat with a slicing tree (guillotine cuts on
+  the grid, each placed by the rooms' target areas) and keeps only rooms inside their module range: the minimum side,
+  the largest aspect ratio the reference plans show for the type (+10 %: living room 1.52, master bedroom 1.65), a
+  daylit wall where the code asks for one, the entry on the flat door. Candidates are ranked by Merrell's C_d (area
+  and aspect log-likelihood against the reference distributions, `analyze.aspect_model`), then scored by the same
+  `planner.cost` and gate as every other flat.
+- **Sun.** A corner flat takes its sun over the gable. `facade.sun_study` now traces every flat's best window (south
+  or gable, with the same row's neighbours 13 m off) and the worst flat sets the row spacing; G4 accepts a gable room.
+
+| Design | Slab | Flats | Score | Walk | Row spacing |
+|---|---|---|---|---|---|
+| hr18-120-x4 | 22.8 x 13.8 m | 2 corner studios 5.4 x 5.4 m, 2 two-bedroom 11.4 x 6.6 m | 9.53, every flat passes | 9.0 m | 83 m |
+| hr26-190-x6 | 28.8 x 12.6 m | 2 corner one-bedroom (9.0 and 7.8 x 5.4 m), 2 one-bedroom 8.4 x 5.4 m, 2 studios 6.0 x 5.4 m | 8.35, every flat passes | 9.9 m | 115 m |

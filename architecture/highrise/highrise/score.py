@@ -60,7 +60,7 @@ def score_plan(plan, priors, floor=None):
     dark = [r["rid"] for r in dl if not r["win"]]
     q["G3 Direct daylight"] = 1 - len(dark) / max(1, len(dl))
     why["G3 Direct daylight"] = dark
-    q["G4 Sunlight room"] = 1.0 if m["south_rooms"] >= 1 else 0.0
+    q["G4 Sunlight room"] = 1.0 if m.get("sunny_rooms", m["south_rooms"]) >= 1 else 0.0
     # passages (2026-11-06): on the real room shapes, diagonal cuts included (walk.py): a person 0.90 m wide gets
     # through every room and from each door of a room to its others; the entry 1.10 m clear, halls 1.00 m
     from highrise import walk
@@ -134,7 +134,7 @@ def score_plan(plan, priors, floor=None):
         if floor.get("sun"):
             s = floor["sun"]
             q["C7 Winter sunlight hours"] = _clip(s["hours"] / s["required"])
-            why["C7 Winter sunlight hours"] = [f"{s['hours']:.1f} h on {s['day']} at the lowest dwelling's south window, need {s['required']} h"]
+            why["C7 Winter sunlight hours"] = [f"{s['hours']:.1f} h on {s['day']} at the lowest dwelling's worst flat (best window, south or gable), need {s['required']} h"]
 
     # ---- M: the paper's terms
     nl = max(1, len([l for l in plan["links"] if "OUT" not in l and "CORE" not in l]))

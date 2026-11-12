@@ -152,16 +152,26 @@ def test_core_template_forms():
         assert T["lobby_door"] and len(T["stair_doors"]) == 2 and T["W"] % 300 == 0 and T["D"] % 300 == 0
 
 
-def test_four_flats_keep_the_two_flat_footprint():
-    """2026-11-06: 4 flats a floor fit the 2-flat slab of the same flat size and depth, and every flat has a south room."""
-    cfg = {"id": "t-x4", "name": "t", "storeys": 12, "gfa": 120, "depth": 11400, "seed": 13, "dwellings": 4,
-           "floor_restarts": 1, "floor_iters": 4000}
-    b = assemble(cfg, P, restarts=2, iters=1500, log=lambda *a: None)
-    two = assemble(dict(cfg, id="t-x2", dwellings=2), P, restarts=1, iters=500, log=lambda *a: None)
-    xs = lambda fp: [v for rm in fp["rooms"].values() if rm["type"] not in ("BL", "AC") for q in rm["rects"] for v in (q[0], q[2])]
-    assert not b["envelope"]["widened"] and max(xs(b["floor_plate"])) <= max(xs(two["floor_plate"]))
+def test_four_flats_are_modular():
+    """2026-11-11: 4 flats a floor are flat modules round the core (the footprint follows them): every flat a
+    rectangle no longer than 1.8 : 1, every room one rectangle, every flat with a room that can take the sun."""
+    cfg = {"id": "t-x4", "name": "t", "storeys": 12, "gfa": 120, "depth": 11400, "seed": 13, "dwellings": 4}
+    b = assemble(cfg, P, restarts=4, iters=1500, log=lambda *a: None)
+    fp = b["floor_plate"]
+    flats = {}
+    for rid, rm in fp["rooms"].items():
+        if "." in rid and not rid.startswith("core.") and rm["type"] not in ("BL", "AC"):
+            assert len(rm["rects"]) == 1 and not rm.get("add") and not rm.get("sub"), rid
+            flats.setdefault(rid.split(".")[0], []).append(rm["rects"][0])
+    assert len(flats) == 4
+    for tag, qs in flats.items():
+        w = max(q[2] for q in qs) - min(q[0] for q in qs)
+        h = max(q[3] for q in qs) - min(q[1] for q in qs)
+        assert abs(sum((q[2] - q[0]) * (q[3] - q[1]) for q in qs) - w * h) < 1, tag     # the rooms fill a rectangle
+        assert max(w, h) / min(w, h) <= 1.8 + 1e-9, tag
     for sc in [b["score"]] + [o["score"] for o in b["other_flats"]]:
-        assert sc["measure"]["south_rooms"] >= 1
+        assert sc["measure"]["sunny_rooms"] >= 1
+        assert all(v == 1 for k, v in sc["checks"].items() if k.startswith("G"))
 
 
 def test_bedroom_count_override():

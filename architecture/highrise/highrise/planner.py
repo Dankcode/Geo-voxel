@@ -33,6 +33,22 @@ EPS = 300                 # 3M modulus (GB/T 50002): walls snap to 300 mm, moves
 SIGMA = 2 * EPS
 PROPORTION = {"LR": (2.2, 3000), "DR": (2.0, 2400), "KT": (3.0, 1800), "BRM": (2.0, 2900), "BR": (2.2, 2400),
               "ST": (2.2, 2100)}           # (max aspect of the bounding box, min side mm) for compact flats' rooms
+
+
+_PROP_CACHE = []
+
+
+def _PROP():
+    if not _PROP_CACHE:
+        _PROP_CACHE.append(_proportion())
+    return _PROP_CACHE[0]
+
+
+def _proportion():
+    """PROPORTION with each aspect limit tightened to the reference plans' largest (+10 %), analyze.aspect_model."""
+    from highrise.analyze import aspect_model
+    am = aspect_model()
+    return {t: (min(a, am[t][2]) if t in am else a, s_) for t, (a, s_) in PROPORTION.items()}
 BAND_OK = {               # which band each room type may sit in (from the references)
     "LR": "S", "BRM": "S", "BR": "NS", "ST": "NS", "KT": "N", "NA": "N",
     "BA": "NM", "BAM": "M", "CL": "M", "DR": "M", "EN": "M", "HL": "M", "SR": "M",
@@ -301,12 +317,14 @@ def cost(st, U, T, targets, want_south, detail=False):
         if t in ("LR", "BRM", "BR", "ST", "KT") and max(ext[r].values()) < 1200:
             Ca += 1; why.append(f"daylight {t}")
         # (2026-11-06: the living room no longer has to face south: a balcony only where it does, compile.py)
-    if not any(ext[r]["S"] >= 2400 for r, t in T.items() if t in ("LR", "BRM", "BR", "ST")):
+    # the south face, or the gable of an end flat (2026-11-11: GB 50180 counts the hours a window gets, not its
+    # orientation; the sun study checks each flat's window, facade.sun_study)
+    if not any(max(ext[r]["S"], ext[r]["E"]) >= 2400 for r, t in T.items() if t in ("LR", "BRM", "BR", "ST")):
         Ca += 1; why.append("sun")                                 # GB 50096 7.1.1: one habitable room in the sun
     if getattr(U, "compact", False):
         # 2026-11-06 (Leon: rooms were elongated): proportions of a 4/6-flat floor's rooms, as houseplan.KIND asks
         for r, rs in R.items():
-            lim = PROPORTION.get(T[r])
+            lim = _PROP().get(T[r])
             if not lim or not rs:
                 continue
             bw = max(q[2] for q in rs) - min(q[0] for q in rs); bh = max(q[3] for q in rs) - min(q[1] for q in rs)

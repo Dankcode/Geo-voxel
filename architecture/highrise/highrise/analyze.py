@@ -108,3 +108,23 @@ def main(outdir="reference"):
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
+
+
+_ASPECT = None
+
+
+def aspect_model():
+    """Room aspect ratios of the Chinese reference plans, per type -> {type: (mean, log-sd, hard limit)}.
+
+    Merrell 2010 §5.2 C_d: each room's aspect is scored by its log-likelihood under the distribution the program model
+    gives; here that distribution comes from the reference plans (refs/). The hard limit is the largest aspect seen
+    for the type plus 10 % (living room 1.38 -> 1.52, master bedroom 1.5 -> 1.65), so no plan draws a room out further
+    than a real one does (Leon, 2026-11-11: do not elongate the designs)."""
+    global _ASPECT
+    if _ASPECT is None:
+        R = stats()["rooms"]
+        _ASPECT = {}
+        for t, v in R.items():
+            a = v["aspect"]
+            _ASPECT[t] = (a["mean"], max(0.12, a["sd"] / a["mean"]), round(max(1.3, a["max"] * 1.1), 2))
+    return _ASPECT

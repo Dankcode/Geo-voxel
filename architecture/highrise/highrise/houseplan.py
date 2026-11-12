@@ -16,6 +16,7 @@ import math
 import os
 
 import numpy as np
+from highrise.analyze import aspect_model
 
 from highrise.lattice import HP, room_rects
 
@@ -52,6 +53,9 @@ def _hard_area(t):
     return round(mn * 1.15 + 0.45, 2) if mn else None
 
 
+ASPECT_TYPES = ("LR", "DR", "KT", "BRM", "BR", "ST", "BA", "BAM")
+
+
 def programme(prog, targets):
     """The high-rise room list [(rid, type)] and axis-area targets -> the houses' programme (rooms, Merrell edges)."""
     T = dict(prog)
@@ -61,6 +65,13 @@ def programme(prog, targets):
         r = {"id": len(rooms), "kind": kind, "storey": 0, "tier": tier, "hr": rid, **FLAGS.get(kind, {}), **kw}
         if _hard_area(t):
             r["hard_area"] = _hard_area(t)
+        am = aspect_model().get(t)
+        if am and t in ASPECT_TYPES:
+            # Merrell C_d (−ℓ_as) with the reference plans' aspect distribution, at full weight, and their largest
+            # aspect (+10 %) as a hard limit (2026-11-11)
+            r["aspect_mu"], r["aspect_sd"], r["aspect_w"] = am[0], am[1], 1.0
+            r["hard_aspect"] = min(r.get("hard_aspect", 9.0), am[2])
+            r["max_aspect"] = min(r.get("max_aspect", 9.0), am[2])
         if t in ("LR", "BRM", "BR", "ST") and r.get("hard_min_side"):
             r["hard_square"] = 0.7 if t == "LR" else 0.8               # planner.cost's square test, on the cell grid
         if t != "HL":
@@ -164,6 +175,7 @@ def site(U):
                 light[j, i, 1] = True
     s = HP.finish_site(mask, CELL / 1000, None, carve=False, entry_edges=entry, light_edges=light)
     sun = np.zeros_like(light); sun[..., 2] = light[..., 2]          # the south facade
+    sun[..., 1] = light[..., 1]                                       # and an end flat's gable (2026-11-11)
     s["sun"] = sun
     # cell edges against a lift shaft (in the flat's frame): no bed behind them
     lift = np.zeros_like(light)

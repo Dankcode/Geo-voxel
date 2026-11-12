@@ -512,35 +512,78 @@ def _crown_obstruction(b, env, st):
     return boxes
 
 
+def sun_windows(fp):
+    """Each flat's candidate sunny windows on the floor plate: {flat: [(room, face, x_mm, y_mm)]}, a habitable room's
+    run on the south face or on a gable (2026-11-11: an end flat may take its sun on the gable)."""
+    rects = [q for rm in fp["rooms"].values() if rm["type"] not in ("BL", "AC") for q in rm["rects"]]
+    X0, X1 = min(q[0] for q in rects), max(q[2] for q in rects)
+    Y1 = max(q[3] for q in rects)
+    out = {}
+    for rid, rm in fp["rooms"].items():
+        if "." not in rid or rid.startswith("core.") or rm["type"] not in ("LR", "BRM", "BR", "ST"):
+            continue
+        tag = rid.split(".")[0]
+        for q in rm["rects"]:
+            if q[3] == Y1 and q[2] - q[0] >= 1200:
+                out.setdefault(tag, []).append((rid, "S", (q[0] + q[2]) / 2, Y1))
+            if q[2] == X1 and q[3] - q[1] >= 1200:
+                out.setdefault(tag, []).append((rid, "E", X1, (q[1] + q[3]) / 2))
+            if q[0] == X0 and q[3] - q[1] >= 1200:
+                out.setdefault(tag, []).append((rid, "W", X0, (q[1] + q[3]) / 2))
+    return out, (X0, X1, Y1)
+
+
 def sun_study(b, st, site, spacing=None):
-    """Sun hours at the lowest living-room window, with the block to the south modelled as it is built: the slab, its
-    parapet, the stair and lift towers and the style's crown (rule F4). b needs floor_plate, floors, requirements and
-    roof. With spacing=None the row spacing is set to the smallest whole metre that meets the requirement."""
+    """Sun hours at every flat's best sunny window on the lowest dwelling floor, with the block to the south modelled
+    as it is built (the slab, its parapet, the stair and lift towers and the style's crown, rule F4) and, for gable
+    windows, the neighbouring slabs of the same row 13 m off (GB 50016 Table 5.2.2). The worst flat sets the row
+    spacing; with spacing=None it is the smallest whole metre that meets the requirement. b needs floor_plate,
+    floors, requirements and roof.
+
+    2026-11-11: every flat, not one living room, and gable windows as well as south ones (GB 50180 4.0.9 counts a
+    dwelling's hours, not its orientation)."""
     from highrise import sun
     env = envelope(b)
     req = b["requirements"]
     X0, Y0, X1, Y1 = env["bbox"]
     L = (X1 - X0) / 1000
-    lrs = [(rid, rm) for rid, rm in b["floor_plate"]["rooms"].items() if rm["type"] == "LR"]
-    lr = next((rm for rid, rm in lrs if rid.startswith("E.")), None) or lrs[0][1]
-    q = lr["rects"][0]
+    xm = (X0 + X1) / 2000
     first = next(f for f in b["floors"] if f["kind"] == "typical")
-    win = ((q[0] + q[2]) / 2000, first["level_m"] + 0.9)
+    z = first["level_m"] + 0.9
+    wins, (_, _, Yw) = sun_windows(b["floor_plate"])
+    if not wins:                                            # no flat tags (older plates): the first living room
+        lr = next(rm for rm in b["floor_plate"]["rooms"].values() if rm["type"] == "LR")
+        q = lr["rects"][0]
+        wins = {"A": [("lr", "S", (q[0] + q[2]) / 2, Yw)]}
     depth = (max([p["rect"][3] for p in env["proj"]] + [Y1]) - Y0) / 1000
     roof_z = req["height_m"]
     extra = _crown_obstruction(b, env, st)
+    top = max(z1 for *_, z1 in extra)
     day = site.get("day", "major_cold")
+    dy_own = (Yw - Y0) / 1000                              # own row: north face to the south wall
 
     def boxes(sp):
         out = sun.row_boxes(sp, L, depth, roof_z)
         for k in range(-2, 3):
             dx = k * (L + 13.0)
             for x0, y0, x1, y1, z0, z1 in extra:
-                out.append(((dx + x0 / 1000, sp + (y0 - Y0) / 1000, roof_z + z0 / 1000),
-                            (dx + x1 / 1000, sp + (y1 - Y0) / 1000, roof_z + z1 / 1000)))
+                out.append(((dx + x0 / 1000 - xm, sp + (y0 - Y0) / 1000, roof_z + z0 / 1000),
+                            (dx + x1 / 1000 - xm, sp + (y1 - Y0) / 1000, roof_z + z1 / 1000)))
+        for k in (-1, 1):                                   # the same row, 13 m off each end
+            x0 = k * (L + 13.0) - L / 2
+            out.append(((x0, -dy_own, 0.0), (x0 + L, depth - dy_own, roof_z + top / 1000)))
         return out
 
-    hrs = lambda sp: sun.sun_hours(site["lat"], win, boxes(sp), day)
+    N = {"S": (0.0, 1.0), "E": (1.0, 0.0), "W": (-1.0, 0.0)}
+
+    def flat_hours(sp, ws):
+        bx = boxes(sp)
+        return max(sun.sun_hours(site["lat"], (x / 1000 - xm, z), bx, day, normal=N[f], y=(y - Yw) / 1000)
+                   for _, f, x, y in ws)
+
+    def hrs(sp):
+        return min(flat_hours(sp, ws) for ws in wins.values())
+
     lo, hi = 1.0, 6 * (roof_z + 15)
     need = None
     if hrs(hi) >= site["required_h"]:
@@ -552,10 +595,11 @@ def sun_study(b, st, site, spacing=None):
                 lo = mid
         need = round(hi, 1)
     sp = spacing or (int(need) + 1 if need else round(hi))
-    hours = hrs(sp)
-    top = max(z1 for *_, z1 in extra)
+    per = {tag: round(flat_hours(sp, ws), 2) for tag, ws in sorted(wins.items())}
+    hours = min(per.values())
     return {"row_spacing_m": sp, "hours": round(hours, 2), "required": site["required_h"], "min_spacing_m": need,
-            "top_above_roof_m": round(top / 1000, 2), "pass": hours >= site["required_h"] - 1e-9}
+            "top_above_roof_m": round(top / 1000, 2), "pass": hours >= site["required_h"] - 1e-9, "per_flat": per,
+            "faces": {tag: sorted({f for _, f, _, _ in ws}) for tag, ws in wins.items()}}
 
 
 def sun_check(b, env, st, spacing=None):
